@@ -1,0 +1,127 @@
+MODULE JACSTR
+  USE PARAMS
+  IMPLICIT NONE
+
+  INTEGER, PARAMETER :: JSMLEN = 6
+  INTEGER, PARAMETER :: JSROWC = 0
+  INTEGER, PARAMETER :: JSCOLC = 1
+  INTEGER, PARAMETER :: JSMENC = 2
+  INTEGER, PARAMETER :: JSMEWC = 3
+  INTEGER, PARAMETER :: JSMMNC = 4
+  INTEGER, PARAMETER :: JSMMWC = 5
+
+  INTERFACE
+     PURE SUBROUTINE JSTRAT_INIT(JS, ID, N, INFO) BIND(C,NAME='jstrat_init_f')
+       IMPLICIT NONE
+       INTEGER, INTENT(IN) :: ID, N
+       INTEGER, INTENT(OUT) :: JS(*), INFO
+     END SUBROUTINE JSTRAT_INIT
+  END INTERFACE
+
+  INTERFACE
+     PURE SUBROUTINE JSTRAT_NEXT_NC(JS, ARR, INFO) BIND(C,NAME='jstrat_next_f')
+       IMPLICIT NONE
+       INTEGER, INTENT(INOUT) :: JS(*)
+       INTEGER, INTENT(OUT) :: ARR(2,*), INFO
+     END SUBROUTINE JSTRAT_NEXT_NC
+  END INTERFACE
+
+  INTERFACE
+     PURE SUBROUTINE JSTRAT_NEXT_WC(JS, ARR, INFO) BIND(C,NAME='jstrat_next_f')
+       IMPLICIT NONE
+       INTEGER, INTENT(INOUT) :: JS(*)
+       INTEGER, INTENT(OUT) :: ARR(2,2,*), INFO
+     END SUBROUTINE JSTRAT_NEXT_WC
+  END INTERFACE
+
+CONTAINS
+
+  PURE SUBROUTINE JSTRAT_UNPACK_NC(JS, ARR, PAIR, INFO)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: JS(JSMLEN), ARR(2,*)
+    INTEGER, INTENT(OUT) :: PAIR(2,*)
+    INTEGER, INTENT(INOUT) :: INFO
+
+    INTEGER :: J, L
+    INTEGER(c_int) :: C(2)
+    EQUIVALENCE (L,C)
+
+    SELECT CASE (JS(1))
+    CASE (JSROWC, JSCOLC)
+       IF (INFO .NE. 1) THEN
+          INFO = -2
+       ELSE
+          PAIR(1,1) = ARR(1,1) + 1
+          PAIR(2,1) = ARR(2,1) + 1
+       END IF
+    CASE (JSMENC)
+       IF (INFO .NE. (JS(2) / 2)) THEN
+          INFO = -2
+       ELSE
+          DO J = 1, INFO
+             PAIR(1,J) = ARR(1,J) + 1
+             PAIR(2,J) = ARR(2,J) + 1
+          END DO
+       END IF
+    CASE (JSMMNC)
+       IF (INFO .NE. -(JS(2) / 2)) THEN
+          INFO = -2
+       ELSE
+          INFO = -INFO
+          DO J = 1, INFO
+             L = ARR(1,J)
+             PAIR(1,J) = C(1) + 1
+             L = ARR(2,J)
+             PAIR(2,J) = C(1) + 1
+          END DO
+       END IF
+    CASE DEFAULT
+       INFO = -1
+    END SELECT
+  END SUBROUTINE JSTRAT_UNPACK_NC
+
+  PURE SUBROUTINE JSTRAT_UNPACK_WC(JS, ARR, PAIR, COMM, INFO)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: JS(JSMLEN), ARR(2,2,*)
+    INTEGER, INTENT(OUT) :: PAIR(2,*), COMM(2,*)
+    INTEGER, INTENT(INOUT) :: INFO
+
+    INTEGER :: K, L
+    INTEGER(c_int) :: C(2)
+    EQUIVALENCE (L,C)
+
+    SELECT CASE (JS(1))
+    CASE (JSMEWC)
+       IF (INFO .NE. (JS(2) / 2)) THEN
+          INFO = -2
+       ELSE
+          DO K = 1, INFO
+             PAIR(1,K) = ARR(1,1,K) + 1
+             PAIR(2,K) = ARR(2,1,K) + 1
+             COMM(1,K) = ARR(1,2,K)
+             COMM(2,K) = ARR(2,2,K)
+          END DO
+       END IF
+    CASE (JSMMWC)
+       IF (INFO .NE. -(JS(2) / 2)) THEN
+          INFO = -2
+       ELSE
+          INFO = -INFO
+          DO K = 1, INFO
+             L = ARR(1,1,K)
+             PAIR(1,K) = C(1) + 1
+             L = ARR(2,1,K)
+             PAIR(2,K) = C(1) + 1
+             L = ARR(1,2,K)
+             COMM(1,K) = C(1)
+             L = ARR(2,2,K)
+             COMM(2,K) = C(1)
+          END DO
+       END IF
+    CASE DEFAULT
+       INFO = -1
+    END SELECT
+  END SUBROUTINE JSTRAT_UNPACK_WC
+END MODULE JACSTR

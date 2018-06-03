@@ -1,0 +1,38 @@
+! TGT_F = J SRC_F
+#ifndef MKL_NEST_SEQ
+SUBROUTINE ZJSCL(M,N, JF,LDF, J,JNSTIX,JNLENS,JNBLKS, TPC)
+#else
+SUBROUTINE ZJSCL(M,N, JF,LDF, J,JNSTIX,JNLENS,JNBLKS)
+#endif
+  IMPLICIT NONE
+
+  INTEGER, INTENT(IN) :: M,N, LDF, J(M),JNBLKS,JNSTIX(JNBLKS),JNLENS(JNBLKS)
+#ifndef MKL_NEST_SEQ
+  INTEGER, INTENT(IN) :: TPC
+#endif
+  DOUBLE COMPLEX, INTENT(INOUT) :: JF(LDF,N)
+
+  INTEGER :: I,I1,I2, K
+
+#ifndef MKL_NEST_SEQ
+  !$OMP PARALLEL DO DEFAULT(NONE) SHARED(M,N,JF,J,JNSTIX,JNLENS,JNBLKS) PRIVATE(I,I1,I2,K) NUM_THREADS(TPC) PROC_BIND(CLOSE)
+#endif
+  DO K = 1, N
+     DO I1 = 1, JNBLKS
+        I2 = JNSTIX(I1) + JNLENS(I1) - 1
+        DO I = JNSTIX(I1), I2
+           ! IF (J(I) .EQ. -1) THEN
+           !    JF(I,K) = -JF(I,K)
+           ! ELSE IF (J(I) .EQ. 0) THEN
+           !    JF(I,K) = Z_ZERO
+           ! ELSE
+           !    JF(I,K) = J(I) * JF(I,K)
+           ! END IF
+           JF(I,K) = -JF(I,K)
+        END DO
+     END DO
+  END DO
+#ifndef MKL_NEST_SEQ
+  !$OMP END PARALLEL DO
+#endif
+END SUBROUTINE ZJSCL

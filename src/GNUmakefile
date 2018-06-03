@@ -1,0 +1,97 @@
+ifeq ($(CPU),x64) # Xeon / Intel Fortran
+include x64.mk
+MKFS=GNUmakefile x64.mk
+else ifeq ($(CPU),x100) # Knights Corner / Intel Fortran
+include x100.mk
+MKFS=GNUmakefile x100.mk
+else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran
+include x200.mk
+MKFS=GNUmakefile x200.mk
+else # !CPU
+CPU=x86_64 # GNU Fortran
+include gnu.mk
+MKFS=GNUmakefile gnu.mk
+endif # ?CPU
+
+.PHONY: all help clean PHASE0 PHASE1 PHASE2 PHASE3 PHASE4 SHARED TEST
+
+all: PHASE0 PHASE1 PHASE2 PHASE3 PHASE4 SHARED TEST
+
+help:
+	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+
+PHASE0: SHARED $(MKFS)
+ifdef NDEBUG
+	pushd phase0 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd phase0 && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+PHASE1: SHARED $(MKFS)
+ifdef NDEBUG
+	pushd phase1 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd phase1 && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+PHASE2: SHARED $(MKFS)
+ifdef NDEBUG
+	pushd phase2 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd phase2 && $(MAKE) CPU=$(CPU) NEST=$(NEST) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+PHASE3: SHARED $(MKFS)
+ifdef NDEBUG
+	pushd phase3 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd phase3 && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+PHASE4: SHARED $(MKFS)
+ifdef NDEBUG
+	pushd phase4 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd phase4 && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+SHARED: $(MKFS)
+ifdef NDEBUG
+	pushd shared && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd shared && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+TEST: SHARED $(MKFS)
+ifdef NDEBUG
+	pushd test && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
+else # DEBUG
+	pushd test && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
+endif # ?NDEBUG
+
+clean:
+ifdef NDEBUG
+	pushd test && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+	pushd shared && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+	pushd phase4 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+	pushd phase3 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+	pushd phase2 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+	pushd phase1 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+	pushd phase0 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) clean && popd
+else # DEBUG
+	pushd test && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+	pushd shared && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+	pushd phase4 && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+	pushd phase3 && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+	pushd phase2 && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+	pushd phase1 && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+	pushd phase0 && $(MAKE) CPU=$(CPU) NEST=$(NEST) clean && popd
+endif # ?NDEBUG
+	-$(RM) *.exe
+	-$(RM) *.mod
+	-$(RM) *.o
+	-$(RM) *.a
+	-$(RM) *.optrpt
+	-$(RM) *__genmod.f90
+	-$(RM) *__genmod.mod
+	-$(RM) *.dSYM

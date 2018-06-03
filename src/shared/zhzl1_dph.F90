@@ -1,0 +1,92 @@
+  ! H
+
+  RE_H_PP(PIX) = D_ZERO
+  RE_H_QQ(PIX) = D_ZERO
+  RE_H_PQ(PIX) = D_ZERO
+  IM_H_PQ(PIX) = D_ZERO
+
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  DTMP1 = D_ZERO ! RE_H_PP
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  DTMP2 = D_ZERO ! RE_H_QQ
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  DTMP3 = D_ZERO ! RE_H_PQ
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  DTMP4 = D_ZERO ! IM_H_PQ
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  ZTMP1 = Z_ZERO ! ZP
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  ZTMP2 = Z_ZERO ! ZQ
+
+  DO I = 1, NPLUS, DSIMDL
+     L = MIN(DSIMDL, NPLUS-(I-1))
+     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     DO J = 1, L
+        ZTMP1(J) = BH(I+(J-1),P)
+        ZTMP2(J) = BH(I+(J-1),Q)
+        DTMP1(J) = DTMP1(J) + (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J))) !DBLE(DCONJG(ZTMP1(J))*ZTMP1(J))
+        DTMP2(J) = DTMP2(J) + (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J))) !DBLE(DCONJG(ZTMP2(J))*ZTMP2(J))
+        ! += DCONJG(ZTMP1(J)) * ZTMP2(J)
+        DTMP3(J) = DTMP3(J) + (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
+        DTMP4(J) = DTMP4(J) + (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
+     END DO
+  END DO
+
+  DO I = NPLUS+1, K, DSIMDL
+     L = MIN(DSIMDL, K-(I-1))
+     !DIR$ VECTOR ALWAYS ASSERT
+     DO J = 1, L
+        ZTMP1(J) = BH(I+(J-1),P)
+        ZTMP2(J) = BH(I+(J-1),Q)
+        DTMP1(J) = DTMP1(J) - (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J))) !DBLE(DCONJG(ZTMP1(J))*ZTMP1(J))
+        DTMP2(J) = DTMP2(J) - (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J))) !DBLE(DCONJG(ZTMP2(J))*ZTMP2(J))
+        ! -= DCONJG(ZTMP1(J)) * ZTMP2(J)
+        DTMP3(J) = DTMP3(J) - (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
+        DTMP4(J) = DTMP4(J) - (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
+     END DO
+  END DO
+
+  RE_H_PP(PIX) = SUM(DTMP1)
+  RE_H_QQ(PIX) = SUM(DTMP2)
+  RE_H_PQ(PIX) = SUM(DTMP3)
+  IM_H_PQ(PIX) = SUM(DTMP4)
+
+  IF (RE_H_PP(PIX) .NE. RE_H_PP(PIX)) THEN
+     ! NaN
+     STOP 'ZHZL1: NaN(H_pp)'
+  ELSE IF (RE_H_PP(PIX) .EQ. D_ZERO) THEN
+     ! should never happen
+     STOP 'ZHZL1: H_pp .EQ. 0'
+  ELSE IF (RE_H_PP(PIX) .GT. HUGE(D_ZERO)) THEN
+     ! overflow
+     ! A joint prescaling of BH and BS needed...
+     STOP 'ZHZL1: Infinity(H_pp)'
+  END IF
+
+  IF (RE_H_QQ(PIX) .NE. RE_H_QQ(PIX)) THEN
+     ! NaN
+     STOP 'ZHZL1: NaN(H_qq)'
+  ELSE IF (RE_H_QQ(PIX) .EQ. D_ZERO) THEN
+     ! should never happen
+     STOP 'ZHZL1: H_qq .EQ. 0'
+  ELSE IF (RE_H_QQ(PIX) .GT. HUGE(D_ZERO)) THEN
+     ! overflow
+     ! A joint prescaling of BH and BS needed...
+     STOP 'ZHZL1: Infinity(H_qq)'
+  END IF
+
+  IF (RE_H_PQ(PIX) .NE. RE_H_PQ(PIX)) THEN
+     ! NaN
+     STOP 'ZHZL1: NaN(Re(H_pq))'
+  ELSE IF (ABS(RE_H_PQ(PIX)) .GT. HUGE(D_ZERO)) THEN
+     ! overflow
+     STOP 'ZHZL1: Infinity(|Re(H_pq)|)'
+  END IF
+
+  IF (IM_H_PQ(PIX) .NE. IM_H_PQ(PIX)) THEN
+     ! NaN
+     STOP 'ZHZL1: NaN(Im(H_pq))'
+  ELSE IF (ABS(IM_H_PQ(PIX)) .GT. HUGE(D_ZERO)) THEN
+     ! overflow
+     STOP 'ZHZL1: Infinity(|Im(H_pq)|)'
+  END IF

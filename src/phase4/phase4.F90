@@ -1,0 +1,108 @@
+PROGRAM PHASE4
+  USE BINIO
+  USE BLAS_UTILS
+  USE TIMER
+  IMPLICIT NONE
+
+  DOUBLE COMPLEX, ALLOCATABLE, TARGET :: Z(:,:)
+  DOUBLE COMPLEX, ALLOCATABLE :: X(:,:)
+  INTEGER, ALLOCATABLE :: IPIV(:), JPIV(:)
+
+  CHARACTER(LEN=252) :: FN
+  DOUBLE PRECISION :: SCAL
+  INTEGER :: G, LDA, INFO
+  INTEGER :: FD, SZ, I, J, T
+
+  EXTERNAL :: ZGETC2, ZGESC2
+
+  J = COMMAND_ARGUMENT_COUNT()
+  IF (J .NE. 1) STOP 'phase4.exe FN'
+  CALL GET_COMMAND_ARGUMENT(1, FN)
+
+  CALL BOPEN_Z_RO(FN, SZ, FD)
+  IF ((SZ .LE. 0) .OR. (FD .LT. 0)) THEN
+     WRITE (ULOG,'(A,I2)'), 'SZ=', SZ
+     WRITE (ULOG,'(A,I2)'), 'FD=', FD
+     STOP 'BOPEN_Z_RO'
+  END IF
+  J = MOD(SZ, C_SIZEOF(Z_ZERO))
+  IF (J .NE. 0) THEN
+     WRITE (ULOG,'(A,I20)') 'Not a double complex matrix with SZ=', SZ
+     STOP 'BOPEN_Z_RO'
+  END IF
+
+  G = NINT(SQRT(DBLE(SZ / C_SIZEOF(Z_ZERO))))
+  J = G * G * C_SIZEOF(Z_ZERO)
+  IF (J .NE. SZ) THEN
+     WRITE (ULOG,'(A,I20)') 'Not a square matrix with SZ=', SZ
+     STOP 'BOPEN_Z_RO'
+  END IF
+  LDA = G
+
+  ALLOCATE(Z(LDA,G))
+  CALL BREAD_Z(FD, Z, G, SZ, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I20)') 'SZ=', SZ
+     STOP 'BREAD_Z'
+  END IF
+  CALL BCLOSE(FD)
+
+  ALLOCATE(X(LDA,G))
+  ALLOCATE(IPIV(G))
+  ALLOCATE(JPIV(G))
+  J = BLAS_PREPARE()
+
+  T = GET_THREAD_NS()
+  CALL ZGETC2(G, Z, LDA, IPIV, JPIV, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I6)'), 'INFO=', INFO
+     STOP 'ZGETC2'
+  END IF
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(A,F11.6,A)') 'P*L*U*Q=Z computed in ', (T * DNS2S), ' s.'
+ 
+  T = GET_THREAD_NS()
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J,SCAL) PROC_BIND(SPREAD)
+  DO J = 1, G
+     !DIR$ VECTOR ALWAYS
+     DO I = 1, J-1
+        X(I,J) = Z_ZERO
+     END DO
+     X(J,J) = Z_ONE
+     !DIR$ VECTOR ALWAYS
+     DO I = J+1, G
+        X(I,J) = Z_ZERO
+     END DO
+     SCAL = D_ONE
+     CALL ZGESC2(G, Z, LDA, X(1,J), IPIV, JPIV, SCAL)
+     IF (SCAL .EQ. D_ZERO) THEN
+        WRITE (ULOG,'(A,I6)') 'SCALE=0 with J=', J
+        STOP 'ZGESC2'
+     END IF
+     IF (SCAL .NE. D_ONE) THEN
+        WRITE (ULOG,'(A,I6)') 'SCALE non-unity with J=', J
+        !DIR$ VECTOR ALWAYS
+        DO I = 1, G
+           X(I,J) = X(I,J) / SCAL
+        END DO
+     END IF
+  END DO
+  !$OMP END PARALLEL DO
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(A,F11.6,A)') 'ZZ=Z^{-1} computed in ', (T * DNS2S), ' s.'
+
+  IF (ALLOCATED(JPIV)) DEALLOCATE(JPIV)
+  IF (ALLOCATED(IPIV)) DEALLOCATE(IPIV)
+
+  CALL BOPEN_ZZ_RW(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_ZZ_RW'
+  CALL BWRITE_ZZ(FD, X, G, 1, G, INFO)
+  IF (INFO .NE. SZ) THEN
+     WRITE (ULOG,'(2(A,I20))') 'INFO=', INFO, ', SZ=', SZ
+     STOP 'BWRITE_ZZ'
+  END IF
+  CALL BCLOSE(FD)
+
+  IF (ALLOCATED(X)) DEALLOCATE(X)
+  IF (ALLOCATED(Z)) DEALLOCATE(Z)
+END PROGRAM PHASE4

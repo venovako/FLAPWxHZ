@@ -1,0 +1,289 @@
+PROGRAM ERR_TEST
+  USE BINIO
+  USE OMP_LIB
+  IMPLICIT NONE
+
+#ifdef USE_INTEL
+  INTEGER, PARAMETER :: WP = 16
+#else
+  INTEGER, PARAMETER :: WP = 10
+#endif
+
+  REAL(WP), PARAMETER :: Q_ZERO = 0.0E0_WP
+
+  DOUBLE COMPLEX, ALLOCATABLE, TARGET :: YW(:,:)
+  DOUBLE PRECISION, ALLOCATABLE, TARGET :: S(:)
+  COMPLEX(WP), ALLOCATABLE :: xY(:,:), xW(:,:), xU(:,:), xV(:,:), xZ(:,:)
+  REAL(WP), ALLOCATABLE :: xA(:)
+
+  CHARACTER(LEN=252) :: FN
+  INTEGER :: L, a, G, T
+  INTEGER :: FD, SZ, INFO
+  INTEGER :: M, I, J, K
+  REAL(WP) :: ANF,YNF, BNF,WNF
+
+  CALL READCL(FN, L, a, G, T, INFO)
+  IF (INFO .NE. 0) STOP 'READCL'
+
+  M = 2 * L * a
+  ALLOCATE(YW(M,G))
+
+  ! Read: Y,YU,SY, W,WV,SW, ZZ
+  CALL BOPEN_Y_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_Y_RO'
+  CALL BREAD_Y(FD, YW, L, a, 1, G, INFO)
+  IF (INFO .NE. SZ) STOP 'BREAD_Y'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xA(T))
+  
+  ALLOCATE(xY(M,G))
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,J,K, ANF,BNF) PROC_BIND(SPREAD) NUM_THREADS(T)
+  K = OMP_GET_THREAD_NUM() + 1
+  xA(K) = Q_ZERO
+  !$OMP DO
+  DO J = 1, G
+     DO I = 1, M
+        xY(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP)
+        ANF = REAL(xY(I,J), WP)
+        BNF = AIMAG(xY(I,J))
+        xA(K) = xA(K) + ANF*ANF + BNF*BNF
+     END DO
+  END DO
+  !$OMP END DO
+  !$OMP END PARALLEL
+
+  YNF = Q_ZERO
+  DO I = 1, T
+     YNF = YNF + xA(I)
+  END DO
+  YNF = SQRT(YNF)
+  PRINT *, '|| Y ||_F =', YNF
+
+  CALL BOPEN_W_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_W_RO'
+  CALL BREAD_W(FD, YW, L, a, 1, G, INFO)
+  IF (INFO .NE. SZ) STOP 'BREAD_W'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xW(M,G))
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,J,K, ANF,BNF) PROC_BIND(SPREAD) NUM_THREADS(T)
+  K = OMP_GET_THREAD_NUM() + 1
+  xA(K) = Q_ZERO
+  !$OMP DO
+  DO J = 1, G
+     DO I = 1, M
+        xW(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP)
+        ANF = REAL(xW(I,J), WP)
+        BNF = AIMAG(xW(I,J))
+        xA(K) = xA(K) + ANF*ANF + BNF*BNF
+     END DO
+  END DO
+  !$OMP END DO
+  !$OMP END PARALLEL
+
+  WNF = Q_ZERO
+  DO I = 1, T
+     WNF = WNF + xA(I)
+  END DO
+  WNF = SQRT(WNF)
+  PRINT *, '|| W ||_F =', WNF
+
+  ALLOCATE(S(G))
+
+  CALL BOPEN_SY_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_SY_RO'
+  CALL BREAD_SY(FD, S, G, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_SY'
+  CALL BCLOSE(FD)
+
+  CALL BOPEN_YU_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_YU_RO'
+  CALL BREAD_YU(FD, YW, L, a, G, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_YU'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xU(M,G))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J) PROC_BIND(SPREAD) NUM_THREADS(T)
+  DO J = 1, G
+     DO I = 1, M
+        xU(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP) * REAL(S(J), WP)
+     END DO
+  END DO
+  !$OMP END PARALLEL DO
+
+  CALL BOPEN_SW_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_SW_RO'
+  CALL BREAD_SW(FD, S, G, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_SW'
+  CALL BCLOSE(FD)
+
+  CALL BOPEN_WV_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_WV_RO'
+  CALL BREAD_WV(FD, YW, L, a, G, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_WV'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xV(M,G))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J) PROC_BIND(SPREAD) NUM_THREADS(T)
+  DO J = 1, G
+     DO I = 1, M
+        xV(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP) * REAL(S(J), WP)
+     END DO
+  END DO
+  !$OMP END PARALLEL DO
+
+  DEALLOCATE(S)
+  DEALLOCATE(YW)
+
+  ALLOCATE(YW(G,G))
+
+  CALL BOPEN_ZZ_RO(FN, SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_ZZ_RO'
+  CALL BREAD_ZZ(FD, YW, G, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_ZZ'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xZ(G,G))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J) PROC_BIND(SPREAD) NUM_THREADS(T)
+  DO J = 1, G
+     DO I = 1, G
+        xZ(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP)
+     END DO
+  END DO
+  !$OMP END PARALLEL DO
+
+  DEALLOCATE(YW)
+
+  ! Compute: (scaling with Ss)
+  ! || Y - (YU * SY) * ZZ ||_F / || Y ||_F
+  ! || W - (WV * SW) * ZZ ||_F / || W ||_F
+
+  CALL PXGEMM(M, G, G, xU, M, xZ, G, xY, M, xA, T, ANF)
+  PRINT *, '|| Y - (YU * SY) * ZZ ||_F             =', ANF
+  PRINT *, '|| Y - (YU * SY) * ZZ ||_F / || Y ||_F =', (ANF / YNF)
+
+  CALL PXGEMM(M, G, G, xV, M, xZ, G, xW, M, xA, T, BNF)
+  PRINT *, '|| W - (WV * SW) * ZZ ||_F             =', BNF
+  PRINT *, '|| W - (WV * SW) * ZZ ||_F / || W ||_F =', (BNF / WNF)
+
+  DEALLOCATE(xZ)
+  DEALLOCATE(xV)
+  DEALLOCATE(xU)
+  DEALLOCATE(xW)
+  DEALLOCATE(xY)
+  DEALLOCATE(xA)
+
+CONTAINS
+
+  SUBROUTINE PXGEMM(M, N, K, A, LDA, B, LDB, C, LDC, xA, T, CNF)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: M, N, K, LDA, LDB, LDC, T
+    COMPLEX(WP), INTENT(IN) :: A(LDA,K), B(LDB,N)
+    COMPLEX(WP), INTENT(INOUT) :: C(LDC,N)
+    REAL(WP), INTENT(OUT) :: xA(T), CNF
+
+    REAL(WP) :: RE, IM
+    INTEGER :: I, J, L
+
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J,L) PROC_BIND(SPREAD) NUM_THREADS(T)
+    DO J = 1, N
+       DO L = 1, K
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, M
+             C(I,J) = C(I,J) - A(I,L) * B(L,J)
+          END DO
+       END DO
+    END DO
+    !$OMP END PARALLEL DO
+
+    !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,J,L, RE,IM) PROC_BIND(SPREAD) NUM_THREADS(T)
+    L = OMP_GET_THREAD_NUM() + 1
+    xA(L) = Q_ZERO
+    !$OMP DO
+    DO J = 1, N
+       !DIR$ VECTOR ALWAYS
+       DO I = 1, M
+          RE = REAL(C(I,J), WP)
+          IM = AIMAG(C(I,J))
+          xA(L) = xA(L) + RE*RE + IM*IM
+       END DO
+    END DO
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    CNF = Q_ZERO
+    DO I = 1, T
+       CNF = CNF + xA(I)
+    END DO
+    CNF = SQRT(CNF)
+  END SUBROUTINE PXGEMM
+
+  SUBROUTINE READCL(FN, L, a, G, T, INFO)
+    IMPLICIT NONE
+
+    CHARACTER(LEN=*,KIND=c_char), INTENT(OUT) :: FN
+    INTEGER, INTENT(OUT) :: L, a, G, T, INFO
+
+    CHARACTER(LEN=24) :: ARG
+    INTEGER :: TMP
+
+    IF (COMMAND_ARGUMENT_COUNT() .NE. 5) STOP 'err_test.exe FN L a G T'
+
+    CALL GET_COMMAND_ARGUMENT(1, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -1
+       RETURN
+    END IF
+    FN = TRIM(ARG)
+    IF (LEN_TRIM(FN) .LE. 0) THEN
+       INFO = 1
+       RETURN
+    END IF
+
+    CALL GET_COMMAND_ARGUMENT(2, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -2
+       RETURN
+    END IF
+    READ (ARG,*) L
+    IF (L .LE. 0) THEN
+       INFO = 2
+       RETURN
+    END IF
+
+    CALL GET_COMMAND_ARGUMENT(3, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -3
+       RETURN
+    END IF
+    READ (ARG,*) a
+    IF (a .LE. 0) THEN
+       INFO = 3
+       RETURN
+    END IF
+
+    CALL GET_COMMAND_ARGUMENT(4, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -4
+       RETURN
+    END IF
+    READ (ARG,*) G
+    IF (G .LE. 0) THEN
+       INFO = 4
+       RETURN
+    END IF
+
+    CALL GET_COMMAND_ARGUMENT(5, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -5
+       RETURN
+    END IF
+    READ (ARG,*) T
+    IF (T .LE. 0) THEN
+       INFO = 5
+       RETURN
+    END IF
+  END SUBROUTINE READCL
+END PROGRAM ERR_TEST

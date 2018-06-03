@@ -1,0 +1,4 @@
+Get R and J from T.
+Form Y and W from X, R, and U s.t.
+H=Y^* J Y
+S=W^* W

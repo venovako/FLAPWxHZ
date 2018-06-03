@@ -1,0 +1,473 @@
+! L2 double complex HZ.
+#ifndef MKL_NEST_SEQ
+SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR,TPC, JS,NSWP,&
+     NCOLSB,IFCOLB, JSPIN1,JSPIN2,JSPAIR,JSCOMM, PSHBUF,PSTATS, E,SS, EY,SY, EW,SW,&
+     BH,BS,BZ,LDB, IWORK, INFO)
+#else
+SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
+     NCOLSB,IFCOLB, JSPIN1,JSPIN2,JSPAIR,JSCOMM, PSHBUF,PSTATS, E,SS, EY,SY, EW,SW,&
+     BH,BS,BZ,LDB, IWORK, INFO)
+#endif
+#ifndef NDEBUG
+  USE, INTRINSIC :: IEEE_ARITHMETIC
+  USE, INTRINSIC :: IEEE_FEATURES
+#endif
+  USE TIMER
+  IMPLICIT NONE
+
+  INTEGER, INTENT(IN) :: M,N,K, LDY,LDW,LDZ, J(M),LDB, IAM,CPR, NSWP(2)
+#ifndef MKL_NEST_SEQ
+  INTEGER, INTENT(IN) :: TPC
+#endif
+  DOUBLE COMPLEX, INTENT(INOUT), TARGET :: Y(LDY,K),W(LDW,K),Z(LDZ,K)
+  DOUBLE COMPLEX, INTENT(OUT), TARGET :: YU(LDY,K),WV(LDW,K),ZZ(LDZ,K)
+  INTEGER, INTENT(IN) :: NCOLSB(2*CPR),IFCOLB(2*CPR)
+  INTEGER, INTENT(IN), TARGET :: JS(8,3), JSPIN1(2,JS(8,1),JS(7,1)),JSPIN2(2,JS(8,2),JS(7,2))
+  INTEGER, INTENT(IN) :: JSPAIR(2,JS(8,3),JS(7,3)),JSCOMM(2,JS(8,3),JS(7,3))
+  TYPE(ZSHENT), INTENT(IN) :: PSHBUF(CPR)
+  DOUBLE PRECISION, INTENT(OUT) :: E(K),SS(K), EY(K),SY(K), EW(K),SW(K)
+  DOUBLE COMPLEX, INTENT(OUT) :: BH(LDB,K),BS(LDB,K),BZ(LDB,K)
+  INTEGER, INTENT(OUT), TARGET :: IWORK(2*((M/2)+MOD(M,2))+6*K)
+  INTEGER, INTENT(OUT) :: PSTATS(8), INFO
+
+  INTEGER, POINTER, CONTIGUOUS :: JSINT(:),JSPINT(:,:,:), JNSTIX(:),JNLENS(:), IPIV(:),JVEC(:),IPL(:),INVP(:)
+
+  DOUBLE PRECISION :: DTMP
+  INTEGER :: I,L, P,Q, JSINTN
+  INTEGER :: NPLUS, JNBLKS, BNPLUS
+  INTEGER :: NCP,NCQ,NCB,MXNC
+  INTEGER :: IFCP,IFCQ
+  INTEGER :: BSWP,NBSTEPS,BSTEP
+  INTEGER :: INFO2(2), TNS
+#ifndef MKL_NEST_SEQ
+  INTEGER :: OLDTPC
+#endif
+  LOGICAL :: LNOROT
+
+#ifndef NDEBUG
+  LOGICAL(c_int) :: LFHALT(5)
+#endif
+
+  EXTERNAL :: ZDSCAL, ZLACPY,ZLASSQ
+
+  !DIR$ ASSUME_ALIGNED Y:ALIGNB
+  !DIR$ ASSUME_ALIGNED W:ALIGNB
+  !DIR$ ASSUME_ALIGNED Z:ALIGNB
+  !DIR$ ASSUME_ALIGNED J:ALIGNB
+  !DIR$ ASSUME_ALIGNED YU:ALIGNB
+  !DIR$ ASSUME_ALIGNED WV:ALIGNB
+  !DIR$ ASSUME_ALIGNED ZZ:ALIGNB
+  !DIR$ ASSUME_ALIGNED JS:ALIGNB
+  !DIR$ ASSUME_ALIGNED JSPIN1:ALIGNB
+  !DIR$ ASSUME_ALIGNED JSPIN2:ALIGNB
+  !DIR$ ASSUME_ALIGNED JSPAIR:ALIGNB
+  !DIR$ ASSUME_ALIGNED JSCOMM:ALIGNB
+  !DIR$ ASSUME_ALIGNED E:ALIGNB
+  !DIR$ ASSUME_ALIGNED SS:ALIGNB
+  !DIR$ ASSUME_ALIGNED EY:ALIGNB
+  !DIR$ ASSUME_ALIGNED SY:ALIGNB
+  !DIR$ ASSUME_ALIGNED EW:ALIGNB
+  !DIR$ ASSUME_ALIGNED SW:ALIGNB
+  !DIR$ ASSUME_ALIGNED BH:ALIGNB
+  !DIR$ ASSUME_ALIGNED BS:ALIGNB
+  !DIR$ ASSUME_ALIGNED BZ:ALIGNB
+  !DIR$ ASSUME_ALIGNED IWORK:ALIGNB
+#ifdef NDEBUG
+  !DIR$ ASSUME (MOD(K,2) .EQ. 0)
+  !DIR$ ASSUME (MOD(LDB,ZALIGN) .EQ. 0)
+  !DIR$ ASSUME (CPR .GE. 1)
+#ifndef MKL_NEST_SEQ
+  !DIR$ ASSUME (TPC .GE. 1)
+#endif
+#else
+  IF (MOD(K,2) .NE. 0) STOP 'ZHZL2: MOD(K,2) .NE. 0'
+  IF (MOD(LDB,ZALIGN) .NE. 0) STOP 'ZHZL2: MOD(LDB,ZALIGN) .NE. 0'
+  IF (CPR .LT. 1) STOP 'ZHZL2: CPR .LT. 1'
+#ifndef MKL_NEST_SEQ
+  IF (TPC .LT. 1) STOP 'ZHZL2: TPC .LT. 1'
+#endif
+#endif
+
+  INFO = 0
+  !$OMP MASTER
+  DO L = 1, 8
+     !$OMP ATOMIC WRITE
+     PSTATS(L) = 0
+     !$OMP END ATOMIC
+  END DO
+  !$OMP END MASTER
+
+  ! TODO: check the arguments
+
+#ifndef NDEBUG
+  DO L = 1, 5
+     CALL IEEE_GET_HALTING_MODE(IEEE_ALL(L), LFHALT(L))
+  END DO
+  CALL IEEE_SET_HALTING_MODE(IEEE_OVERFLOW, .TRUE._c_int)
+  CALL IEEE_SET_HALTING_MODE(IEEE_DIVIDE_BY_ZERO, .TRUE._c_int)
+  CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .TRUE._c_int)
+  CALL IEEE_SET_HALTING_MODE(IEEE_UNDERFLOW, .FALSE._c_int)
+  CALL IEEE_SET_HALTING_MODE(IEEE_INEXACT, .FALSE._c_int)
+#endif
+
+#ifndef MKL_NEST_SEQ
+  OLDTPC = BLAS_SET_NUM_THREADS(TPC)
+#endif
+
+  ! Partition IWORK, the integer workspace.
+  JNBLKS = (M / 2) + MOD(M, 2)
+
+  I = 1
+  JNSTIX => IWORK(I:I+JNBLKS-1)
+
+  I = I + JNBLKS
+  JNLENS => IWORK(I:I+JNBLKS-1)
+
+  I = I + JNBLKS
+  IPIV => IWORK(I:I+2*K-1)
+
+  I = I + 2*K
+  JVEC => IWORK(I:I+2*K-1)
+
+  I = I + 2*K
+  IPL => IWORK(I:I+K-1)
+
+  I = I + K
+  INVP => IWORK(I:I+K-1)
+
+  MXNC = K / 2
+  NBSTEPS = JS(7,3)
+
+  ! Analyse the non-unity blocks of J.
+  NPLUS = 0
+  JNBLKS = 0
+  I = 1
+  DO WHILE (I .LE. M)
+     IF (J(I) .EQ. 1) THEN
+        NPLUS = NPLUS + 1
+        I = I + 1
+     ELSE IF (J(I) .EQ. -1) THEN
+        JNBLKS = JNBLKS + 1
+        JNSTIX(JNBLKS) = I
+        JNLENS(JNBLKS) = 1
+        I = I + 1
+        DO WHILE (I .LE. M)
+           IF (J(I) .EQ. -1) THEN
+              JNLENS(JNBLKS) = JNLENS(JNBLKS) + 1
+              I = I + 1
+           ELSE
+              EXIT
+           END IF
+        END DO
+     ELSE
+        STOP 'ZHZL2: J contains 0'
+     END IF
+  END DO
+  !$OMP BARRIER
+
+  ! Z = partOf(I)
+  BSTEP = 1
+  P = JSPAIR(1,IAM,BSTEP)
+  NCP = NCOLSB(P)
+  Q = JSPAIR(2,IAM,BSTEP)
+  NCQ = NCOLSB(Q)
+  NCB = NCP + NCQ
+  IFCP = IFCOLB(P)
+  IFCQ = IFCOLB(Q)
+  I = 1 + (MXNC - NCP)
+  CALL ZSETZI(N,NCP,NCQ, Z(1,I),Z(1,1+MXNC),N, IFCP,IFCQ)
+
+  ! BEGIN MAIN LOOP
+
+  DO BSWP = 1, NSWP(2)
+     DO BSTEP = 1, NBSTEPS
+        P = JSPAIR(1,IAM,BSTEP)
+        Q = JSPAIR(2,IAM,BSTEP)
+        NCP = NCOLSB(P)
+        NCQ = NCOLSB(Q)
+        NCB = NCP + NCQ
+        IF (NCP .LT. MXNC) THEN
+           JSINT => JS(1:8,1)
+           JSPINT => JSPIN1
+           I = 1 + (MXNC - NCP)
+        ELSE
+           JSINT => JS(1:8,2)
+           JSPINT => JSPIN2
+           I = 1
+        END IF
+        JSINTN = JSINT(2)
+
+        TNS = GET_THREAD_NS()
+#ifndef MKL_NEST_SEQ
+        CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
+             J,JNSTIX,JNLENS,JNBLKS,NPLUS, TPC,&
+             IPIV,JVEC,IPL,INVP, BNPLUS, BH,BS,BZ,LDB, INFO2)
+#else
+        CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
+             J,JNSTIX,JNLENS,JNBLKS,NPLUS,&
+             IPIV,JVEC,IPL,INVP, BNPLUS, BH,BS,BZ,LDB, INFO2)
+#endif
+        TNS = GET_THREAD_NS() - TNS
+
+        !$OMP ATOMIC UPDATE
+        PSTATS(1) = MAX(PSTATS(1), TNS)
+        !$OMP END ATOMIC
+
+        IF (INFO2(1) .NE. 0) THEN
+           WRITE (ULOG,'(A,2(I4,A),3(I3,A),I11)') 'BH:',BSWP,',',BSTEP,';',IAM,',',P,',',Q,',',INFO2(1)
+           STOP 'ZHZL2: BH INFO .LT. 0'
+        END IF
+        IF (INFO2(2) .NE. 0) THEN
+           WRITE (ULOG,'(A,2(I4,A),3(I3,A),I11)') 'BS:',BSWP,',',BSTEP,';',IAM,',',P,',',Q,',',INFO2(2)
+           STOP 'ZHZL2: BS INFO .LT. 0'
+        END IF
+
+        ! # of rotations (all,big) => INFO2
+        TNS = GET_THREAD_NS()
+#ifndef MKL_NEST_SEQ
+        CALL ZHZL1(JSINTN, BH,BNPLUS, BS,BZ, LDB, JSINT,JSPINT, NSWP(1),TPC, INFO2,INFO)
+#else
+        CALL ZHZL1(JSINTN, BH,BNPLUS, BS,BZ, LDB, JSINT,JSPINT, NSWP(1), INFO2,INFO)
+#endif
+        TNS = GET_THREAD_NS() - TNS
+
+        !$OMP ATOMIC UPDATE
+        PSTATS(2) = MAX(PSTATS(2), TNS)
+        !$OMP END ATOMIC
+
+        IF (INFO2(1) .GT. 0) THEN
+           !$OMP ATOMIC UPDATE
+           PSTATS(4) = PSTATS(4) + INFO2(1)
+           !$OMP END ATOMIC
+           LNOROT = .FALSE.
+        ELSE IF (INFO2(1) .EQ. 0) THEN
+           LNOROT = .TRUE.
+#ifndef NDEBUG
+        ELSE
+           STOP 'ZHZL2: ALLROT < 0'
+#endif
+        END IF
+#ifndef NDEBUG
+        IF (INFO2(2) .GT. INFO2(1)) STOP 'ZHZL2: BIGROT > ALLROT'
+#endif
+        IF (INFO2(2) .GT. 0) THEN
+           !$OMP ATOMIC UPDATE
+           PSTATS(5) = PSTATS(5) + INFO2(2)
+           !$OMP END ATOMIC
+#ifndef NDEBUG
+        ELSE IF (INFO2(2) .LT. 0) THEN
+           STOP 'ZHZL2: BIGROT < 0'
+#endif
+        END IF
+
+        TNS = GET_THREAD_NS()
+#ifndef MKL_NEST_SEQ
+        CALL ZUPXFER(IAM,BSTEP, MXNC,NCP,NCQ,NCB, M,N,K, Y,YU,LDY, W,WV,LDW, Z,ZZ,LDZ, BZ,LDB,&
+             JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT, NPLUS, TPC)
+#else
+        CALL ZUPXFER(IAM,BSTEP, MXNC,NCP,NCQ,NCB, M,N,K, Y,YU,LDY, W,WV,LDW, Z,ZZ,LDZ, BZ,LDB,&
+             JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT, NPLUS)
+#endif
+        TNS = GET_THREAD_NS() - TNS
+        !$OMP ATOMIC UPDATE
+        PSTATS(3) = MAX(PSTATS(3), TNS)
+        !$OMP END ATOMIC
+        !$OMP BARRIER
+     END DO
+     !$OMP ATOMIC READ
+     INFO2(1) = PSTATS(4)
+     !$OMP END ATOMIC
+     IF (INFO2(1) .GT. 0) THEN
+        !$OMP ATOMIC READ
+        INFO2(2) = PSTATS(5)
+        !$OMP END ATOMIC
+#ifndef NDEBUG
+        IF (INFO2(2) .LT. 0) STOP 'ZHZL2: SWEEP BIGROT < 0'
+#endif
+     ELSE IF (INFO2(1) .EQ. 0) THEN
+        INFO2(2) = 0
+#ifndef NDEBUG
+     ELSE
+        STOP 'ZHZL2: SWEEP ALLROT < 0'
+#endif
+     END IF
+! TODO: disable after debug
+!#ifndef NDEBUG
+     !$OMP MASTER
+     WRITE (ULOG,*)
+     WRITE (ULOG,'(I4,I20,I20)') BSWP, INFO2(1), INFO2(2)
+     !$OMP END MASTER
+!#endif
+     !$OMP BARRIER
+     IF (INFO2(1) .GT. 0) THEN
+        !$OMP ATOMIC UPDATE
+        PSTATS(6) = PSTATS(6) + INFO2(1)
+        !$OMP END ATOMIC
+        IF (INFO2(2) .GT. 0) THEN
+           !$OMP ATOMIC UPDATE
+           PSTATS(7) = PSTATS(7) + INFO2(2)
+           !$OMP END ATOMIC
+        END IF
+     END IF
+     ! Reset for the next sweep.
+     IF (INFO2(2) .GT. 0) THEN
+        !$OMP MASTER
+        !$OMP ATOMIC WRITE
+        PSTATS(4) = 0
+        !$OMP END ATOMIC
+        !$OMP ATOMIC WRITE
+        PSTATS(5) = 0
+        !$OMP END ATOMIC
+        !$OMP END MASTER
+     ELSE IF (INFO2(2) .EQ. 0) THEN
+        EXIT
+#ifndef NDEBUG
+     ELSE
+        STOP 'ZHZL2: should never happen'
+#endif
+     END IF
+  END DO
+
+  ! END MAIN LOOP
+
+  !$OMP MASTER
+  !$OMP ATOMIC WRITE
+  PSTATS(8) = BSWP
+  !$OMP END ATOMIC
+  !$OMP END MASTER
+  INFO = BSWP
+
+  ! Column scaling.
+
+  BSTEP = 1
+  P = JSPAIR(1,IAM,BSTEP)
+  NCP = NCOLSB(P)
+  Q = JSPAIR(2,IAM,BSTEP)
+  NCQ = NCOLSB(Q)
+  NCB = NCP + NCQ
+  IFCP = IFCOLB(P)
+  IFCQ = IFCOLB(Q)
+  I = 1 + (MXNC - NCP)
+
+#ifndef NDEBUG
+  CALL IEEE_SET_HALTING_MODE(IEEE_OVERFLOW, .FALSE._c_int)
+#endif
+
+  DO L = 0, NCP-1
+     SY(I+L) = D_ZERO
+     EY(I+L) = D_ONE
+     CALL ZLASSQ(M, Y(1,I+L), 1, SY(I+L), EY(I+L))
+     DTMP = SY(I+L) * SQRT(EY(I+L))
+     EY(I+L) = SY(I+L) * (SY(I+L) * EY(I+L))
+     SY(I+L) = DTMP
+     IF (SY(I+L) .NE. D_ONE) THEN
+        DTMP = D_ONE / SY(I+L)
+        CALL ZDSCAL(M, DTMP, Y(1,I+L), 1)
+     END IF
+     
+     SW(I+L) = D_ZERO
+     EW(I+L) = D_ONE
+     CALL ZLASSQ(M, W(1,I+L), 1, SW(I+L), EW(I+L))
+     DTMP = SW(I+L) * SQRT(EW(I+L))
+     EW(I+L) = SW(I+L) * (SW(I+L) * EW(I+L))
+     SW(I+L) = DTMP
+     IF (SW(I+L) .NE. D_ONE) THEN
+        DTMP = D_ONE / SW(I+L)
+        CALL ZDSCAL(M, DTMP, W(1,I+L), 1)
+     END IF
+
+     ! EY, EW can overflow or underflow
+     IF (EY(I+L) .LT. TINY(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE IF (EW(I+L) .GT. HUGE(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE IF (EW(I+L) .LT. TINY(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE IF (EW(I+L) .GT. HUGE(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE
+        LNOROT = .FALSE.
+     END IF
+     EY(I+L) = EY(I+L) * J(IFCP+L)
+     IF (LNOROT) THEN
+        DTMP = SY(I+L) / SW(I+L)
+        E(I+L) = DTMP * DTMP * J(IFCP+L)
+     ELSE
+        E(I+L) = EY(I+L) / EW(I+L) 
+     END IF
+
+     SS(I+L) = HYPOT(SY(I+L), SW(I+L))
+     IF (SS(I+L) .NE. D_ONE) THEN
+        DTMP = D_ONE / SS(I+L)
+        SY(I+L) = SY(I+L) * DTMP
+        SW(I+L) = SW(I+L) * DTMP
+        CALL ZDSCAL(N, DTMP, Z(1,I+L), 1)
+     END IF
+  END DO
+
+  DO L = 1, NCQ
+     SY(MXNC+L) = D_ZERO
+     EY(MXNC+L) = D_ONE
+     CALL ZLASSQ(M, Y(1,MXNC+L), 1, SY(MXNC+L), EY(MXNC+L))
+     DTMP = SY(MXNC+L) * SQRT(EY(MXNC+L))
+     EY(MXNC+L) = SY(MXNC+L) * (SY(MXNC+L) * EY(MXNC+L))
+     SY(MXNC+L) = DTMP
+     IF (SY(MXNC+L) .NE. D_ONE) THEN
+        DTMP = D_ONE / SY(MXNC+L)
+        CALL ZDSCAL(M, DTMP, Y(1,MXNC+L), 1)
+     END IF
+
+     SW(MXNC+L) = D_ZERO
+     EW(MXNC+L) = D_ONE
+     CALL ZLASSQ(M, W(1,MXNC+L), 1, SW(MXNC+L), EW(MXNC+L))
+     DTMP = SW(MXNC+L) * SQRT(EW(MXNC+L))
+     EW(MXNC+L) = SW(MXNC+L) * (SW(MXNC+L) * EW(MXNC+L))
+     SW(MXNC+L) = DTMP
+     IF (SW(MXNC+L) .NE. D_ONE) THEN
+        DTMP = D_ONE / SW(MXNC+L)
+        CALL ZDSCAL(M, DTMP, W(1,MXNC+L), 1)
+     END IF
+
+     ! EY, EW can overflow or underflow
+     IF (EY(MXNC+L) .LT. TINY(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE IF (EW(MXNC+L) .GT. HUGE(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE IF (EW(MXNC+L) .LT. TINY(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE IF (EW(MXNC+L) .GT. HUGE(D_ZERO)) THEN
+        LNOROT = .TRUE.
+     ELSE
+        LNOROT = .FALSE.
+     END IF
+     EY(MXNC+L) = EY(MXNC+L) * J(IFCQ+(L-1))
+     IF (LNOROT) THEN
+        DTMP = SY(MXNC+L) / SW(MXNC+L)
+        E(MXNC+L) = DTMP * DTMP * J(IFCQ+(L-1))
+     ELSE
+        E(MXNC+L) = EY(MXNC+L) / EW(MXNC+L)
+     END IF
+
+     SS(MXNC+L) = HYPOT(SY(MXNC+L), SW(MXNC+L))
+     IF (SS(MXNC+L) .NE. D_ONE) THEN
+        DTMP = D_ONE / SS(MXNC+L)
+        SY(MXNC+L) = SY(MXNC+L) * DTMP
+        SW(MXNC+L) = SW(MXNC+L) * DTMP
+        CALL ZDSCAL(N, DTMP, Z(1,MXNC+L), 1)
+     END IF
+  END DO
+
+#ifndef NDEBUG
+  CALL IEEE_SET_HALTING_MODE(IEEE_OVERFLOW, .TRUE._c_int)
+#endif
+
+#ifndef MKL_NEST_SEQ
+  OLDTPC = BLAS_SET_NUM_THREADS(OLDTPC)
+#endif
+
+#ifndef NDEBUG
+  DO L = 1, 5
+     CALL IEEE_SET_HALTING_MODE(IEEE_ALL(L), LFHALT(L))
+  END DO
+#endif
+END SUBROUTINE ZHZL2
