@@ -294,8 +294,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
 ! TODO: disable after debug
 !#ifndef NDEBUG
      !$OMP MASTER
-     WRITE (ULOG,*)
-     WRITE (ULOG,'(I4,I20,I20)') BSWP, INFO2(1), INFO2(2)
+     WRITE (ULOG,'(A,I4,2(A,I20))') 'Sweep:', BSWP, ' AllRot:', INFO2(1), ' BigRot:', INFO2(2)
      !$OMP END MASTER
 !#endif
      !$OMP BARRIER

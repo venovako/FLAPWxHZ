@@ -19,27 +19,7 @@ PROGRAM PHASE3
   INTEGER :: INFO
 
   CALL READCL(FN, L, a, G, CPR, TPC, JSTRAT, NSWP, INFO)
-  IF (INFO .EQ. 0) THEN
-     WRITE (UOUT,'(A)')&
-          '"MKL","FN","L","a","G","CPR","TPC","JS1","NS1","JS2","NS2","INFO","TIME","SWP","T1","T2","T3","ALLROT","BIGROT"'
-     ! SEQ: use sequential MKL and OMP_PLACES=CORES (at most 64 cores on our Xeon Phi)
-     ! PAR: use multi-threaded MKL and OMP_PLACES=THREADS (at most 64*4=256 threads on our Xeon Phi)
-#ifdef MKL_NEST_SEQ
-#ifdef NDEBUG
-     WRITE (UOUT,'(A)',ADVANCE='NO') 'SEQ,'
-#else
-     WRITE (UOUT,'(A)',ADVANCE='NO') 'seq,'
-#endif
-#else
-#ifdef NDEBUG
-     WRITE (UOUT,'(A)',ADVANCE='NO') 'PAR,'
-#else
-     WRITE (UOUT,'(A)',ADVANCE='NO') 'par,'
-#endif
-#endif
-     WRITE (UOUT,'(2(A),3(I11,A),2(I3,A),2(I2,A,I3,A))',ADVANCE='NO') TRIM(FN),',', L,',',a,',',G,',', CPR,',',TPC,',',&
-          JSTRAT(1),',',NSWP(1),',', JSTRAT(2),',',NSWP(2),','
-  ELSE
+  IF (INFO .NE. 0) THEN
      IF (INFO .LT. 0) THEN
         WRITE (ULOG,'(A,I2)') 'Cannot read argument', -INFO
      ELSE
@@ -49,11 +29,8 @@ PROGRAM PHASE3
   END IF
 
   CALL BOPEN_YWJ_RO(FN, L, a, G, SZ, FD, INFO)
-  ! WRITE (ULOG,'(A,I20,A)') 'Y file has ', SZ(1), ' B.'
   IF (INFO .EQ. 1) STOP 'Y file cannot be opened'
-  ! WRITE (ULOG,'(A,I20,A)') 'W file has ', SZ(2), ' B.'
   IF (INFO .EQ. 2) STOP 'W file cannot be opened'
-  ! WRITE (ULOG,'(A,I20,A)') 'J file has ', SZ(3), ' B.'
   IF (INFO .EQ. 3) STOP 'J file cannot be opened'
   IF (INFO .NE. 0) STOP 'BOPEN_YWJ_RO: error'
 
@@ -70,7 +47,6 @@ PROGRAM PHASE3
   IF (INFO .NE. 0) STOP 'BOPEN_ZES_RW: error'
 
   INFO = BLAS_PREPARE()
-  ! TODO: print some warning...
 #ifndef MKL_NEST_SEQ
   TPC = MAX(1,TPC)
   IF (INFO .LE. 1) TPC = 1
@@ -84,6 +60,25 @@ PROGRAM PHASE3
 !$OMP PARALLEL SHARED(FD,L,a,G,CPR,TPC,JSTRAT,NSWP,PSHBUF,PSTATS) NUM_THREADS(CPR) PROC_BIND(SPREAD) REDUCTION(MAX:MXTIME,INFO)
   CALL PAR_WORK(FD, L,a,G, CPR,TPC, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
 !$OMP END PARALLEL
+  WRITE (UOUT,'(A)') &
+       '"MKL","FN","L","a","G","CPR","TPC","JS1","NS1","JS2","NS2","INFO","TIME","SWP","T1","T2","T3","ALLROT","BIGROT"'
+  ! SEQ: use sequential MKL and OMP_PLACES=CORES (at most 64 cores on our Xeon Phi)
+  ! PAR: use multi-threaded MKL and OMP_PLACES=THREADS (at most 64*4=256 threads on our Xeon Phi)
+#ifdef MKL_NEST_SEQ
+#ifdef NDEBUG
+  WRITE (UOUT,'(A)',ADVANCE='NO') 'SEQ,'
+#else
+  WRITE (UOUT,'(A)',ADVANCE='NO') 'seq,'
+#endif
+#else
+#ifdef NDEBUG
+  WRITE (UOUT,'(A)',ADVANCE='NO') 'PAR,'
+#else
+  WRITE (UOUT,'(A)',ADVANCE='NO') 'par,'
+#endif
+#endif
+  WRITE (UOUT,'(2(A),3(I11,A),2(I3,A),2(I2,A,I3,A))',ADVANCE='NO') TRIM(FN),',', L,',',a,',',G,',', CPR,',',TPC,',', &
+       JSTRAT(1),',',NSWP(1),',', JSTRAT(2),',',NSWP(2),','
   WRITE (UOUT,'(I3,A,F11.6,A,I3)',ADVANCE='NO') INFO,',',MXTIME,',',PSTATS(8)
   WRITE (UOUT,'(3(A,F11.6))',ADVANCE='NO') ',',(PSTATS(1)*DNS2S),',',(PSTATS(2)*DNS2S),',',(PSTATS(3)*DNS2S)
   WRITE (UOUT,'(2(A,I20))') ',',PSTATS(6),',',PSTATS(7)

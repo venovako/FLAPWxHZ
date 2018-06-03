@@ -44,7 +44,6 @@ PROGRAM PHASE1
   IF (INFO .NE. 0) STOP 'BOPEN_YWJ_RW: error'
 
   INFO = BLAS_PREPARE()
-  ! TODO: print some warning...
 #ifndef MKL_NEST_SEQ
   TPC = MAX(1,TPC)
   IF (INFO .LE. 1) TPC = 1
