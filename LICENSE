@@ -1,6 +1,11 @@
 MIT License
 
-Copyright (c) 2018 Vedran Novakovic
+Copyright (c) 2018 Vedran Novaković <novakoni@uji.es, venovako@venovako.eu>
+
+Portions of the code under src/phase0 and src/phase2 subdirectories have been
+modified from the sources of a group of Edoardo A. Di Napoli, RWTH Aachen,
+Germany, and of Gayatri Čaklović, a student at University of Zagreb, Croatia,
+respectively.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
