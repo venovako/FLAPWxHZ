@@ -10,7 +10,7 @@ PROGRAM PHASE4
 
   CHARACTER(LEN=252) :: FN
   DOUBLE PRECISION :: SCAL
-  INTEGER :: G, LDA, INFO
+  INTEGER :: N, LDA, INFO
   INTEGER :: FD, SZ, I, J, T
 
   EXTERNAL :: ZGETC2, ZGESC2
@@ -31,29 +31,29 @@ PROGRAM PHASE4
      STOP 'BOPEN_Z_RO'
   END IF
 
-  G = NINT(SQRT(DBLE(SZ / C_SIZEOF(Z_ZERO))))
-  J = G * G * C_SIZEOF(Z_ZERO)
+  N = NINT(SQRT(DBLE(SZ / C_SIZEOF(Z_ZERO))))
+  J = N * N * C_SIZEOF(Z_ZERO)
   IF (J .NE. SZ) THEN
      WRITE (ULOG,'(A,I20)') 'Not a square matrix with SZ=', SZ
      STOP 'BOPEN_Z_RO'
   END IF
-  LDA = G
+  LDA = N
 
-  ALLOCATE(Z(LDA,G))
-  CALL BREAD_Z(FD, Z, G, SZ, INFO)
+  ALLOCATE(Z(LDA,N))
+  CALL BREAD_Z(FD, Z, N, SZ, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I20)') 'SZ=', SZ
      STOP 'BREAD_Z'
   END IF
   CALL BCLOSE(FD)
 
-  ALLOCATE(X(LDA,G))
-  ALLOCATE(IPIV(G))
-  ALLOCATE(JPIV(G))
+  ALLOCATE(X(LDA,N))
+  ALLOCATE(IPIV(N))
+  ALLOCATE(JPIV(N))
   J = BLAS_PREPARE()
 
   T = GET_THREAD_NS()
-  CALL ZGETC2(G, Z, LDA, IPIV, JPIV, INFO)
+  CALL ZGETC2(N, Z, LDA, IPIV, JPIV, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I6)'), 'INFO=', INFO
      STOP 'ZGETC2'
@@ -63,18 +63,18 @@ PROGRAM PHASE4
  
   T = GET_THREAD_NS()
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J,SCAL) PROC_BIND(SPREAD)
-  DO J = 1, G
+  DO J = 1, N
      !DIR$ VECTOR ALWAYS
      DO I = 1, J-1
         X(I,J) = Z_ZERO
      END DO
      X(J,J) = Z_ONE
      !DIR$ VECTOR ALWAYS
-     DO I = J+1, G
+     DO I = J+1, N
         X(I,J) = Z_ZERO
      END DO
      SCAL = D_ONE
-     CALL ZGESC2(G, Z, LDA, X(1,J), IPIV, JPIV, SCAL)
+     CALL ZGESC2(N, Z, LDA, X(1,J), IPIV, JPIV, SCAL)
      IF (SCAL .EQ. D_ZERO) THEN
         WRITE (ULOG,'(A,I6)') 'SCALE=0 with J=', J
         STOP 'ZGESC2'
@@ -82,7 +82,7 @@ PROGRAM PHASE4
      IF (SCAL .NE. D_ONE) THEN
         WRITE (ULOG,'(A,I6)') 'SCALE non-unity with J=', J
         !DIR$ VECTOR ALWAYS
-        DO I = 1, G
+        DO I = 1, N
            X(I,J) = X(I,J) / SCAL
         END DO
      END IF
@@ -96,7 +96,7 @@ PROGRAM PHASE4
 
   CALL BOPEN_ZZ_RW(FN, SZ, FD)
   IF (FD .LT. 0) STOP 'BOPEN_ZZ_RW'
-  CALL BWRITE_ZZ(FD, X, G, 1, G, INFO)
+  CALL BWRITE_ZZ(FD, X, N, 1, N, INFO)
   IF (INFO .NE. SZ) THEN
      WRITE (ULOG,'(2(A,I20))') 'INFO=', INFO, ', SZ=', SZ
      STOP 'BWRITE_ZZ'

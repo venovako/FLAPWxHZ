@@ -8,7 +8,7 @@ PROGRAM PHASE3
   INTEGER, PARAMETER :: FNL = 20
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
-  INTEGER :: L, a, G
+  INTEGER :: M, N
   ! 2nd-level and 1st-level threads
   INTEGER :: CPR, TPC
   INTEGER :: JSTRAT(2), NSWP(2)
@@ -18,23 +18,22 @@ PROGRAM PHASE3
   DOUBLE PRECISION :: MXTIME
   INTEGER :: INFO
 
-  CALL READCL(FN, L, a, G, CPR, TPC, JSTRAT, NSWP, INFO)
+  CALL READCL(FN, M, N, CPR, TPC, JSTRAT, NSWP, INFO)
   IF (INFO .NE. 0) THEN
      IF (INFO .LT. 0) THEN
         WRITE (ULOG,'(A,I2)') 'Cannot read argument', -INFO
      ELSE
         WRITE (ULOG,'(A,I2)') 'Illegal value of argument', INFO
      END IF
-     STOP 'phase3.exe FN L a G CPR TPC JSTRAT1 NSWP1 JSTRAT2 NSWP2'
   END IF
 
-  CALL BOPEN_YWJ_RO(FN, L, a, G, SZ, FD, INFO)
+  CALL BOPEN_YWJ_RO(FN, M, N, SZ, FD, INFO)
   IF (INFO .EQ. 1) STOP 'Y file cannot be opened'
   IF (INFO .EQ. 2) STOP 'W file cannot be opened'
   IF (INFO .EQ. 3) STOP 'J file cannot be opened'
   IF (INFO .NE. 0) STOP 'BOPEN_YWJ_RO: error'
 
-  CALL BOPEN_EZS_RW(FN, L, a, G, SZ(4), FD(4), INFO)
+  CALL BOPEN_EZS_RW(FN, M, N, SZ(4), FD(4), INFO)
   IF (INFO .EQ. 1) STOP ' E file cannot be opened for writing'
   IF (INFO .EQ. 2) STOP ' Z file cannot be opened for writing'
   IF (INFO .EQ. 3) STOP 'SS file cannot be opened for writing'
@@ -57,11 +56,11 @@ PROGRAM PHASE3
   PSTATS = 0
   MXTIME = D_ZERO
   INFO = 0
-!$OMP PARALLEL SHARED(FD,L,a,G,CPR,TPC,JSTRAT,NSWP,PSHBUF,PSTATS) NUM_THREADS(CPR) PROC_BIND(SPREAD) REDUCTION(MAX:MXTIME,INFO)
-  CALL PAR_WORK(FD, L,a,G, CPR,TPC, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
+!$OMP PARALLEL SHARED(FD,M,N,CPR,TPC,JSTRAT,NSWP,PSHBUF,PSTATS) NUM_THREADS(CPR) PROC_BIND(SPREAD) REDUCTION(MAX:MXTIME,INFO)
+  CALL PAR_WORK(FD, M,N, CPR,TPC, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
 !$OMP END PARALLEL
   WRITE (UOUT,'(A)') &
-       '"MKL","FN","L","a","G","CPR","TPC","JS1","NS1","JS2","NS2","INFO","TIME","SWP","T1","T2","T3","ALLROT","BIGROT"'
+       '"MKL","FN","M","N","CPR","TPC","JS1","NS1","JS2","NS2","INFO","TIME","SWP","T1","T2","T3","ALLROT","BIGROT"'
   ! SEQ: use sequential MKL and OMP_PLACES=CORES (at most 64 cores on our Xeon Phi)
   ! PAR: use multi-threaded MKL and OMP_PLACES=THREADS (at most 64*4=256 threads on our Xeon Phi)
 #ifdef MKL_NEST_SEQ
@@ -77,7 +76,7 @@ PROGRAM PHASE3
   WRITE (UOUT,'(A)',ADVANCE='NO') 'par,'
 #endif
 #endif
-  WRITE (UOUT,'(2(A),3(I11,A),2(I3,A),2(I2,A,I3,A))',ADVANCE='NO') TRIM(FN),',', L,',',a,',',G,',', CPR,',',TPC,',', &
+  WRITE (UOUT,'(2(A),2(I11,A),2(I3,A),2(I2,A,I3,A))',ADVANCE='NO') TRIM(FN),',', M,',',N,',', CPR,',',TPC,',', &
        JSTRAT(1),',',NSWP(1),',', JSTRAT(2),',',NSWP(2),','
   WRITE (UOUT,'(I3,A,F11.6,A,I3)',ADVANCE='NO') INFO,',',MXTIME,',',PSTATS(8)
   WRITE (UOUT,'(3(A,F11.6))',ADVANCE='NO') ',',(PSTATS(1)*DNS2S),',',(PSTATS(2)*DNS2S),',',(PSTATS(3)*DNS2S)
