@@ -18,7 +18,7 @@ endif # ?CPU
 all: PHASE0 PHASE1 PHASE2 PHASE3 PHASE4 SHARED TEST
 
 help:
-	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
 
 PHASE0: SHARED $(MKFS)
 ifdef NDEBUG
