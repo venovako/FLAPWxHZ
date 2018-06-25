@@ -78,7 +78,7 @@ PROGRAM PHASE3
 #endif
   WRITE (UOUT,'(2(A),2(I11,A),2(I3,A),2(I2,A,I3,A))',ADVANCE='NO') TRIM(FN),',', M,',',N,',', CPR,',',TPC,',', &
        JSTRAT(1),',',NSWP(1),',', JSTRAT(2),',',NSWP(2),','
-  WRITE (UOUT,'(I3,A,F11.6,A,I3)',ADVANCE='NO') INFO,',',MXTIME,',',PSTATS(8)
+  WRITE (UOUT,'(I3,A,F12.6,A,I3)',ADVANCE='NO') INFO,',',MXTIME,',',PSTATS(8)
   WRITE (UOUT,'(3(A,F11.6))',ADVANCE='NO') ',',(PSTATS(1)*DNS2S),',',(PSTATS(2)*DNS2S),',',(PSTATS(3)*DNS2S)
   WRITE (UOUT,'(2(A,I20))') ',',PSTATS(6),',',PSTATS(7)
 
