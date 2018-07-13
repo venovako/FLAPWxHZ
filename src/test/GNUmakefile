@@ -15,7 +15,7 @@ endif # ?CPU
 
 .PHONY: all help clean
 
-all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe
+all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe
 
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
@@ -45,6 +45,12 @@ rot_test.exe: rot_test.o $(MKFS)
 
 rot_test.o: rot_test.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c rot_test.F90
+
+zhegvt.exe: zhegvt.o ../shared/libFLAPWxHZ.a $(MKFS)
+	$(FC) $(FFLAGS) zhegvt.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
+
+zhegvt.o: zhegvt.F90 $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c zhegvt.F90
 
 clean:
 	-$(RM) *.exe
