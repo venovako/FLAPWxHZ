@@ -16,14 +16,17 @@ PROGRAM ERR_TEST
   COMPLEX(WP), ALLOCATABLE :: xY(:,:), xW(:,:), xU(:,:), xV(:,:), xZ(:,:)
   REAL(WP), ALLOCATABLE :: xA(:)
 
-  CHARACTER(LEN=252) :: FN
+  CHARACTER(LEN=252,KIND=c_char) :: FN
   INTEGER :: M, N, T
   INTEGER :: FD, SZ, INFO
   INTEGER :: I, J, K
   REAL(WP) :: ANF,YNF, BNF,WNF
 
   CALL READCL(FN, M, N, T, INFO)
-  IF (INFO .NE. 0) STOP 'READCL'
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(I2,A)',ADVANCE='NO') INFO, ' '
+     STOP 'READCL'
+  END IF
 
   ALLOCATE(YW(M,N))
 
