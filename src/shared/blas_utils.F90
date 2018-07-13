@@ -31,11 +31,15 @@ CONTAINS
 #endif
 #endif
 #endif
+#ifdef MKL_NEST_SEQ
+    CALL OMP_SET_NESTED(.FALSE._c_int)
+#else
     CALL OMP_SET_NESTED(.TRUE._c_int)
+#endif
     CALL OMP_SET_DYNAMIC(.FALSE._c_int)
 #ifdef USE_MKL
 #ifndef MKL_NEST_SEQ
-    CALL MKL_SET_DYNAMIC(1_c_int)
+    CALL MKL_SET_DYNAMIC(0_c_int)
 #endif
 #endif
     BLAS_PREPARE = INT(OMP_GET_MAX_ACTIVE_LEVELS())
@@ -44,24 +48,18 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   INTEGER FUNCTION BLAS_SET_NUM_THREADS(NT)
-#ifdef USE_MKL
     IMPLICIT NONE
-
     INTEGER, INTENT(IN) :: NT
+#ifdef USE_MKL
 #ifdef MKL_NEST_SEQ
     BLAS_SET_NUM_THREADS = MIN(MAX(0,NT),1)
 #else
-#ifdef USE_GNU
+#ifndef USE_INTEL
     INTEGER(c_int), EXTERNAL :: MKL_SET_NUM_THREADS_LOCAL
 #endif
-
     BLAS_SET_NUM_THREADS = INT(MKL_SET_NUM_THREADS_LOCAL(INT(NT,c_int)))
 #endif
 #else
-    USE OMP_LIB
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT
-
     BLAS_SET_NUM_THREADS = INT(OMP_GET_NUM_THREADS())
     CALL OMP_SET_NUM_THREADS(INT(NT,c_int))
 #endif
