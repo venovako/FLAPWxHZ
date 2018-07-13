@@ -263,10 +263,10 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         TNS = GET_THREAD_NS()
 #ifndef MKL_NEST_SEQ
         CALL ZUPXFER(IAM,BSTEP, MXNC,NCP,NCQ,NCB, M,N,K, Y,YU,LDY, W,WV,LDW, Z,ZZ,LDZ, BZ,LDB,&
-             JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT, NPLUS, TPC)
+             JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT, TPC)
 #else
         CALL ZUPXFER(IAM,BSTEP, MXNC,NCP,NCQ,NCB, M,N,K, Y,YU,LDY, W,WV,LDW, Z,ZZ,LDZ, BZ,LDB,&
-             JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT, NPLUS)
+             JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT)
 #endif
         TNS = GET_THREAD_NS() - TNS
         !$OMP ATOMIC UPDATE
@@ -363,7 +363,20 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         DTMP = D_ONE / SY(I+L)
         CALL ZDSCAL(M, DTMP, Y(1,I+L), 1)
      END IF
-     
+     IF (M .EQ. N) THEN
+        JVEC(I+L) = J(IFCP+L)
+     ELSE ! M > N
+        IF (NPLUS .LT. M) THEN
+           DTMP = D_ZERO
+           DO JSINTN = 1, M
+              DTMP = DTMP + J(JSINTN) * ABS(Y(JSINTN,I+L))
+           END DO
+           JVEC(I+L) = INT(SIGN(D_ONE, DTMP))
+        ELSE ! J = I
+           JVEC(I+L) = 1
+        END IF
+     END IF
+
      SW(I+L) = D_ZERO
      EW(I+L) = D_ONE
      CALL ZLASSQ(M, W(1,I+L), 1, SW(I+L), EW(I+L))
@@ -378,7 +391,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
      ! EY, EW can overflow or underflow
      IF (EY(I+L) .LT. TINY(D_ZERO)) THEN
         LNOROT = .TRUE.
-     ELSE IF (EW(I+L) .GT. HUGE(D_ZERO)) THEN
+     ELSE IF (EY(I+L) .GT. HUGE(D_ZERO)) THEN
         LNOROT = .TRUE.
      ELSE IF (EW(I+L) .LT. TINY(D_ZERO)) THEN
         LNOROT = .TRUE.
@@ -387,10 +400,10 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
      ELSE
         LNOROT = .FALSE.
      END IF
-     EY(I+L) = EY(I+L) * J(IFCP+L)
+     EY(I+L) = EY(I+L) * JVEC(I+L)
      IF (LNOROT) THEN
         DTMP = SY(I+L) / SW(I+L)
-        E(I+L) = DTMP * DTMP * J(IFCP+L)
+        E(I+L) = DTMP * DTMP * JVEC(I+L)
      ELSE
         E(I+L) = EY(I+L) / EW(I+L) 
      END IF
@@ -415,6 +428,19 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         DTMP = D_ONE / SY(MXNC+L)
         CALL ZDSCAL(M, DTMP, Y(1,MXNC+L), 1)
      END IF
+     IF (M .EQ. N) THEN
+        JVEC(MXNC+L) = J(IFCQ+(L-1))
+     ELSE ! M > N
+        IF (NPLUS .LT. M) THEN
+           DTMP = D_ZERO
+           DO JSINTN = 1, M
+              DTMP = DTMP + J(JSINTN) * ABS(Y(JSINTN,MXNC+L))
+           END DO
+           JVEC(MXNC+L) = INT(SIGN(D_ONE, DTMP))
+        ELSE ! J = I
+           JVEC(MXNC+L) = 1
+        END IF
+     END IF
 
      SW(MXNC+L) = D_ZERO
      EW(MXNC+L) = D_ONE
@@ -430,7 +456,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
      ! EY, EW can overflow or underflow
      IF (EY(MXNC+L) .LT. TINY(D_ZERO)) THEN
         LNOROT = .TRUE.
-     ELSE IF (EW(MXNC+L) .GT. HUGE(D_ZERO)) THEN
+     ELSE IF (EY(MXNC+L) .GT. HUGE(D_ZERO)) THEN
         LNOROT = .TRUE.
      ELSE IF (EW(MXNC+L) .LT. TINY(D_ZERO)) THEN
         LNOROT = .TRUE.
@@ -439,10 +465,10 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
      ELSE
         LNOROT = .FALSE.
      END IF
-     EY(MXNC+L) = EY(MXNC+L) * J(IFCQ+(L-1))
+     EY(MXNC+L) = EY(MXNC+L) * JVEC(MXNC+L)
      IF (LNOROT) THEN
         DTMP = SY(MXNC+L) / SW(MXNC+L)
-        E(MXNC+L) = DTMP * DTMP * J(IFCQ+(L-1))
+        E(MXNC+L) = DTMP * DTMP * JVEC(MXNC+L)
      ELSE
         E(MXNC+L) = EY(MXNC+L) / EW(MXNC+L)
      END IF
