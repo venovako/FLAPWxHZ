@@ -353,28 +353,18 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
 #endif
 
   DO L = 0, NCP-1
-     SY(I+L) = D_ZERO
-     EY(I+L) = D_ONE
-     CALL ZLASSQ(M, Y(1,I+L), 1, SY(I+L), EY(I+L))
-     DTMP = SY(I+L) * SQRT(EY(I+L))
-     EY(I+L) = SY(I+L) * (SY(I+L) * EY(I+L))
-     SY(I+L) = DTMP
-     IF (SY(I+L) .NE. D_ONE) THEN
-        DTMP = D_ONE / SY(I+L)
-        CALL ZDSCAL(M, DTMP, Y(1,I+L), 1)
-     END IF
-     IF (M .EQ. N) THEN
-        JVEC(I+L) = J(IFCP+L)
-     ELSE ! M > N
-        IF (NPLUS .LT. M) THEN
-           DTMP = D_ZERO
-           DO JSINTN = 1, M
-              DTMP = DTMP + J(JSINTN) * ABS(Y(JSINTN,I+L))
-           END DO
-           JVEC(I+L) = INT(SIGN(D_ONE, DTMP))
-        ELSE ! J = I
-           JVEC(I+L) = 1
+     EY(I+L) = D_ZERO
+     DO JSINTN = 1, M
+        EY(I+L) = EY(I+L) + J(JSINTN) * ABS(Y(JSINTN,I+L))
+     END DO
+     IF (EY(I+L) .NE. D_ZERO) THEN
+        SY(I+L) = SQRT(ABS(EY(I+L)))
+        IF (SY(I+L) .NE. D_ONE) THEN
+           DTMP = D_ONE / SY(I+L)
+           CALL ZDSCAL(M, DTMP, Y(1,I+L), 1)
         END IF
+     ELSE
+        SY(I+L) = D_ZERO
      END IF
 
      SW(I+L) = D_ZERO
@@ -388,26 +378,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         CALL ZDSCAL(M, DTMP, W(1,I+L), 1)
      END IF
 
-     ! EY, EW can overflow or underflow
-     IF (EY(I+L) .LT. TINY(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE IF (EY(I+L) .GT. HUGE(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE IF (EW(I+L) .LT. TINY(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE IF (EW(I+L) .GT. HUGE(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE
-        LNOROT = .FALSE.
-     END IF
-     EY(I+L) = EY(I+L) * JVEC(I+L)
-     IF (LNOROT) THEN
-        DTMP = SY(I+L) / SW(I+L)
-        E(I+L) = DTMP * DTMP * JVEC(I+L)
-     ELSE
-        E(I+L) = EY(I+L) / EW(I+L) 
-     END IF
-
+     E(I+L) = EY(I+L) / EW(I+L) 
      SS(I+L) = HYPOT(SY(I+L), SW(I+L))
      IF (SS(I+L) .NE. D_ONE) THEN
         DTMP = D_ONE / SS(I+L)
@@ -418,28 +389,18 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
   END DO
 
   DO L = 1, NCQ
-     SY(MXNC+L) = D_ZERO
-     EY(MXNC+L) = D_ONE
-     CALL ZLASSQ(M, Y(1,MXNC+L), 1, SY(MXNC+L), EY(MXNC+L))
-     DTMP = SY(MXNC+L) * SQRT(EY(MXNC+L))
-     EY(MXNC+L) = SY(MXNC+L) * (SY(MXNC+L) * EY(MXNC+L))
-     SY(MXNC+L) = DTMP
-     IF (SY(MXNC+L) .NE. D_ONE) THEN
-        DTMP = D_ONE / SY(MXNC+L)
-        CALL ZDSCAL(M, DTMP, Y(1,MXNC+L), 1)
-     END IF
-     IF (M .EQ. N) THEN
-        JVEC(MXNC+L) = J(IFCQ+(L-1))
-     ELSE ! M > N
-        IF (NPLUS .LT. M) THEN
-           DTMP = D_ZERO
-           DO JSINTN = 1, M
-              DTMP = DTMP + J(JSINTN) * ABS(Y(JSINTN,MXNC+L))
-           END DO
-           JVEC(MXNC+L) = INT(SIGN(D_ONE, DTMP))
-        ELSE ! J = I
-           JVEC(MXNC+L) = 1
+     EY(MXNC+L) = D_ZERO
+     DO JSINTN = 1, M
+        EY(MXNC+L) = EY(MXNC+L) + J(JSINTN) * ABS(Y(JSINTN,MXNC+L))
+     END DO
+     IF (EY(MXNC+L) .NE. D_ZERO) THEN
+        SY(MXNC+L) = SQRT(ABS(EY(MXNC+L)))
+        IF (SY(MXNC+L) .NE. D_ONE) THEN
+           DTMP = D_ONE / SY(MXNC+L)
+           CALL ZDSCAL(M, DTMP, Y(1,MXNC+L), 1)
         END IF
+     ELSE
+        SY(MXNC+L) = D_ZERO
      END IF
 
      SW(MXNC+L) = D_ZERO
@@ -453,26 +414,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         CALL ZDSCAL(M, DTMP, W(1,MXNC+L), 1)
      END IF
 
-     ! EY, EW can overflow or underflow
-     IF (EY(MXNC+L) .LT. TINY(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE IF (EY(MXNC+L) .GT. HUGE(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE IF (EW(MXNC+L) .LT. TINY(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE IF (EW(MXNC+L) .GT. HUGE(D_ZERO)) THEN
-        LNOROT = .TRUE.
-     ELSE
-        LNOROT = .FALSE.
-     END IF
-     EY(MXNC+L) = EY(MXNC+L) * JVEC(MXNC+L)
-     IF (LNOROT) THEN
-        DTMP = SY(MXNC+L) / SW(MXNC+L)
-        E(MXNC+L) = DTMP * DTMP * JVEC(MXNC+L)
-     ELSE
-        E(MXNC+L) = EY(MXNC+L) / EW(MXNC+L)
-     END IF
-
+     E(MXNC+L) = EY(MXNC+L) / EW(MXNC+L)
      SS(MXNC+L) = HYPOT(SY(MXNC+L), SW(MXNC+L))
      IF (SS(MXNC+L) .NE. D_ONE) THEN
         DTMP = D_ONE / SS(MXNC+L)
