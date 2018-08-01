@@ -15,7 +15,7 @@ endif # ?CPU
 
 .PHONY: all help clean
 
-all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe
+all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe
 
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
@@ -51,6 +51,18 @@ zhegvt.exe: zhegvt.o ../shared/libFLAPWxHZ.a $(MKFS)
 
 zhegvt.o: zhegvt.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c zhegvt.F90
+
+zggsvd3t.exe: zggsvd3t.o ../shared/libFLAPWxHZ.a $(MKFS)
+	$(FC) $(FFLAGS) zggsvd3t.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
+
+zggsvd3t.o: zggsvd3t.F90 $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c zggsvd3t.F90
+
+zgent.exe: zgent.o ../shared/libFLAPWxHZ.a $(MKFS)
+	$(FC) $(FFLAGS) zgent.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
+
+zgent.o: zgent.F90 $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c zgent.F90
 
 clean:
 	-$(RM) *.exe
