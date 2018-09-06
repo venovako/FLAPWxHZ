@@ -35,8 +35,11 @@ CONTAINS
     CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
     INTEGER, INTENT(OUT) :: SZ, FD
 
-    SZ = -1
-    CALL BOPEN_RW(FN, SZ, FD)
+    INTEGER(KIND=c_size_t) :: C_SZ
+
+    C_SZ = -1_c_size_t
+    FD = INT(VN_BOPEN_WO((TRIM(FN)//c_null_char), C_SZ))
+    SZ = INT(C_SZ)
   END SUBROUTINE BOPEN_WO
 
   INTEGER FUNCTION BWRITE(FD, BUF, nB, OFF)
