@@ -100,5 +100,6 @@ PROGRAM PHASE3
 
 CONTAINS
 #include "readcl.F90"
+#include "bio.F90"
 #include "par_work.F90"
 END PROGRAM PHASE3

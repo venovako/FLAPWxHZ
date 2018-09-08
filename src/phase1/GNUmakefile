@@ -23,7 +23,7 @@ help:
 phase1.exe: phase1.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase1.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-phase1.o: phase1.F90 par_work.F90 readcl.F90 $(MKFS)
+phase1.o: phase1.F90 par_work.F90 bio.F90 readcl.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c phase1.F90
 
 clean:

@@ -23,7 +23,7 @@ help:
 phase4.exe: phase4.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase4.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-phase4.o: phase4.F90 $(MKFS)
+phase4.o: phase4.F90 bio.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c phase4.F90
 
 clean:

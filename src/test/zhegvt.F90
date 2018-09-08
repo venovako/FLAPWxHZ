@@ -102,20 +102,14 @@ PROGRAM ZHEGVT
 
   ALLOCATE(D(M,N)); D = Z_ZERO
   ! read F into D
-  CALL BREAD_Y(FD(1), D, M, 1, N, INFO)
-  IF (INFO .NE. SZ(1)) THEN
-     WRITE (ULOG,'(2(I20,A))',ADVANCE='NO') INFO, 'B <>', SZ(1), 'B '
-     STOP 'BREAD_Y'
-  END IF
+  CALL BREAD_YW(FD(1), D, M, N, SZ(1), INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_Y'
   CALL BCLOSE(FD(1))
 
   ALLOCATE(J(M)); J = 0
   ! read J
   CALL BREAD_J(FD(3), J, M, SZ(3), INFO)
-  IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(I2,A)',ADVANCE='NO') INFO, ' '
-     STOP 'BREAD_J'
-  END IF
+  IF (INFO .NE. 0) STOP 'BREAD_J'
   CALL BCLOSE(FD(3))
 
   ALLOCATE(C(M,N)); C = Z_ZERO
@@ -151,11 +145,8 @@ PROGRAM ZHEGVT
   WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(1) * DNS2S), ','
 
   ! read G into D
-  CALL BREAD_W(FD(2), D, M, 1, N, INFO)
-  IF (INFO .NE. SZ(2)) THEN
-     WRITE (ULOG,'(2(I20,A))',ADVANCE='NO') INFO, 'B <>', SZ(2), 'B '
-     STOP 'BREAD_W'
-  END IF
+  CALL BREAD_YW(FD(2), D, M, N, SZ(2), INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_W'
   CALL BCLOSE(FD(2))
 
   ! multiply D^H D -> B
@@ -229,13 +220,10 @@ PROGRAM ZHEGVT
 
   ALLOCATE(E(N)); E = D_ZERO
   ! read E
-  CALL BOPEN_E_RO(FN, SZ(1), FD(1))
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.E'), SZ(1), FD(1))
   IF (FD(1) .LT. 0) STOP 'BOPEN_E_RO'
   CALL BREAD_E(FD(1), E, N, SZ(1), INFO)
-  IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(I2,A)',ADVANCE='NO') INFO, ' '
-     STOP 'BREAD_E'
-  END IF
+  IF (INFO .NE. 0) STOP 'BREAD_E'
   CALL BCLOSE(FD(1))
   ! sort E
   CALL DLASRT('I', N, E, INFO)
@@ -322,4 +310,100 @@ CONTAINS
        RETURN
     END IF
   END SUBROUTINE READCL
+
+  SUBROUTINE BOPEN_YWJ_RO(FN, M, N, SZ, FD, INFO)
+    IMPLICIT NONE
+    CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
+    INTEGER, INTENT(IN) :: M, N
+    INTEGER, INTENT(OUT) :: SZ(3), FD(3), INFO
+
+    INTEGER :: EXPTSZ(3), DIFFSZ(3)
+
+    SZ = -1
+    FD = -1
+
+    INFO = 0
+    IF (N .LT. 0) INFO = -3
+    IF (M .LT. 0) INFO = -2
+    IF (INFO .NE. 0) RETURN
+
+    EXPTSZ(1) = M * N * C_SIZEOF(Z_ZERO)
+    EXPTSZ(2) = M * N * C_SIZEOF(Z_ZERO)
+    EXPTSZ(3) = M     * C_SIZEOF(0)
+
+    DIFFSZ = 0
+
+    CALL BOPEN_RO((TRIM(FN)//c_char_'.Y'), SZ(1), FD(1))
+    IF (FD(1) .LT. 0) THEN
+       INFO = 1
+       GOTO 1
+    END IF
+    DIFFSZ(1) = SZ(1) - EXPTSZ(1)
+    IF (DIFFSZ(1) .NE. 0) THEN
+       INFO = 1
+       GOTO 1
+    END IF
+ 
+    CALL BOPEN_RO((TRIM(FN)//c_char_'.W'), SZ(2), FD(2))
+    IF (FD(2) .LT. 0) THEN
+       INFO = 2
+       GOTO 1
+    END IF
+    DIFFSZ(2) = SZ(2) - EXPTSZ(2)
+    IF (DIFFSZ(2) .NE. 0) THEN
+       INFO = 2
+       GOTO 1
+    END IF
+
+    CALL BOPEN_RO((TRIM(FN)//c_char_'.J'), SZ(3), FD(3))
+    IF (FD(3) .LT. 0) THEN
+       INFO = 3
+       GOTO 1
+    END IF
+    DIFFSZ(3) = SZ(3) - EXPTSZ(3)
+    IF (DIFFSZ(3) .NE. 0) THEN
+       INFO = 3
+       GOTO 1
+    END IF
+
+    RETURN
+
+1   SZ = DIFFSZ
+  END SUBROUTINE BOPEN_YWJ_RO
+
+  SUBROUTINE BREAD_YW(FD, YW, M, N, SZ, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD, M, N
+    DOUBLE COMPLEX, INTENT(OUT), TARGET :: YW(M,N)
+    INTEGER, INTENT(OUT) :: SZ, INFO
+
+    INFO = 0
+
+    SZ = BREAD(FD, C_LOC(YW), C_SIZEOF(YW), 0)
+    IF (SZ .NE. C_SIZEOF(YW)) INFO = 1
+  END SUBROUTINE BREAD_YW
+
+  SUBROUTINE BREAD_J(FD, J, M, SZ, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD, M
+    INTEGER, INTENT(OUT), TARGET :: J(M)
+    INTEGER, INTENT(OUT) :: SZ, INFO
+
+    INFO = 0
+
+    SZ = BREAD(FD, C_LOC(J), C_SIZEOF(J), 0)
+    IF (SZ .NE. C_SIZEOF(J)) INFO = 1
+  END SUBROUTINE BREAD_J
+
+  SUBROUTINE BREAD_E(FD, E, N, SZ, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD, N
+    DOUBLE PRECISION, INTENT(OUT), TARGET :: E(N)
+    INTEGER, INTENT(OUT) :: SZ, INFO
+
+    INFO = 0
+
+    SZ = BREAD(FD, C_LOC(E), C_SIZEOF(E), 0)
+    IF (SZ .NE. C_SIZEOF(E)) INFO = 1
+  END SUBROUTINE BREAD_E
 END PROGRAM ZHEGVT

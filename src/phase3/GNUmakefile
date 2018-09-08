@@ -23,7 +23,7 @@ help:
 phase3.exe: phase3.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase3.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat -lvn $(LDFLAGS)
 
-phase3.o: phase3.F90 par_work.F90 readcl.F90 $(MKFS)
+phase3.o: phase3.F90 par_work.F90 bio.F90 readcl.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c phase3.F90
 
 clean:
