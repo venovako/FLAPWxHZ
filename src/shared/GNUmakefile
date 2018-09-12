@@ -18,7 +18,7 @@ endif # ?CPU
 all: libFLAPWxHZ.a
 
 help:
-	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
 
 libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o params.o timer.o timer_.o vn_binio.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o params.o timer.o timer_.o vn_binio.o
