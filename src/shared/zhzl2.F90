@@ -160,6 +160,10 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
               EXIT
            END IF
         END DO
+#ifdef HAVE_J_SCALE
+     ELSE IF (J(I) .NE. 0) THEN
+        STOP 'ZHZL2: J contains j, |j| =/= 1, not supported'
+#endif
      ELSE
         STOP 'ZHZL2: J contains 0'
      END IF
@@ -199,6 +203,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         JSINTN = JSINT(2)
 
         TNS = GET_THREAD_NS()
+#ifdef HAVE_J_SCALE
 #ifndef MKL_NEST_SEQ
         CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
              J,JNSTIX,JNLENS,JNBLKS,NPLUS, TPC,&
@@ -207,6 +212,17 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
              J,JNSTIX,JNLENS,JNBLKS,NPLUS,&
              IPIV,JVEC,IPL,INVP, BNPLUS, BH,BS,BZ,LDB, INFO2)
+#endif
+#else
+#ifndef MKL_NEST_SEQ
+        CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
+             JNSTIX,JNLENS,JNBLKS,NPLUS, TPC,&
+             IPIV,JVEC,IPL,INVP, BNPLUS, BH,BS,BZ,LDB, INFO2)
+#else
+        CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
+             JNSTIX,JNLENS,JNBLKS,NPLUS,&
+             IPIV,JVEC,IPL,INVP, BNPLUS, BH,BS,BZ,LDB, INFO2)
+#endif
 #endif
         TNS = GET_THREAD_NS() - TNS
 

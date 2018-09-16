@@ -21,8 +21,8 @@ PROGRAM PHASE4
 
   CALL BOPEN_RO((TRIM(FN)//c_char_'.Z'), SZ, FD)
   IF ((SZ .LE. 0) .OR. (FD .LT. 0)) THEN
-     WRITE (ULOG,'(A,I2)'), 'SZ=', SZ
-     WRITE (ULOG,'(A,I2)'), 'FD=', FD
+     WRITE (ULOG,'(A,I2)') 'SZ=', SZ
+     WRITE (ULOG,'(A,I2)') 'FD=', FD
      STOP 'BOPEN_Z_RO'
   END IF
   J = MOD(SZ, C_SIZEOF(Z_ZERO))
@@ -55,7 +55,7 @@ PROGRAM PHASE4
   T = GET_THREAD_NS()
   CALL ZGETC2(N, Z, LDA, IPIV, JPIV, INFO)
   IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(A,I6)'), 'INFO=', INFO
+     WRITE (ULOG,'(A,I6)') 'INFO=', INFO
      STOP 'ZGETC2'
   END IF
   T = GET_THREAD_NS() - T

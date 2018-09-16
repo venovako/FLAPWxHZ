@@ -139,7 +139,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 #ifndef MKL_NEST_SEQ
         !$OMP  PARALLEL DO DEFAULT(NONE) NUM_THREADS(TPC) PROC_BIND(CLOSE)               &
         !$OMP& SHARED(JSPAIR,NPAIRS,STEP,PPV,VPS,BH,BS,BZ,K,NPLUS,DTOL)                  &
-        !$OMP& PRIVATE(VEC,PIX,PAIR, P,Q, I,J,L, DSCL,                                   &
+        !$OMP& PRIVATE(VEC,PIX,PAIR, P,Q, I,J,L,                                         &
         !$OMP& RE_H_PP,RE_H_QQ,RE_H_PQ,IM_H_PQ, RE_S_PP,RE_S_QQ,RE_S_PQ,IM_S_PQ,         &
         !$OMP& HZ,DHZ, AV_H_PQ,CA_H_PQ,SA_H_PQ, AV_S_PQ,CA_S_PQ,SA_S_PQ, T,U,V,E,        &
         !$OMP& TG,CG,SG, T2T,C2T,S2T, CPHI,CPSI, RE_ASPHI,IM_ASPHI, RE_MBSPSI,IM_MBSPSI, &

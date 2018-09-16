@@ -4,10 +4,18 @@
 ! Expected errors that may not occur in every thread: STOP + message
 ! (Otherwise it would be impractical to keep jumping from one barrier to another
 ! in a thread that has failed, doing nothing, just too keep everything in sync.)
+#ifndef MKL_NEST_SEQ
 SUBROUTINE PAR_WORK(FD, M,N, CPR,TPC, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
+#else
+SUBROUTINE PAR_WORK(FD, M,N, CPR, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
+#endif
   IMPLICIT NONE
 
-  INTEGER, INTENT(IN) :: FD(12), M,N, CPR,TPC, JSTRAT(2),NSWP(2)
+  INTEGER, INTENT(IN) :: FD(12), M,N, CPR
+#ifndef MKL_NEST_SEQ
+  INTEGER, INTENT(IN) :: TPC
+#endif
+  INTEGER, INTENT(IN) :: JSTRAT(2),NSWP(2)
   TYPE(ZSHENT), INTENT(OUT) :: PSHBUF(CPR)
   DOUBLE PRECISION, INTENT(OUT) :: MXTIME
   INTEGER, INTENT(OUT) :: PSTATS(8), INFO
@@ -43,8 +51,6 @@ SUBROUTINE PAR_WORK(FD, M,N, CPR,TPC, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
   !DIR$ ASSUME (CPR .GE. 1)
 #ifndef MKL_NEST_SEQ
   !DIR$ ASSUME (TPC .GE. 1)
-#else
-  !DIR$ ASSUME (TPC .EQ. 0)
 #endif
 #else
   IF (M .LE. 0) STOP 'PAR_WORK: M .LE. 0'
@@ -52,8 +58,6 @@ SUBROUTINE PAR_WORK(FD, M,N, CPR,TPC, JSTRAT,NSWP, PSHBUF,PSTATS, MXTIME,INFO)
   IF (CPR .LT. 1) STOP 'PAR_WORK: CPR .LT. 1'
 #ifndef MKL_NEST_SEQ
   IF (TPC .LT. 1) STOP 'PAR_WORK: TPC .LT. 1'
-#else
-  IF (TPC .NE. 0) STOP 'PAR_WORK: TPC .NE. 0'
 #endif
 #endif
 

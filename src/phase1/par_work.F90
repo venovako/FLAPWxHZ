@@ -2,11 +2,18 @@
 ! Expected errors that occur at the same place in every thread: INFO + RETURN
 ! Unexpected errors that should never occur anywhere: STOP + message
 ! Expected errors that may not occur in every thread: STOP + message
+#ifndef MKL_NEST_SEQ
 SUBROUTINE PAR_WORK(FD, L, G, ATOM, TPC, INFO)
+#else
+SUBROUTINE PAR_WORK(FD, L, G, ATOM, INFO)
+#endif
   IMPLICIT NONE
 
   INTEGER, INTENT(IN) :: FD(6)
-  INTEGER, INTENT(IN) :: L, G, ATOM, TPC
+  INTEGER, INTENT(IN) :: L, G, ATOM
+#ifndef MKL_NEST_SEQ
+  INTEGER, INTENT(IN) :: TPC
+#endif
   INTEGER, INTENT(OUT) :: INFO
 
   DOUBLE COMPLEX, ALLOCATABLE :: X(:,:), T(:,:), Y(:,:)
