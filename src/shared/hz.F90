@@ -9,4 +9,6 @@
 #include "zupxfer.F90"
 ! computational routines
 #include "zhzl1.F90"
+#include "zhzl1s.F90"
+#include "zhzl1p.F90"
 #include "zhzl2.F90"
