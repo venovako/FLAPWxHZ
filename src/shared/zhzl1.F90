@@ -505,19 +505,77 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 
   IF (NROT(1) .GT. 0) THEN
 #ifndef MKL_NEST_SEQ
-     !$OMP PARALLEL DEFAULT(NONE) NUM_THREADS(TPC) PROC_BIND(CLOSE) SHARED(BH,BS,BZ,K) PRIVATE(I,J,L,DTOL,DSCL)
-     L = BLAS_SET_NUM_THREADS(1)
+     !$OMP  PARALLEL DEFAULT(NONE) NUM_THREADS(TPC) PROC_BIND(CLOSE) &
+     !$OMP& SHARED(BH,BS,BZ,K,NPLUS) PRIVATE(I,J,L,P,Q,DTOL,DSCL,DTMP1,DTMP2,ZTMP1,ZTMP2)
+     Q = BLAS_SET_NUM_THREADS(1)
      !$OMP DO
 #endif
      DO J = 1, K
-        DSCL(1) = DZNRM2(K, BH(1,J), 1)
-        DSCL(2) = DZNRM2(K, BS(1,J), 1)
+        ! DSCL(1) = DZNRM2(K, BH(1,J), 1)
+        ! compute the J-norm instead
+        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        DTMP1 = D_ZERO
+
+        DO I = 1, NPLUS, DSIMDL
+           P = MIN(DSIMDL, NPLUS-(I-1))
+           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           DO L = 1, P
+              ZTMP1(L) = BH(I+(L-1),J)
+              !DBLE(DCONJG(ZTMP1(L))*ZTMP1(L))
+              DTMP1(L) = DTMP1(L) + (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
+           END DO
+        END DO
+        DO I = NPLUS+1, K, DSIMDL
+           P = MIN(DSIMDL, K-(I-1))
+           !DIR$ VECTOR ALWAYS ASSERT
+           DO L = 1, P
+              ZTMP1(L) = BH(I+(L-1),J)
+              !DBLE(DCONJG(ZTMP1(L))*ZTMP1(L))
+              DTMP1(L) = DTMP1(L) - (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
+           END DO
+        END DO
+        DTOL = SUM(DTMP1)
+        IF (DTOL .NE. D_ZERO) THEN
+           DTOL = ABS(DTOL)
+           IF (DTOL .NE. D_ONE) THEN
+              DSCL(1) = SQRT(DTOL)
+           ELSE
+              DSCL(1) = D_ONE
+           END IF
+        ELSE
+           DSCL(1) = D_ZERO
+        END IF
+
+        ! DSCL(2) = DZNRM2(K, BS(1,J), 1)
+        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        DTMP2 = D_ZERO
+
+        DO I = 1, K, DSIMDL
+           P = MIN(DSIMDL, K-(I-1))
+           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           DO L = 1, P
+              ZTMP2(L) = BS(I+(L-1),J)
+              !DBLE(DCONJG(ZTMP2(L))*ZTMP2(L))
+              DTMP2(L) = DTMP2(L) + (DBLE(ZTMP2(L))*DBLE(ZTMP2(L)) + AIMAG(ZTMP2(L))*AIMAG(ZTMP2(L)))
+           END DO
+        END DO
+        DTOL = SUM(DTMP2)
+        IF (DTOL .NE. D_ZERO) THEN
+           IF (DTOL .NE. D_ONE) THEN
+              DSCL(2) = SQRT(DTOL)
+           ELSE
+              DSCL(2) = D_ONE
+           END IF
+        ELSE
+           DSCL(2) = D_ZERO
+        END IF
+
         DSCL(3) = HYPOT(DSCL(1), DSCL(2))
         IF (DSCL(3) .NE. D_ONE) THEN
            ! underflow
-           IF (DSCL(3) .LT. TINY(D_ZERO)) STOP 'ZHZL1: Scale of Z underflow.'
+           IF (DSCL(3) .LT. TINY(D_ZERO)) STOP 'ZHZL1: Scale of Z underflows.'
            ! overflow
-           IF (DSCL(3) .GT. HUGE(D_ZERO)) STOP 'ZHZL1: Scale of Z overflow.'
+           IF (DSCL(3) .GT. HUGE(D_ZERO)) STOP 'ZHZL1: Scale of Z overflows.'
            DTOL = D_ONE / DSCL(3)
            IF (DTOL .LT. TINY(D_ZERO)) THEN
               ! underflow
@@ -533,7 +591,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
      END DO
 #ifndef MKL_NEST_SEQ
      !$OMP END DO
-     L = BLAS_SET_NUM_THREADS(L)
+     Q = BLAS_SET_NUM_THREADS(Q)
      !$OMP END PARALLEL
 #endif
   END IF
