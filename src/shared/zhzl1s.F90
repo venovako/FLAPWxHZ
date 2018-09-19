@@ -470,7 +470,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 
   INFO = SWEEP
 
-  ! Scaling of Z.
+  ! Scaling of H,S,Z.
 
   IF (NROT(1) .GT. 0) THEN
      DO J = 1, K
@@ -480,16 +480,18 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
         DTMP1 = D_ZERO
 
         DO I = 1, NPLUS, DSIMDL
+           P = MIN(DSIMDL, NPLUS-(I-1))
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
-           DO L = 1, MIN(DSIMDL, NPLUS-(I-1))
+           DO L = 1, P
               ZTMP1(L) = BH(I+(L-1),J)
               !DBLE(DCONJG(ZTMP1(L))*ZTMP1(L))
               DTMP1(L) = DTMP1(L) + (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
            END DO
         END DO
         DO I = NPLUS+1, K, DSIMDL
+           P = MIN(DSIMDL, K-(I-1))
            !DIR$ VECTOR ALWAYS ASSERT
-           DO L = 1, MIN(DSIMDL, K-(I-1))
+           DO L = 1, P
               ZTMP1(L) = BH(I+(L-1),J)
               !DBLE(DCONJG(ZTMP1(L))*ZTMP1(L))
               DTMP1(L) = DTMP1(L) - (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
@@ -514,8 +516,9 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
         DTMP2 = D_ZERO
 
         DO I = 1, K, DSIMDL
+           P = MIN(DSIMDL, K-(I-1))
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
-           DO L = 1, MIN(DSIMDL, K-(I-1))
+           DO L = 1, P
               ZTMP2(L) = BS(I+(L-1),J)
               !DBLE(DCONJG(ZTMP2(L))*ZTMP2(L))
               DTMP2(L) = DTMP2(L) + (DBLE(ZTMP2(L))*DBLE(ZTMP2(L)) + AIMAG(ZTMP2(L))*AIMAG(ZTMP2(L)))
@@ -537,9 +540,9 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
         DSCL(3) = HYPOT(DSCL(1), DSCL(2))
         IF (DSCL(3) .NE. D_ONE) THEN
            ! underflow
-           IF (DSCL(3) .LT. TINY(D_ZERO)) STOP 'ZHZL1: Scale of Z underflow.'
+           IF (DSCL(3) .LT. TINY(D_ZERO)) STOP 'ZHZL1: Scale of Z underflows.'
            ! overflow
-           IF (DSCL(3) .GT. HUGE(D_ZERO)) STOP 'ZHZL1: Scale of Z overflow.'
+           IF (DSCL(3) .GT. HUGE(D_ZERO)) STOP 'ZHZL1: Scale of Z overflows.'
            DTOL = D_ONE / DSCL(3)
            IF (DTOL .LT. TINY(D_ZERO)) THEN
               ! underflow
