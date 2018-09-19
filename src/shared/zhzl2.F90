@@ -377,10 +377,13 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         EY(I+L) = EY(I+L) + J(JSINTN) * DTMP
      END DO
      IF (EY(I+L) .NE. D_ZERO) THEN
-        SY(I+L) = SQRT(ABS(EY(I+L)))
-        IF (SY(I+L) .NE. D_ONE) THEN
+        DTMP = ABS(EY(I+L))
+        IF (DTMP .NE. D_ONE) THEN
+           SY(I+L) = SQRT(DTMP)
            DTMP = D_ONE / SY(I+L)
            CALL ZDSCAL(M, DTMP, Y(1,I+L), 1)
+        ELSE
+           SY(I+L) = D_ONE
         END IF
      ELSE
         SY(I+L) = D_ZERO
@@ -415,10 +418,13 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         EY(MXNC+L) = EY(MXNC+L) + J(JSINTN) * DTMP
      END DO
      IF (EY(MXNC+L) .NE. D_ZERO) THEN
-        SY(MXNC+L) = SQRT(ABS(EY(MXNC+L)))
-        IF (SY(MXNC+L) .NE. D_ONE) THEN
+        DTMP = ABS(EY(MXNC+L))
+        IF (DTMP .NE. D_ONE) THEN
+           SY(MXNC+L) = SQRT(DTMP)
            DTMP = D_ONE / SY(MXNC+L)
            CALL ZDSCAL(M, DTMP, Y(1,MXNC+L), 1)
+        ELSE
+           SY(MXNC+L) = D_ONE
         END IF
      ELSE
         SY(MXNC+L) = D_ZERO
