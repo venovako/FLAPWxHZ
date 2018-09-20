@@ -47,6 +47,8 @@ PROGRAM ZHZL1SPT
   END SELECT
   CALL JSTRAT_INIT(JS, JSTRAT, K, NSTEPS)
   IF (NSTEPS .LE. 0) STOP 'Error in JSTRAT_INIT'
+  JS(7) = NSTEPS
+  JS(8) = NPAIRS
   ALLOCATE(JSPAIR(2,NPAIRS,NSTEPS),STAT=INFO)
   IF (INFO .GT. 0) STOP 'Error allocating JSPAIR'
   ALLOCATE(JSARR(2,NPAIRS),STAT=INFO)
@@ -74,6 +76,8 @@ PROGRAM ZHZL1SPT
   IF (INFO .GT. 0) STOP 'Error allocating BZ'
 
   INFO = BLAS_PREPARE()
+  ! TODO: if the files do NOT contain pre-computed factors, the HIF of BH and BS
+  ! is needed here, along the lines of sub src/shared/zprep_blks.F90:ZPREP_BLKS.
   I = GET_THREAD_NS()
   IF (CPR .EQ. 0) THEN
      CALL ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
