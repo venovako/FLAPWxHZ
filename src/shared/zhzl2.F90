@@ -12,6 +12,7 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
   USE, INTRINSIC :: IEEE_ARITHMETIC
   USE, INTRINSIC :: IEEE_FEATURES
 #endif
+  USE JACSTR
   USE TIMER
   IMPLICIT NONE
 
@@ -22,8 +23,8 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
   DOUBLE COMPLEX, INTENT(INOUT), TARGET :: Y(LDY,K),W(LDW,K),Z(LDZ,K)
   DOUBLE COMPLEX, INTENT(OUT), TARGET :: YU(LDY,K),WV(LDW,K),ZZ(LDZ,K)
   INTEGER, INTENT(IN) :: NCOLSB(2*CPR),IFCOLB(2*CPR)
-  INTEGER, INTENT(IN), TARGET :: JS(8,3), JSPIN1(2,JS(8,1),JS(7,1)),JSPIN2(2,JS(8,2),JS(7,2))
-  INTEGER, INTENT(IN) :: JSPAIR(2,JS(8,3),JS(7,3)),JSCOMM(2,JS(8,3),JS(7,3))
+  INTEGER, INTENT(IN), TARGET :: JS(JSMLEX,3), JSPIN1(2,JS(JSMLEX,1),JS(JSMLEX-1,1)),JSPIN2(2,JS(JSMLEX,2),JS(JSMLEX-1,2))
+  INTEGER, INTENT(IN) :: JSPAIR(2,JS(JSMLEX,3),JS(JSMLEX-1,3)),JSCOMM(2,JS(JSMLEX,3),JS(JSMLEX-1,3))
   TYPE(ZSHENT), INTENT(IN) :: PSHBUF(CPR)
   DOUBLE PRECISION, INTENT(OUT) :: E(K),SS(K), EY(K),SY(K), EW(K),SW(K)
   DOUBLE COMPLEX, INTENT(OUT) :: BH(LDB,K),BS(LDB,K),BZ(LDB,K)
@@ -137,37 +138,10 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
   INVP => IWORK(I:I+K-1)
 
   MXNC = K / 2
-  NBSTEPS = JS(7,3)
+  NBSTEPS = JS(JSMLEX-1,3)
 
   ! Analyse the non-unity blocks of J.
-  NPLUS = 0
-  JNBLKS = 0
-  I = 1
-  DO WHILE (I .LE. M)
-     IF (J(I) .EQ. 1) THEN
-        NPLUS = NPLUS + 1
-        I = I + 1
-     ELSE IF (J(I) .EQ. -1) THEN
-        JNBLKS = JNBLKS + 1
-        JNSTIX(JNBLKS) = I
-        JNLENS(JNBLKS) = 1
-        I = I + 1
-        DO WHILE (I .LE. M)
-           IF (J(I) .EQ. -1) THEN
-              JNLENS(JNBLKS) = JNLENS(JNBLKS) + 1
-              I = I + 1
-           ELSE
-              EXIT
-           END IF
-        END DO
-#ifdef HAVE_J_SCALE
-     ELSE IF (J(I) .NE. 0) THEN
-        STOP 'ZHZL2: J contains j, |j| =/= 1, not supported'
-#endif
-     ELSE
-        STOP 'ZHZL2: J contains 0'
-     END IF
-  END DO
+  CALL JANAL(M, J, NPLUS, JNBLKS, JNSTIX,JNLENS)
   !$OMP BARRIER
 
   ! Z = partOf(I)
@@ -192,11 +166,11 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         NCQ = NCOLSB(Q)
         NCB = NCP + NCQ
         IF (NCP .LT. MXNC) THEN
-           JSINT => JS(1:8,1)
+           JSINT => JS(1:JSMLEX,1)
            JSPINT => JSPIN1
            I = 1 + (MXNC - NCP)
         ELSE
-           JSINT => JS(1:8,2)
+           JSINT => JS(1:JSMLEX,2)
            JSPINT => JSPIN2
            I = 1
         END IF

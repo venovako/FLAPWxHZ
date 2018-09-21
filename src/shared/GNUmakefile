@@ -32,7 +32,7 @@ blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod $(MKFS)
 dtypes.o dtypes.mod: dtypes.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtypes.F90
 
-hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 zsetzi.F90 zjscl.F90 zimul.F90 zjmul.F90 zprep_blks.F90 zupdate.F90 zxfer2.F90 zupxfer.F90 zhzl1.F90 zhzl1s.F90 zhzl1p.F90 zhzl2.F90 blas_utils.mod dtypes.mod timer.mod $(MKFS)
+hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zimul.F90 zjmul.F90 zcopyh.F90 zprep_blks.F90 zupdate.F90 zxfer2.F90 zupxfer.F90 zhzl1.F90 zhzl1s.F90 zhzl1p.F90 zhzl2.F90 blas_utils.mod dtypes.mod jacstr.mod timer.mod $(MKFS)
 	$(FC) $(FFLAGS) -c hif_hz.F90
 
 jacstr.o jacstr.mod: jacstr.F90 params.mod $(MKFS)
