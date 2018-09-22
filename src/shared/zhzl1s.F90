@@ -1,5 +1,5 @@
 ! L1 double complex HZ (sequential, vectorized).
-SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
+SUBROUTINE ZHZL1S(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP, NROT,INFO)
 #ifndef NDEBUG
   USE, INTRINSIC :: IEEE_ARITHMETIC
   USE, INTRINSIC :: IEEE_FEATURES
@@ -7,8 +7,8 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
   USE JACSTR
   IMPLICIT NONE
 
-  INTEGER, INTENT(IN) :: K,NPLUS,LDB, JS(JSMLEX),JSPAIR(2,JS(JSMLEX),JS(JSMLEX-1)), NSWP
-  DOUBLE COMPLEX, INTENT(INOUT) :: BH(LDB,K),BS(LDB,K),BZ(LDB,K)
+  INTEGER, INTENT(IN) :: M,N, LDH,LDS,LDZ, JVEC(M), JS(JSMLEX),JSPAIR(2,JS(JSMLEX),JS(JSMLEX-1)), NSWP
+  DOUBLE COMPLEX, INTENT(INOUT) :: H(LDH,N),S(LDS,N),Z(LDZ,N)
   INTEGER, INTENT(OUT) :: NROT(2),INFO
 
   INTEGER :: NSTEPS, NPAIRS
@@ -78,33 +78,36 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
   DOUBLE PRECISION :: DTMP4(DSIMDL)
   !DIR$ ATTRIBUTES ALIGN:ALIGNB :: DTMP1,DTMP2,DTMP3,DTMP4
 
-  ! DOUBLE PRECISION, EXTERNAL :: DZNRM2
   EXTERNAL :: ZDSCAL, ZLASET
 
   !DIR$ ASSUME_ALIGNED JS:ALIGNB
   !DIR$ ASSUME_ALIGNED JSPAIR:ALIGNB
-  !DIR$ ASSUME_ALIGNED BH:ALIGNB
-  !DIR$ ASSUME_ALIGNED BS:ALIGNB
-  !DIR$ ASSUME_ALIGNED BZ:ALIGNB
+  !DIR$ ASSUME_ALIGNED H:ALIGNB
+  !DIR$ ASSUME_ALIGNED S:ALIGNB
+  !DIR$ ASSUME_ALIGNED Z:ALIGNB
 #ifdef NDEBUG
-  !DIR$ ASSUME (K .GE. 0)
-  !DIR$ ASSUME (MOD(K,2) .EQ. 0)
-  !DIR$ ASSUME (NPLUS .GE. 0)
-  !DIR$ ASSUME (NPLUS .LE. K)
-  !DIR$ ASSUME (MOD(LDB,ZALIGN) .EQ. 0)
+  !DIR$ ASSUME (M .GE. 0)
+  !DIR$ ASSUME (N .GE. 0)
+  !DIR$ ASSUME (M .GE. N)
+  !DIR$ ASSUME (MOD(N,2) .EQ. 0)
+  !DIR$ ASSUME (MOD(LDH,ZALIGN) .EQ. 0)
+  !DIR$ ASSUME (MOD(LDS,ZALIGN) .EQ. 0)
+  !DIR$ ASSUME (MOD(LDZ,ZALIGN) .EQ. 0)
   !DIR$ ASSUME (NSWP .GE. 0)
 #else
-  IF (K .LT. 0) STOP 'ZHZL1: K .LT. 0'
-  IF (MOD(K,2) .NE. 0) STOP 'ZHZL1: MOD(K,2) .NE. 0'
-  IF (NPLUS .LT. 0) STOP 'ZHZL1: NPLUS .LT. 0'
-  IF (NPLUS .GT. K) STOP 'ZHZL1: NPLUS .GT. K'
-  IF (MOD(LDB,ZALIGN) .NE. 0) STOP 'ZHZL1: MOD(LDB,ZALIGN) .NE. 0'
+  IF (M .LT. 0) STOP 'ZHZL1: M .LT. 0'
+  IF (N .LT. 0) STOP 'ZHZL1: N .LT. 0'
+  IF (M .LT. N) STOP 'ZHZL1: M .LT. N'
+  IF (MOD(N,2) .NE. 0) STOP 'ZHZL1: MOD(N,2) .NE. 0'
+  IF (MOD(LDH,ZALIGN) .NE. 0) STOP 'ZHZL1: MOD(LDH,ZALIGN) .NE. 0'
+  IF (MOD(LDS,ZALIGN) .NE. 0) STOP 'ZHZL1: MOD(LDS,ZALIGN) .NE. 0'
+  IF (MOD(LDZ,ZALIGN) .NE. 0) STOP 'ZHZL1: MOD(LDZ,ZALIGN) .NE. 0'
   IF (NSWP .LT. 0) STOP 'ZHZL1: NSWP .LT. 0'
 #endif
 
   INFO = 0
   NROT = 0
-  IF (K .LE. 0) RETURN
+  IF (N .LE. 0) RETURN
 
 #ifndef NDEBUG
   CALL IEEE_SET_HALTING_MODE(IEEE_OVERFLOW, .FALSE._c_int)
@@ -112,7 +115,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
 #endif
 
-  DTOL = SCALE(SQRT(DBLE(K)), -53)
+  DTOL = SCALE(SQRT(DBLE(M)), -53)
 
   NSTEPS = JS(JSMLEX-1)
   NPAIRS = JS(JSMLEX)
@@ -121,7 +124,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
   ! vectors per step
   VPS = (NPAIRS + (PPV - 1)) / PPV
 
-  CALL ZLASET('A', LDB, K, Z_ZERO, Z_ONE, BZ, LDB)
+  CALL ZLASET('A', N, N, Z_ZERO, Z_ONE, Z, LDZ)
 
   DO SWEEP = 1, NSWP
      SNROT = 0
@@ -194,12 +197,12 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
                  ZTMP2 = Z_ZERO ! ZQ
 
-                 DO I = 1, K, DSIMDL
-                    L = MIN(DSIMDL, K-(I-1))
+                 DO I = 1, M, DSIMDL
+                    L = MIN(DSIMDL, M-(I-1))
                     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
                     DO J = 1, L
-                       ZTMP1(J) = BS(I+(J-1),P)
-                       ZTMP2(J) = BS(I+(J-1),Q)
+                       ZTMP1(J) = S(I+(J-1),P)
+                       ZTMP2(J) = S(I+(J-1),Q)
                        !DBLE(DCONJG(ZTMP1(J))*ZTMP1(J))
                        DTMP1(J) = DTMP1(J) + (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J)))
                        !DBLE(DCONJG(ZTMP2(J))*ZTMP2(J))
@@ -223,7 +226,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                     STOP 'ZHZL1: S_pp .LE. 0'
                  ELSE IF (RE_S_PP(PIX) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
-                    ! A joint prescaling of BH and BS needed...
+                    ! A joint prescaling of H and S needed...
                     STOP 'ZHZL1: Infinity(S_pp)'
                  ELSE IF (RE_S_PP(PIX) .NE. D_ONE) THEN
                     RE_S_PP(PIX) = D_ONE / SQRT(RE_S_PP(PIX))
@@ -237,7 +240,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                     STOP 'ZHZL1: S_qq .LE. 0'
                  ELSE IF (RE_S_QQ(PIX) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
-                    ! A joint prescaling of BH and BS needed...
+                    ! A joint prescaling of H and S needed...
                     STOP 'ZHZL1: Infinity(S_qq)'
                  ELSE IF (RE_S_QQ(PIX) .NE. D_ONE) THEN
                     RE_S_QQ(PIX) = D_ONE / SQRT(RE_S_QQ(PIX))
@@ -263,35 +266,16 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
                  ZTMP2 = Z_ZERO ! ZQ
 
-                 DO I = 1, NPLUS, DSIMDL
-                    L = MIN(DSIMDL, NPLUS-(I-1))
+                 DO I = 1, M, DSIMDL
+                    L = MIN(DSIMDL, M-(I-1))
                     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
                     DO J = 1, L
-                       ZTMP1(J) = BH(I+(J-1),P)
-                       ZTMP2(J) = BH(I+(J-1),Q)
-                       !DBLE(DCONJG(ZTMP1(J))*ZTMP1(J))
-                       DTMP1(J) = DTMP1(J) + (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J)))
-                       !DBLE(DCONJG(ZTMP2(J))*ZTMP2(J))
-                       DTMP2(J) = DTMP2(J) + (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J)))
-                       ! += DCONJG(ZTMP1(J)) * ZTMP2(J)
-                       DTMP3(J) = DTMP3(J) + (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
-                       DTMP4(J) = DTMP4(J) + (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
-                    END DO
-                 END DO
-
-                 DO I = NPLUS+1, K, DSIMDL
-                    L = MIN(DSIMDL, K-(I-1))
-                    !DIR$ VECTOR ALWAYS ASSERT
-                    DO J = 1, L
-                       ZTMP1(J) = BH(I+(J-1),P)
-                       ZTMP2(J) = BH(I+(J-1),Q)
-                       !DBLE(DCONJG(ZTMP1(J))*ZTMP1(J))
-                       DTMP1(J) = DTMP1(J) - (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J)))
-                       !DBLE(DCONJG(ZTMP2(J))*ZTMP2(J))
-                       DTMP2(J) = DTMP2(J) - (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J)))
-                       ! -= DCONJG(ZTMP1(J)) * ZTMP2(J)
-                       DTMP3(J) = DTMP3(J) - (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
-                       DTMP4(J) = DTMP4(J) - (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
+                       ZTMP1(J) = H(I+(J-1),P)
+                       ZTMP2(J) = H(I+(J-1),Q)
+                       DTMP1(J) = DTMP1(J) + JVEC(M) * (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J)))
+                       DTMP2(J) = DTMP2(J) + JVEC(M) * (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J)))
+                       DTMP3(J) = DTMP3(J) + JVEC(M) * (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
+                       DTMP4(J) = DTMP4(J) + JVEC(M) * (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
                     END DO
                  END DO
 
@@ -308,7 +292,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                     STOP 'ZHZL1: H_pp .EQ. 0'
                  ELSE IF (RE_H_PP(PIX) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
-                    ! A joint prescaling of BH and BS needed...
+                    ! A joint prescaling of H and S needed...
                     STOP 'ZHZL1: Infinity(H_pp)'
                  END IF
 
@@ -320,7 +304,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                     STOP 'ZHZL1: H_qq .EQ. 0'
                  ELSE IF (RE_H_QQ(PIX) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
-                    ! A joint prescaling of BH and BS needed...
+                    ! A joint prescaling of H and S needed...
                     STOP 'ZHZL1: Infinity(H_qq)'
                  END IF
 
@@ -459,9 +443,9 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  ZTMP2(PIX) = DCMPLX(RE_ASPHI(PIX), IM_ASPHI(PIX))
                  IF (.NOT. (CPSI(PIX) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: F_22 overflow or NaN.'
                  DTMP2(PIX) = CPSI(PIX)
-                 CALL BLAS_ZVROTM(K, BH(1,P), BH(1,Q), DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX))
-                 CALL BLAS_ZVROTM(K, BS(1,P), BS(1,Q), DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX))
-                 CALL BLAS_ZVROTM(K, BZ(1,P), BZ(1,Q), DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX))
+                 CALL BLAS_ZVROTM(M, H(1,P), H(1,Q), DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX))
+                 CALL BLAS_ZVROTM(M, S(1,P), S(1,Q), DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX))
+                 CALL BLAS_ZVROTM(M, Z(1,P), Z(1,Q), DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX))
               END IF
            END DO
         END DO
@@ -476,28 +460,16 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
   ! Scaling of H,S,Z.
 
   IF (NROT(1) .GT. 0) THEN
-     DO J = 1, K
-        ! DSCL(1) = DZNRM2(K, BH(1,J), 1)
-        ! compute the J-norm instead
+     DO J = 1, N
         !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
         DTMP1 = D_ZERO
 
-        DO I = 1, NPLUS, DSIMDL
-           P = MIN(DSIMDL, NPLUS-(I-1))
+        DO I = 1, M, DSIMDL
+           P = MIN(DSIMDL, M-(I-1))
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
            DO L = 1, P
-              ZTMP1(L) = BH(I+(L-1),J)
-              !DBLE(DCONJG(ZTMP1(L))*ZTMP1(L))
-              DTMP1(L) = DTMP1(L) + (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
-           END DO
-        END DO
-        DO I = NPLUS+1, K, DSIMDL
-           P = MIN(DSIMDL, K-(I-1))
-           !DIR$ VECTOR ALWAYS ASSERT
-           DO L = 1, P
-              ZTMP1(L) = BH(I+(L-1),J)
-              !DBLE(DCONJG(ZTMP1(L))*ZTMP1(L))
-              DTMP1(L) = DTMP1(L) - (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
+              ZTMP1(L) = H(I+(L-1),J)
+              DTMP1(L) = DTMP1(L) + JVEC(M) * (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
            END DO
         END DO
         DTOL = SUM(DTMP1)
@@ -506,7 +478,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
            IF (DTOL .NE. D_ONE) THEN
               DSCL(1) = SQRT(DTOL)
               DTOL = D_ONE / DSCL(1)
-              CALL ZDSCAL(K, DTOL, BH(1,J), 1)
+              CALL ZDSCAL(M, DTOL, H(1,J), 1)
            ELSE
               DSCL(1) = D_ONE
            END IF
@@ -514,16 +486,14 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
            DSCL(1) = D_ZERO
         END IF
 
-        ! DSCL(2) = DZNRM2(K, BS(1,J), 1)
         !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
         DTMP2 = D_ZERO
 
-        DO I = 1, K, DSIMDL
-           P = MIN(DSIMDL, K-(I-1))
+        DO I = 1, M, DSIMDL
+           P = MIN(DSIMDL, M-(I-1))
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
            DO L = 1, P
-              ZTMP2(L) = BS(I+(L-1),J)
-              !DBLE(DCONJG(ZTMP2(L))*ZTMP2(L))
+              ZTMP2(L) = S(I+(L-1),J)
               DTMP2(L) = DTMP2(L) + (DBLE(ZTMP2(L))*DBLE(ZTMP2(L)) + AIMAG(ZTMP2(L))*AIMAG(ZTMP2(L)))
            END DO
         END DO
@@ -532,7 +502,7 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
            IF (DTOL .NE. D_ONE) THEN
               DSCL(2) = SQRT(DTOL)
               DTOL = D_ONE / DSCL(2)
-              CALL ZDSCAL(K, DTOL, BS(1,J), 1)
+              CALL ZDSCAL(M, DTOL, S(1,J), 1)
            ELSE
               DSCL(2) = D_ONE
            END IF
@@ -551,11 +521,11 @@ SUBROUTINE ZHZL1S(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
               ! underflow
               DTOL = DSCL(3)
               !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
-              DO I = 1, K
-                 BZ(I,J) = BZ(I,J) / DTOL
+              DO I = 1, N
+                 Z(I,J) = Z(I,J) / DTOL
               END DO
            ELSE
-              CALL ZDSCAL(K, DTOL, BZ(1,J), 1)
+              CALL ZDSCAL(N, DTOL, Z(1,J), 1)
            END IF
         END IF
      END DO
