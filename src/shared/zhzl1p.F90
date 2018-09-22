@@ -132,7 +132,7 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
      SNROT = 0
      DO STEP = 1, NSTEPS
         !$OMP  PARALLEL DO DEFAULT(NONE) NUM_THREADS(CPR) PROC_BIND(SPREAD)              &
-        !$OMP& SHARED(M,JSPAIR,NPAIRS,STEP,PPV,VPS,H,S,Z,JVEC,DTOL)                      &
+        !$OMP& SHARED(M,N,JSPAIR,NPAIRS,STEP,PPV,VPS,H,S,Z,JVEC,DTOL)                    &
         !$OMP& PRIVATE(VEC,PIX,PAIR, P,Q, I,J,L,                                         &
         !$OMP& RE_H_PP,RE_H_QQ,RE_H_PQ,IM_H_PQ, RE_S_PP,RE_S_QQ,RE_S_PQ,IM_S_PQ,         &
         !$OMP& HZ,DHZ, AV_H_PQ,CA_H_PQ,SA_H_PQ, AV_S_PQ,CA_S_PQ,SA_S_PQ, T,U,V,E,        &
