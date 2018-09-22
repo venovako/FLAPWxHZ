@@ -235,7 +235,7 @@ CONTAINS
        RETURN
     END IF
 
-    SZ(2) = BREAD(FD(2), C_LOC(Y), C_SIZEOF(Y), 0)
+    SZ(2) = BREAD(FD(2), C_LOC(W), C_SIZEOF(W), 0)
     IF (SZ(2) .NE. C_SIZEOF(W)) THEN
        INFO = 2
        RETURN
