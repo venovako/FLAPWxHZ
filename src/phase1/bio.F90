@@ -98,31 +98,19 @@
     SZ(2) = (2 * L) * (G) * a * C_SIZEOF(Z_ZERO)
     SZ(3) = (2 * L)       * a * C_SIZEOF(0)
 
-#ifdef HAVE_PHASE_2
     CALL BOPEN_RW((TRIM(FN)//c_char_'.YY'), SZ(1), FD(1))
-#else
-    CALL BOPEN_RW((TRIM(FN)//c_char_'.Y'), SZ(1), FD(1))
-#endif
     IF (FD(1) .LT. 0) THEN
        INFO = 1
        RETURN
     END IF
 
-#ifdef HAVE_PHASE_2
     CALL BOPEN_RW((TRIM(FN)//c_char_'.WW'), SZ(2), FD(2))
-#else
-    CALL BOPEN_RW((TRIM(FN)//c_char_'.W'), SZ(2), FD(2))
-#endif
     IF (FD(2) .LT. 0) THEN
        INFO = 2
        RETURN
     END IF
 
-#ifdef HAVE_PHASE_2
     CALL BOPEN_RW((TRIM(FN)//c_char_'.JJ'), SZ(3), FD(3))
-#else
-    CALL BOPEN_RW((TRIM(FN)//c_char_'.J'), SZ(3), FD(3))
-#endif
     IF (FD(3) .LT. 0) THEN
        INFO = 3
        RETURN
