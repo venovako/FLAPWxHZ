@@ -1,5 +1,6 @@
 ! L1 double complex HZ (parallel, vectorized).
-SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO)
+SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,&
+     EE,EY,EW, SY,SW,SS, NROT,INFO)
 #ifndef NDEBUG
   USE, INTRINSIC :: IEEE_ARITHMETIC
   USE, INTRINSIC :: IEEE_FEATURES
@@ -9,16 +10,17 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
 
   INTEGER, INTENT(IN) :: M,N, LDH,LDS,LDZ, JVEC(M), JS(JSMLEX),JSPAIR(2,JS(JSMLEX),JS(JSMLEX-1)), NSWP,CPR
   DOUBLE COMPLEX, INTENT(INOUT) :: H(LDH,N),S(LDS,N),Z(LDZ,N)
+  DOUBLE PRECISION, INTENT(OUT) :: EE(N),EY(N),EW(N), SY(N),SW(N),SS(N)
   INTEGER, INTENT(OUT) :: NROT(2),INFO
 
   INTEGER :: NSTEPS, NPAIRS
   INTEGER :: PPV, VPS
   INTEGER :: SWEEP, STEP, VEC, PIX, PAIR
   INTEGER :: P, Q, I, J, L
-  INTEGER :: SNROT(2)
 
-  DOUBLE PRECISION :: DTOL, DSCL(3)
-  !DIR$ ATTRIBUTES ALIGN:ALIGNB :: DTOL
+  INTEGER :: SNROT(2)
+  DOUBLE PRECISION :: DTOL
+  !DIR$ ATTRIBUTES ALIGN:ALIGNB :: SNROT, DTOL
 
   ! vector variables
 
@@ -85,6 +87,12 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
   !DIR$ ASSUME_ALIGNED H:ALIGNB
   !DIR$ ASSUME_ALIGNED S:ALIGNB
   !DIR$ ASSUME_ALIGNED Z:ALIGNB
+  !DIR$ ASSUME_ALIGNED EE:ALIGNB
+  !DIR$ ASSUME_ALIGNED EY:ALIGNB
+  !DIR$ ASSUME_ALIGNED EW:ALIGNB
+  !DIR$ ASSUME_ALIGNED SY:ALIGNB
+  !DIR$ ASSUME_ALIGNED SY:ALIGNB
+  !DIR$ ASSUME_ALIGNED SS:ALIGNB
 #ifdef NDEBUG
   !DIR$ ASSUME (M .GE. 0)
   !DIR$ ASSUME (N .GE. 0)
@@ -108,6 +116,7 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
 #endif
 
   INFO = 0
+  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
   NROT = 0
   IF (N .LE. 0) RETURN
 
@@ -129,6 +138,7 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
   CALL ZLASET('A', N, N, Z_ZERO, Z_ONE, Z, LDZ)
 
   DO SWEEP = 1, NSWP
+     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
      SNROT = 0
      DO STEP = 1, NSTEPS
         !$OMP  PARALLEL DO DEFAULT(NONE) NUM_THREADS(CPR) PROC_BIND(SPREAD)              &
@@ -462,8 +472,10 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
      END DO
      WRITE (ULOG,'(I3,A,I20,A,I20)') SWEEP,',',SNROT(1),',',SNROT(2)
      IF (SNROT(2) .EQ. 0) EXIT
-     NROT(1) = NROT(1) + SNROT(1)
-     NROT(2) = NROT(2) + SNROT(2)
+     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     DO I = 1, 2
+        NROT(I) = NROT(I) + SNROT(I)
+     END DO
   END DO
 
   INFO = SWEEP
@@ -472,7 +484,7 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
 
   IF (NROT(1) .GT. 0) THEN
      !$OMP  PARALLEL DO DEFAULT(NONE) NUM_THREADS(CPR) PROC_BIND(SPREAD) &
-     !$OMP& SHARED(M,N,H,S,Z,JVEC) PRIVATE(I,J,L,P,DTOL,DSCL,DTMP1,DTMP2,ZTMP1,ZTMP2)
+     !$OMP& SHARED(M,N,H,S,Z,JVEC) PRIVATE(I,J,L,P,DTOL,EE,EY,EW,SY,SW,SS,DTMP1,DTMP2,ZTMP1,ZTMP2)
      DO J = 1, N
         !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
         DTMP1 = D_ZERO
@@ -485,18 +497,18 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
               DTMP1(L) = DTMP1(L) + JVEC(M) * (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
            END DO
         END DO
-        DTOL = SUM(DTMP1)
-        IF (DTOL .NE. D_ZERO) THEN
-           DTOL = ABS(DTOL)
+        EY(J) = SUM(DTMP1)
+        IF (EY(J) .NE. D_ZERO) THEN
+           DTOL = ABS(EY(J))
            IF (DTOL .NE. D_ONE) THEN
-              DSCL(1) = SQRT(DTOL)
-              DTOL = D_ONE / DSCL(1)
+              SY(J) = SQRT(DTOL)
+              DTOL = D_ONE / SY(J)
               CALL ZDSCAL(M, DTOL, H(1,J), 1)
            ELSE
-              DSCL(1) = D_ONE
+              SY(J) = D_ONE
            END IF
         ELSE
-           DSCL(1) = D_ZERO
+           SY(J) = D_ZERO
         END IF
 
         !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
@@ -510,29 +522,31 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR, NROT,INFO
               DTMP2(L) = DTMP2(L) + (DBLE(ZTMP2(L))*DBLE(ZTMP2(L)) + AIMAG(ZTMP2(L))*AIMAG(ZTMP2(L)))
            END DO
         END DO
-        DTOL = SUM(DTMP2)
-        IF (DTOL .NE. D_ZERO) THEN
+        EW(J) = SUM(DTMP2)
+        IF (EW(J) .NE. D_ZERO) THEN
+           DTOL = EW(J)
            IF (DTOL .NE. D_ONE) THEN
-              DSCL(2) = SQRT(DTOL)
-              DTOL = D_ONE / DSCL(2)
+              SW(J) = SQRT(DTOL)
+              DTOL = D_ONE / SW(J)
               CALL ZDSCAL(M, DTOL, S(1,J), 1)
            ELSE
-              DSCL(2) = D_ONE
+              SW(J) = D_ONE
            END IF
         ELSE
-           DSCL(2) = D_ZERO
+           SW(J) = D_ZERO
         END IF
 
-        DSCL(3) = HYPOT(DSCL(1), DSCL(2))
-        IF (DSCL(3) .NE. D_ONE) THEN
+        EE(J) = EY(J) / EW(J)
+        SS(J) = HYPOT(SY(J), SW(J))
+        IF (SS(J) .NE. D_ONE) THEN
            ! underflow
-           IF (DSCL(3) .LT. TINY(D_ZERO)) STOP 'ZHZL1: Scale of Z underflows.'
+           IF (SS(J) .LT. TINY(D_ZERO)) STOP 'ZHZL1: Scale of Z underflows.'
            ! overflow
-           IF (DSCL(3) .GT. HUGE(D_ZERO)) STOP 'ZHZL1: Scale of Z overflows.'
-           DTOL = D_ONE / DSCL(3)
+           IF (SS(J) .GT. HUGE(D_ZERO)) STOP 'ZHZL1: Scale of Z overflows.'
+           DTOL = D_ONE / SS(J)
            IF (DTOL .LT. TINY(D_ZERO)) THEN
               ! underflow
-              DTOL = DSCL(3)
+              DTOL = SS(J)
               !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
               DO I = 1, N
                  Z(I,J) = Z(I,J) / DTOL
