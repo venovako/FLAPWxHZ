@@ -9,7 +9,7 @@ PROGRAM ZHZL1SPT
   INTEGER, PARAMETER :: FNL = 20
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
-  INTEGER :: M,N,NSWP,CPR, LDH,LDS,LDZ, JSTRAT,NPAIRS,NSTEPS, I,FD(3),SZ(3), NROT(2),INFO
+  INTEGER :: M,N,NSWP,CPR, LDH,LDS,LDZ, JSTRAT,NPAIRS,NSTEPS, I,FD(9),SZ(9), NROT(2),INFO
 
   INTEGER, TARGET :: JS(JSMLEX)
   !DIR$ ATTRIBUTES ALIGN:ALIGNB :: JS
@@ -89,6 +89,12 @@ PROGRAM ZHZL1SPT
   I = GET_THREAD_NS() - I
   WRITE (UOUT,'(2(I6,A),I1,A,2(I3,A),2(I20,A),F15.6)') &
        M,',',N,',',JSTRAT,',',CPR,',',INFO,',',NROT(1),',',NROT(2),',',(I*DNS2S)
+
+  CALL BOPEN_EZS_RW(FN, M, N, SZ, FD, INFO)
+  IF (INFO .NE. 0) STOP 'Error in BOPEN_EZS_RW'
+  CALL BWRITE_EZS(FD, E, Z, SS, H, EY, SY, S, EW, SW, M, N, INFO)
+  IF (INFO .NE. 0) STOP 'Error in BWRITE_EZS'
+  CALL BCLOSEN(FD, 9)
 
   IF (ALLOCATED(SS)) DEALLOCATE(SS)
   IF (ALLOCATED(SW)) DEALLOCATE(SW)
@@ -269,5 +275,135 @@ CONTAINS
        RETURN
     END IF
   END SUBROUTINE BREAD_YWJ
+
+  SUBROUTINE BOPEN_EZS_RW(FN, M, N, SZ, FD, INFO)
+    IMPLICIT NONE
+    CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
+    INTEGER, INTENT(IN) :: M, N
+    INTEGER, INTENT(OUT) :: SZ(9), FD(9), INFO
+
+    SZ = -1
+    FD = -1
+
+    INFO = 0
+    IF (N .LT. 0) INFO = -3
+    IF (M .LT. 0) INFO = -2
+    IF (INFO .NE. 0) RETURN
+
+    SZ(1) =     N * C_SIZEOF(D_ZERO) !  E
+    SZ(2) = N * N * C_SIZEOF(Z_ZERO) !  Z
+
+    SZ(3) =     N * C_SIZEOF(D_ZERO) ! SS
+    SZ(4) = M * N * C_SIZEOF(Z_ZERO) ! YU
+    SZ(5) =     N * C_SIZEOF(D_ZERO) ! EY
+    SZ(6) =     N * C_SIZEOF(D_ZERO) ! SY
+    SZ(7) = M * N * C_SIZEOF(Z_ZERO) ! WV
+    SZ(8) =     N * C_SIZEOF(D_ZERO) ! EW
+    SZ(9) =     N * C_SIZEOF(D_ZERO) ! SW
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.E'), SZ(1), FD(1))
+    IF (FD(1) .LT. 0) THEN
+       INFO = 1
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.Z'), SZ(2), FD(2))
+    IF (FD(2) .LT. 0) THEN
+       INFO = 2
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.SS'), SZ(3), FD(3))
+    IF (FD(3) .LT. 0) THEN
+       INFO = 3
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.YU'), SZ(4), FD(4))
+    IF (FD(4) .LT. 0) THEN
+       INFO = 4
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.EY'), SZ(5), FD(5))
+    IF (FD(5) .LT. 0) THEN
+       INFO = 5
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.SY'), SZ(6), FD(6))
+    IF (FD(6) .LT. 0) THEN
+       INFO = 6
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.WV'), SZ(7), FD(7))
+    IF (FD(7) .LT. 0) THEN
+       INFO = 7
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.EW'), SZ(8), FD(8))
+    IF (FD(8) .LT. 0) THEN
+       INFO = 8
+       RETURN
+    END IF
+
+    CALL BOPEN_RW((TRIM(FN)//c_char_'.SW'), SZ(9), FD(9))
+    IF (FD(9) .LT. 0) THEN
+       INFO = 9
+       RETURN
+    END IF
+  END SUBROUTINE BOPEN_EZS_RW
+
+  SUBROUTINE BWRITE_EZS(FD, E, Z, SS, YU, EY, SY, WV, EW, SW, M, N, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD(9), M, N
+    DOUBLE PRECISION, INTENT(IN), TARGET :: E(N)
+    DOUBLE COMPLEX, INTENT(IN), TARGET :: Z(N,N)
+    DOUBLE PRECISION, INTENT(IN), TARGET :: SS(N)
+    DOUBLE PRECISION, INTENT(IN), TARGET :: EY(N)
+    DOUBLE PRECISION, INTENT(IN), TARGET :: SY(N)
+    DOUBLE PRECISION, INTENT(IN), TARGET :: EW(N)
+    DOUBLE PRECISION, INTENT(IN), TARGET :: SW(N)
+    DOUBLE COMPLEX, INTENT(IN), TARGET :: YU(M,N)
+    DOUBLE COMPLEX, INTENT(IN), TARGET :: WV(M,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    INTEGER(c_size_t) :: SZ(9), S
+
+    SZ(1) =     N * C_SIZEOF(D_ZERO) !  E
+    SZ(2) = N * N * C_SIZEOF(Z_ZERO) !  Z
+
+    SZ(3) =     N * C_SIZEOF(D_ZERO) ! SS
+    SZ(4) = M * N * C_SIZEOF(Z_ZERO) ! YU
+    SZ(5) =     N * C_SIZEOF(D_ZERO) ! EY
+    SZ(6) =     N * C_SIZEOF(D_ZERO) ! SY
+    SZ(7) = M * N * C_SIZEOF(Z_ZERO) ! WV
+    SZ(8) =     N * C_SIZEOF(D_ZERO) ! EW
+    SZ(9) =     N * C_SIZEOF(D_ZERO) ! SW
+
+    INFO = 0
+
+    S = BWRITE(FD(1), C_LOC(E), C_SIZEOF(E), 0)
+    IF (S .NE. SZ(1)) INFO = 1
+    S = BWRITE(FD(2), C_LOC(Z), C_SIZEOF(Z), 0)
+    IF (S .NE. SZ(2)) INFO = 2
+
+    S = BWRITE(FD(3), C_LOC(SS), C_SIZEOF(SS), 0)
+    IF (S .NE. SZ(3)) INFO = 3
+    S = BWRITE(FD(4), C_LOC(YU), C_SIZEOF(YU), 0)
+    IF (S .NE. SZ(4)) INFO = 4
+    S = BWRITE(FD(5), C_LOC(EY), C_SIZEOF(EY), 0)
+    IF (S .NE. SZ(5)) INFO = 5
+    S = BWRITE(FD(6), C_LOC(SY), C_SIZEOF(SY), 0)
+    IF (S .NE. SZ(6)) INFO = 6
+    S = BWRITE(FD(7), C_LOC(WV), C_SIZEOF(WV), 0)
+    IF (S .NE. SZ(7)) INFO = 7
+    S = BWRITE(FD(8), C_LOC(EW), C_SIZEOF(EW), 0)
+    IF (S .NE. SZ(8)) INFO = 8
+    S = BWRITE(FD(9), C_LOC(SW), C_SIZEOF(SW), 0)
+    IF (S .NE. SZ(9)) INFO = 9
+  END SUBROUTINE BWRITE_EZS
 
 END PROGRAM ZHZL1SPT
