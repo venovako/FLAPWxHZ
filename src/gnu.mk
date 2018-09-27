@@ -3,11 +3,10 @@ ARCH=$(shell uname)
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
+FC=gfortran
 ifeq ($(ARCH),Darwin)
-FC=gfortran-8
 CC=clang
 else # Linux
-FC=gfortran
 CC=gcc
 endif # ?Darwin
 CPUFLAGS=-DUSE_GNU -DUSE_X64
