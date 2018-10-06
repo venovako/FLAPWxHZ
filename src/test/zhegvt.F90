@@ -333,7 +333,7 @@ CONTAINS
 
     DIFFSZ = 0
 
-    CALL BOPEN_RO((TRIM(FN)//c_char_'.Y'), SZ(1), FD(1))
+    CALL BOPEN_RO((TRIM(FN)//c_char_'.YY'), SZ(1), FD(1))
     IF (FD(1) .LT. 0) THEN
        INFO = 1
        GOTO 1
@@ -344,7 +344,7 @@ CONTAINS
        GOTO 1
     END IF
  
-    CALL BOPEN_RO((TRIM(FN)//c_char_'.W'), SZ(2), FD(2))
+    CALL BOPEN_RO((TRIM(FN)//c_char_'.WW'), SZ(2), FD(2))
     IF (FD(2) .LT. 0) THEN
        INFO = 2
        GOTO 1
@@ -355,7 +355,7 @@ CONTAINS
        GOTO 1
     END IF
 
-    CALL BOPEN_RO((TRIM(FN)//c_char_'.J'), SZ(3), FD(3))
+    CALL BOPEN_RO((TRIM(FN)//c_char_'.JJ'), SZ(3), FD(3))
     IF (FD(3) .LT. 0) THEN
        INFO = 3
        GOTO 1
