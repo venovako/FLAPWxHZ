@@ -30,4 +30,4 @@ To turn off the nested parallelism (**highly recommended**) and link with the se
 
 For example, ``make CPU=x200 NDEBUG=3 NEST=_SEQ clean all`` will trigger a full, release-mode rebuild for the KNLs.
 
-This work has been supported in part by Croatian Science Foundation under the project IP--2014--09--3670.
+This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670.
