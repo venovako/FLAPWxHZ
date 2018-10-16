@@ -38,7 +38,7 @@ PHASE2: SHARED $(MKFS)
 ifdef NDEBUG
 	pushd phase2 && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) NEST=$(NEST) && popd
 else # DEBUG
-	pushd phase2 && $(MAKE) CPU=$(CPU) NEST=$(NEST) NEST=$(NEST) && popd
+	pushd phase2 && $(MAKE) CPU=$(CPU) NEST=$(NEST) && popd
 endif # ?NDEBUG
 
 PHASE3: SHARED $(MKFS)
