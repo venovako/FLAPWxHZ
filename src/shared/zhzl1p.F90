@@ -553,9 +553,12 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,&
            IF (DTOL .LT. TINY(D_ZERO)) THEN
               ! underflow
               DTOL = SS(J)
-              !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
-              DO I = 1, N
-                 Z(I,J) = Z(I,J) / DTOL
+              DO I = 1, N, DSIMDL
+                 P = MIN(DSIMDL, N-(I-1))
+                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 DO L = 1, P
+                    Z(I+(L-1),J) = Z(I+(L-1),J) / DTOL
+                 END DO
               END DO
            ELSE
               CALL ZDSCAL(N, DTOL, Z(1,J), 1)
