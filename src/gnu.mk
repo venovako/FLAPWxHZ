@@ -10,7 +10,7 @@ else # Linux
 CC=gcc
 endif # ?Darwin
 CPUFLAGS=-DUSE_GNU -DUSE_X64
-FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fopenmp -fstack-arrays
+FORFLAGS=-cpp $(CPUFLAGS) -DHAVE_IMAGINARY -fdefault-integer-8 -ffree-line-length-none -fopenmp -fstack-arrays
 C11FLAGS=$(CPUFLAGS) -DFORTRAN_INTEGER_KIND=8
 ifeq ($(ARCH),Darwin)
 C11FLAGS += -std=gnu17 -pthread

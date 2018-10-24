@@ -1,7 +1,3 @@
-    LOGICAL :: RIGHT
-    DOUBLE COMPLEX :: W, Z
-    INTEGER :: I, KX, KY
-
     INFO = 0
     IF (N .LT. 0) INFO = -2
     SELECT CASE (SIDE)
