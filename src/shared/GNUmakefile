@@ -20,11 +20,14 @@ all: libFLAPWxHZ.a
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
 
-libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o jqr.o params.o timer.o timer_.o vn_binio.o $(MKFS) #ximaginary.o
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o jqr.o params.o timer.o timer_.o vn_binio.o #ximaginary.o
+libFLAPWxHZ.a: binio.o binio1.o blas_utils.o dtypes.o hif_hz.o jacstr.o jqr.o params.o timer.o timer_.o vn_binio.o $(MKFS) #ximaginary.o
+	$(AR) $(ARFLAGS) $@ binio.o binio1.o blas_utils.o dtypes.o hif_hz.o jacstr.o jqr.o params.o timer.o timer_.o vn_binio.o #ximaginary.o
 
 binio.o binio.mod: binio.F90 params.mod vn_binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c binio.F90
+
+binio1.o binio1.mod: binio1.F90 params.mod $(MKFS)
+	$(FC) $(FFLAGS) -c binio1.F90
 
 blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod $(MKFS) #ximaginary.mod
 	$(FC) $(FFLAGS) -c blas_utils.F90
