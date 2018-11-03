@@ -1,5 +1,164 @@
 MODULE JQR
   USE PARAMS
   IMPLICIT NONE
+
 CONTAINS
+
+  SUBROUTINE ZTSR(M, N, A, LDA, INFO)
+    IMPLICIT NONE
+
+    CHARACTER, PARAMETER :: SIDE = 'L'
+    CHARACTER, PARAMETER :: TRANS = 'N'
+
+    INTEGER, INTENT(IN) :: M, N, LDA
+    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    DOUBLE COMPLEX, ALLOCATABLE :: T(:), WORK(:)
+#ifdef USE_X200
+    !DIR$ ATTRIBUTES MEMKIND:HBW, ALIGN:ALIGNB :: T, WORK
+#else
+    !DIR$ ATTRIBUTES ALIGN:ALIGNB :: T, WORK
+#endif
+
+    INTEGER :: K, TSIZE, LWORK
+    DOUBLE COMPLEX :: T5(5), WORK1(1)
+
+    EXTERNAL :: ZGEQR, ZGEMQR, ZLASET
+
+    IF (M .LT. 0) THEN
+       INFO = -1
+    ELSE IF (N .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .GT. M) THEN
+       INFO = -2
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -4
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    K = MIN(M,N)
+
+    ! A = Q*R
+    T5 = Z_ZERO
+    TSIZE = -1
+    WORK1 = Z_ZERO
+    LWORK = -1
+    CALL ZGEQR(M, N, A, LDA, T5, TSIZE, WORK1, LWORK, INFO)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I2)') 'ZGEQR(workspace query): ', INFO
+       RETURN
+    END IF
+    TSIZE = CEILING(DBLE(T5(1)))
+    ALLOCATE(T(TSIZE))
+    LWORK = CEILING(DBLE(WORK1(1)))
+    ALLOCATE(WORK(LWORK))
+    CALL ZGEQR(M, N, A, LDA, T, TSIZE, WORK, LWORK, INFO)
+    DEALLOCATE(WORK)
+    DEALLOCATE(T)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I2)') 'ZGEQR: ', INFO
+       RETURN
+    END IF
+
+    ! set everything below the diagonal of A to 0
+    CALL ZLASET('L', M-1, N, Z_ZERO, Z_ZERO, A(2,1), LDA)
+  END SUBROUTINE ZTSR
+
+  SUBROUTINE ZTSQR(M, N, A, LDA, Q, LDQ, INFO)
+    IMPLICIT NONE
+
+    CHARACTER, PARAMETER :: SIDE = 'L'
+    CHARACTER, PARAMETER :: TRANS = 'N'
+
+    INTEGER, INTENT(IN) :: M, N, LDA, LDQ
+    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    DOUBLE COMPLEX, INTENT(OUT) :: Q(LDQ,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    DOUBLE COMPLEX, ALLOCATABLE :: T(:), WORK(:)
+#ifdef USE_X200
+    !DIR$ ATTRIBUTES MEMKIND:HBW, ALIGN:ALIGNB :: T, WORK
+#else
+    !DIR$ ATTRIBUTES ALIGN:ALIGNB :: T, WORK
+#endif
+
+    INTEGER :: K, TSIZE, LWORK, ITMP
+    DOUBLE COMPLEX :: T5(5), WORK1(1)
+
+    EXTERNAL :: ZGEQR, ZGEMQR, ZLASET
+
+    IF (M .LT. 0) THEN
+       INFO = -1
+    ELSE IF (N .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .GT. M) THEN
+       INFO = -2
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -4
+    ELSE IF (LDQ .LT. M) THEN
+       INFO = -6
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    K = MIN(M,N)
+
+    ! A = Q*R
+    T5 = Z_ZERO
+    TSIZE = -1
+    WORK1 = Z_ZERO
+    LWORK = -1
+    CALL ZGEQR(M, N, A, LDA, T5, TSIZE, WORK1, LWORK, INFO)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I2)') 'ZGEQR(workspace query): ', INFO
+       RETURN
+    END IF
+    TSIZE = CEILING(DBLE(T5(1)))
+    ALLOCATE(T(TSIZE))
+    LWORK = CEILING(DBLE(WORK1(1)))
+    ALLOCATE(WORK(LWORK))
+    CALL ZGEQR(M, N, A, LDA, T, TSIZE, WORK, LWORK, INFO)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I2)') 'ZGEQR: ', INFO
+       DEALLOCATE(WORK)
+       DEALLOCATE(T)
+       RETURN
+    END IF
+
+    ! compute Q
+    ITMP = LWORK
+    WORK1 = Z_ZERO
+    LWORK = -1
+    CALL ZGEMQR(SIDE, TRANS, M, N, K, A, LDA, T, TSIZE, Q, LDQ, WORK1, LWORK, INFO)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I3)') 'ZGEMQR(workspace query): ', INFO
+       DEALLOCATE(WORK)
+       DEALLOCATE(T)
+       RETURN
+    END IF
+    LWORK = CEILING(DBLE(WORK1(1)))
+    IF (LWORK .GT. ITMP) THEN
+       DEALLOCATE(WORK)
+       ALLOCATE(WORK(LWORK))
+    ELSE
+       LWORK = ITMP
+    END IF
+    CALL ZLASET('A', M, N, Z_ZERO, Z_ONE, Q, LDQ) ! Q = I
+    CALL ZGEMQR(SIDE, TRANS, M, N, K, A, LDA, T, TSIZE, Q, LDQ, WORK, LWORK, INFO)
+    DEALLOCATE(WORK)
+    DEALLOCATE(T)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I3)') 'ZGEMQR: ', INFO
+       RETURN
+    END IF
+
+    ! set everything below the diagonal of A to 0
+    ITMP = M - 1
+    CALL ZLASET('L', ITMP, N, Z_ZERO, Z_ZERO, A(2,1), LDA)
+  END SUBROUTINE ZTSQR
+
 END MODULE JQR
