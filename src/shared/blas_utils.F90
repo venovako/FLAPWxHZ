@@ -387,4 +387,43 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE INTEGER FUNCTION BLAS_IZAMAX(N, ZX, INCX)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: INCX, N
+    DOUBLE COMPLEX, INTENT(IN) :: ZX(*)
+
+    DOUBLE PRECISION :: DMAX, DTMP
+    INTEGER :: I, IX
+
+    BLAS_IZAMAX = 0
+    IF ((N .LT. 1) .OR. (INCX .LE. 0)) RETURN
+    BLAS_IZAMAX = 1
+    IF (N .EQ. 1) RETURN
+
+    IF (INCX .EQ. 1) THEN
+       DMAX = ABS(ZX(1))
+       DO I = 2, N
+          DTMP = ABS(ZX(I))
+          IF (DTMP .GT. DMAX) THEN
+             BLAS_IZAMAX = I
+             DMAX = DTMP
+          END IF
+       END DO
+    ELSE
+       IX = 1
+       DMAX = ABS(ZX(1))
+       DO I = 2, N
+          IX = IX + INCX
+          DTMP = ABS(ZX(IX))
+          IF (DTMP .GT. DMAX) THEN
+             BLAS_IZAMAX = I
+             DMAX = DTMP
+          END IF
+       END DO
+    END IF
+  END FUNCTION BLAS_IZAMAX
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END MODULE BLAS_UTILS
