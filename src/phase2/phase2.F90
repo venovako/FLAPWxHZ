@@ -1,0 +1,56 @@
+PROGRAM PHASE2
+  USE BINIO1
+  USE BLAS_UTILS
+  USE TIMER
+  IMPLICIT NONE
+
+  INTEGER, PARAMETER :: FNL = 20
+
+  DOUBLE COMPLEX, ALLOCATABLE :: Y(:,:), W(:,:)
+  INTEGER, ALLOCATABLE :: JJ(:), J(:), P(:)
+
+  CHARACTER(LEN=FNL,KIND=c_char) :: FN
+  INTEGER :: M, N, LDY, LDW, INFO, T
+
+  EXTERNAL :: ZLASET
+
+  CALL READCL(FN, M, N, INFO)
+  IF (INFO .NE. 0) THEN
+     IF (INFO .LT. 0) THEN
+        WRITE (ULOG,'(A,I2)') 'Cannot read argument', -INFO
+     ELSE
+        WRITE (ULOG,'(A,I2)') 'Illegal value of argument', INFO
+     END IF
+     STOP 'phase2.exe FN M N'
+  END IF
+
+  LDY = LDALIGN(M, ZALIGN)
+  LDW = LDALIGN(M, ZALIGN)
+
+  CALL BIO_READ_ALL(FN, M, N, Y, LDY, W, LDW, JJ, INFO)
+  IF (INFO .NE. 0) STOP 'BIO_READ_ALL'
+
+  INFO = BLAS_PREPARE()
+
+  T = GET_THREAD_NS()
+  CONTINUE ! JQR(YY)
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(F11.6,A)',ADVANCE='NO') (T * DNS2S), ','
+
+  T = GET_THREAD_NS()
+  CONTINUE ! PIV(WW)
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(F11.6,A)',ADVANCE='NO') (T * DNS2S), ','
+
+  T = GET_THREAD_NS()
+  CONTINUE ! QR(WW)
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(F11.6)') (T * DNS2S)
+
+  CALL BIO_WRITE_ALL(FN, N, Y, LDY, W, LDW, J, P, INFO)
+  IF (INFO .NE. 0) STOP 'BIO_WRITE_ALL'
+
+CONTAINS
+#include "readcl.F90"
+#include "bio.F90"
+END PROGRAM PHASE2
