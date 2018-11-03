@@ -24,6 +24,7 @@ PROGRAM PHASE3
      ELSE
         WRITE (ULOG,'(A,I2)') 'Illegal value of argument', INFO
      END IF
+     STOP 'phase3.exe FN M N CPR TPC JSTRAT1 NSWP1 JSTRAT2 NSWP2'
   END IF
 
   CALL BOPEN_YWJ_RO(FN, M, N, SZ, FD, INFO)

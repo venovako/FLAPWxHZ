@@ -4,20 +4,28 @@ PROGRAM PHASE4
   USE TIMER
   IMPLICIT NONE
 
+  INTEGER, PARAMETER :: FNL = 20
+
   DOUBLE COMPLEX, ALLOCATABLE, TARGET :: Z(:,:)
   DOUBLE COMPLEX, ALLOCATABLE :: X(:,:)
   INTEGER, ALLOCATABLE :: IPIV(:), JPIV(:)
 
-  CHARACTER(LEN=252) :: FN
+  CHARACTER(LEN=FNL,KIND=c_char) :: FN
   DOUBLE PRECISION :: SCAL
   INTEGER :: N, LDA, INFO
   INTEGER :: FD, SZ, I, J, T
 
   EXTERNAL :: ZGETC2, ZGESC2, ZLASET
 
-  J = COMMAND_ARGUMENT_COUNT()
-  IF (J .NE. 1) STOP 'phase4.exe FN'
-  CALL GET_COMMAND_ARGUMENT(1, FN)
+  CALL READCL(FN, N, INFO)
+  IF (INFO .NE. 0) THEN
+     IF (INFO .LT. 0) THEN
+        WRITE (ULOG,'(A,I2)') 'Cannot read argument', -INFO
+     ELSE
+        WRITE (ULOG,'(A,I2)') 'Illegal value of argument', INFO
+     END IF
+     STOP 'phase4.exe FN N'
+  END IF
 
   CALL BOPEN_RO((TRIM(FN)//c_char_'.Z'), SZ, FD)
   IF ((SZ .LE. 0) .OR. (FD .LT. 0)) THEN
@@ -31,7 +39,6 @@ PROGRAM PHASE4
      STOP 'BOPEN_Z_RO'
   END IF
 
-  N = NINT(SQRT(DBLE(SZ / C_SIZEOF(Z_ZERO))))
   J = N * N * C_SIZEOF(Z_ZERO)
   IF (J .NE. SZ) THEN
      WRITE (ULOG,'(A,I20)') 'Not a square matrix with SZ=', SZ
@@ -109,6 +116,8 @@ PROGRAM PHASE4
 
   IF (ALLOCATED(X)) DEALLOCATE(X)
   IF (ALLOCATED(Z)) DEALLOCATE(Z)
+
 CONTAINS
+#include "readcl.F90"
 #include "bio.F90"
 END PROGRAM PHASE4
