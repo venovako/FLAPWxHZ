@@ -6,7 +6,7 @@ ARFLAGS=-qnoipo -lib rsv
 FC=ifort
 CC=icc
 CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fexceptions
-FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads
+FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads #-DHAVE_IMAGINARY
 C11FLAGS=$(CPUFLAGS) -DFORTRAN_INTEGER_KIND=8 -std=c11
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost #-xMIC-AVX512

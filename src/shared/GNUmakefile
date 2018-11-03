@@ -20,13 +20,13 @@ all: libFLAPWxHZ.a
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
 
-libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o params.o timer.o timer_.o vn_binio.o ximaginary.o $(MKFS)
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o params.o timer.o timer_.o vn_binio.o ximaginary.o
+libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o jqr.o params.o timer.o timer_.o vn_binio.o $(MKFS) #ximaginary.o
+	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jacstr.o jqr.o params.o timer.o timer_.o vn_binio.o #ximaginary.o
 
 binio.o binio.mod: binio.F90 params.mod vn_binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c binio.F90
 
-blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod ximaginary.mod $(MKFS)
+blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod $(MKFS) #ximaginary.mod
 	$(FC) $(FFLAGS) -c blas_utils.F90
 
 dtypes.o dtypes.mod: dtypes.F90 params.mod $(MKFS)
@@ -37,6 +37,9 @@ hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zi
 
 jacstr.o jacstr.mod: jacstr.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c jacstr.F90
+
+jqr.o jqr.mod: jqr.F90 params.mod $(MKFS)
+	$(FC) $(FFLAGS) -c jqr.F90
 
 params.o params.mod: params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c params.F90
