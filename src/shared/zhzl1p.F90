@@ -290,10 +290,10 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,&
                     DO J = 1, L
                        ZTMP1(J) = H(I+(J-1),P)
                        ZTMP2(J) = H(I+(J-1),Q)
-                       DTMP1(J) = DTMP1(J) + JVEC(M) * (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J)))
-                       DTMP2(J) = DTMP2(J) + JVEC(M) * (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J)))
-                       DTMP3(J) = DTMP3(J) + JVEC(M) * (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
-                       DTMP4(J) = DTMP4(J) + JVEC(M) * (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
+                       DTMP1(J) = DTMP1(J) + JVEC(I+(J-1)) * (DBLE(ZTMP1(J))*DBLE(ZTMP1(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP1(J)))
+                       DTMP2(J) = DTMP2(J) + JVEC(I+(J-1)) * (DBLE(ZTMP2(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP2(J))*AIMAG(ZTMP2(J)))
+                       DTMP3(J) = DTMP3(J) + JVEC(I+(J-1)) * (DBLE(ZTMP1(J))*DBLE(ZTMP2(J)) + AIMAG(ZTMP1(J))*AIMAG(ZTMP2(J)))
+                       DTMP4(J) = DTMP4(J) + JVEC(I+(J-1)) * (DBLE(ZTMP1(J))*AIMAG(ZTMP2(J))- AIMAG(ZTMP1(J))*DBLE(ZTMP2(J)))
                     END DO
                  END DO
 
@@ -500,7 +500,7 @@ SUBROUTINE ZHZL1P(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,&
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
            DO L = 1, P
               ZTMP1(L) = H(I+(L-1),J)
-              DTMP1(L) = DTMP1(L) + JVEC(M) * (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
+              DTMP1(L) = DTMP1(L) + JVEC(I+(L-1)) * (DBLE(ZTMP1(L))*DBLE(ZTMP1(L)) + AIMAG(ZTMP1(L))*AIMAG(ZTMP1(L)))
            END DO
         END DO
         EY(J) = SUM(DTMP1)
