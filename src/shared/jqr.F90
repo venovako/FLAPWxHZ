@@ -163,6 +163,9 @@ CONTAINS
     END DO
   END SUBROUTINE INITJP
 
+  ! A => R
+  ! T: J-Householder reflector generators
+  ! INFO < 0: error; else, # of pairs of the pivot columns
   SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, J, P, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: M, N, LDA, LDT
@@ -170,6 +173,8 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: JJ(M)
     DOUBLE COMPLEX, INTENT(OUT) :: T(LDT,N)
     INTEGER, INTENT(OUT) :: J(N), P(N), INFO
+
+    EXTERNAL :: ZLASET
 
     IF (M .LT. 0) THEN
        INFO = -1
@@ -189,6 +194,7 @@ CONTAINS
     IF (M .EQ. 0) RETURN
     IF (N .EQ. 0) RETURN
 
+    CALL ZLASET('A', M, N, Z_ZERO, Z_ZERO, T, LDT)
     CALL INITJP(N, J, P)
   END SUBROUTINE ZJQR
 
