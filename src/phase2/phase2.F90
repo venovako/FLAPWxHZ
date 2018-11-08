@@ -45,12 +45,12 @@ PROGRAM PHASE2
 
   ! JQR(YY)
   T = GET_THREAD_NS()
-  CONTINUE
+  CALL ZJQR(M, N, Y, LDY, JJ, W, LDW, J, P, INFO)
   T = GET_THREAD_NS() - T
   WRITE (UOUT,'(F11.6,A)',ADVANCE='NO') (T * DNS2S), ','
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(I20)') INFO
-     STOP 'JQR(YY)'
+     STOP 'ZJQR'
   END IF
 
   ! PIV(WW)
