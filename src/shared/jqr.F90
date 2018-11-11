@@ -1,5 +1,5 @@
 MODULE JQR
-  USE PARAMS
+  USE BLAS_UTILS
   IMPLICIT NONE
 
 CONTAINS
@@ -147,6 +147,37 @@ CONTAINS
     DJNRM2 = SUM(D)
   END FUNCTION DJNRM2
 
+  SUBROUTINE CNRMJS(M, N, A, LDA, JJ, FCT, INFO)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: M, N, LDA, JJ(M)
+    DOUBLE COMPLEX, INTENT(IN) :: A(LDA,N)
+    DOUBLE PRECISION, INTENT(OUT) :: FCT(N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    INTEGER :: J
+
+    IF (M .LT. 0) THEN
+       INFO = -1
+    ELSE IF (N .LT. 0) THEN
+       INFO = -2
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -4
+    ELSE
+       INFO = 0
+    END IF
+
+    IF (INFO .NE. 0) RETURN
+    IF (M .EQ. 0) RETURN
+    IF (N .EQ. 0) RETURN
+
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,FCT,M,N)
+    DO J = 1, N
+       FCT(J) = DJNRM2(M, A(1,J), JJ)
+    END DO
+    !$OMP END PARALLEL DO
+  END SUBROUTINE CNRMJS
+
   PURE SUBROUTINE ZMAXJ(M, ZZ, JJ, IDXS, VALS)
     IMPLICIT NONE
 
@@ -225,8 +256,6 @@ CONTAINS
           JJ(1) = JJ(IDXS(K))
           JJ(IDXS(K)) = I
        END IF
-    ELSE IF (IDXS(K) .LT. 1) THEN
-       STOP 'ZJH: IDXS(K) .LT. 1'
     END IF
     IF (K .EQ. 2) RETURN
 
@@ -234,13 +263,16 @@ CONTAINS
     F = -SIGN(SQRT(ABS(CNRMJ)), DBLE(A(1,1)))
     T(1,1) = DCMPLX(F - DBLE(A(1,1)), -AIMAG(A(1,1)))
     IF (JJ(1) .EQ. 1) THEN
+       !DIR$ FMA
        FCT = CNRMJ - F * DBLE(A(1,1))
     ELSE IF (JJ(1) .EQ. -1) THEN
+       !DIR$ FMA
        FCT = CNRMJ + F * DBLE(A(1,1))
-    ELSE
-       STOP 'ZJH: FCT'
+    ELSE ! ABS(JJ(1)) .NE. 1
+       STOP 'ZJH: JJ(1)'
     END IF
     FCT = D_MONE / FCT
+    IF (ABS(FCT) .GT. HUGE(FCT)) STOP 'ZJH: FCT'
     A(1,1) = DCMPLX(F, D_ZERO)
     !DIR$ VECTOR ALWAYS ASSERT
     DO I = 2, M
@@ -248,42 +280,51 @@ CONTAINS
        A(I,1) = Z_ZERO
     END DO
 
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,SCL) SHARED(A,T,JJ,M,N,FCT)
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(J,K,SCL) SHARED(A,T,JJ,M,N,FCT)
+    K = BLAS_SET_NUM_THREADS(1)
+    !$OMP DO
     DO J = 2, N
        SCL = FCT * ZJDOT(M, T(1,1), A(1,J), JJ)
        CALL ZAXPY(M, SCL, T(1,1), 1, A(1,J), 1)
     END DO
-    !$OMP END PARALLEL DO
+    !$OMP END DO
+    K = BLAS_SET_NUM_THREADS(K)
+    !$OMP END PARALLEL
 
     CNRMJ = FCT
   END SUBROUTINE ZJH
 
-  PURE SUBROUTINE INITJP(N, J, P)
+  SUBROUTINE INITJP(N, J, P, ROW)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N
-    INTEGER, INTENT(OUT) :: J(N), P(N)
+    INTEGER, INTENT(OUT) :: J(N), P(N), ROW(N)
 
     INTEGER :: I
 
     IF (N .LE. 0) RETURN
-    !DIR$ VECTOR ALWAYS ASSERT
-    J = 0
 
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(J,P,ROW,N)
     DO I = 1, N
+       J(I) = 0
        P(I) = I
+       ROW(I) = I - 1
     END DO
+    !$OMP END PARALLEL DO
   END SUBROUTINE INITJP
 
   ! A => R
   ! T: J-Householder reflector generators
   ! INFO < 0: error; else, # of pairs of the pivot columns
-  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, J, P, INFO)
+  ! FCT: FCTs from ZJH
+  ! ROW(I) = INFO(ZJH) + ROW(I)
+  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, J, P, FCT, ROW, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: M, N, LDA, LDT
     DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(INOUT) :: JJ(M)
     DOUBLE COMPLEX, INTENT(OUT) :: T(LDT,N)
-    INTEGER, INTENT(OUT) :: J(N), P(N), INFO
+    DOUBLE PRECISION, INTENT(OUT) :: FCT(N)
+    INTEGER, INTENT(OUT) :: J(N), P(N), ROW(N), INFO
 
     EXTERNAL :: ZLASET
 
@@ -306,7 +347,7 @@ CONTAINS
     IF (N .EQ. 0) RETURN
 
     IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
-    CALL INITJP(N, J, P)
+    CALL INITJP(N, J, P, ROW)
   END SUBROUTINE ZJQR
 
   ! B(I,J) = A(I,P(J))

@@ -41,7 +41,7 @@ hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zi
 jacstr.o jacstr.mod: jacstr.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c jacstr.F90
 
-jqr.o jqr.mod: jqr.F90 params.mod $(MKFS)
+jqr.o jqr.mod: jqr.F90 blas_utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c jqr.F90
 
 params.o params.mod: params.F90 $(MKFS)
