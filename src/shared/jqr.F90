@@ -147,6 +147,117 @@ CONTAINS
     DJNRM2 = SUM(D)
   END FUNCTION DJNRM2
 
+  PURE SUBROUTINE ZMAXJ(M, ZZ, JJ, IDXS, VALS)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: M, JJ(M)
+    DOUBLE COMPLEX, INTENT(IN) :: ZZ(M)
+    INTEGER, INTENT(OUT) :: IDXS(3)
+    DOUBLE PRECISION, INTENT(OUT) :: VALS(3)
+
+    INTEGER :: I, J
+    DOUBLE PRECISION :: A
+
+    IDXS = 0
+    VALS = D_MONE
+
+    DO I = 1, M
+       A = ABS(ZZ(I))
+       J = JJ(I) + 2
+       IF (A .GT. VALS(J)) THEN
+          IDXS(J) = I
+          VALS(J) = A
+       END IF
+    END DO
+  END SUBROUTINE ZMAXJ
+
+  SUBROUTINE ZJH(M, N, A, LDA, JJ, CNRMJ, T, LDT, INFO)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: M, N, LDA, LDT
+    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    INTEGER, INTENT(INOUT) :: JJ(M)
+    DOUBLE PRECISION, INTENT(INOUT) :: CNRMJ
+    DOUBLE COMPLEX, INTENT(OUT) :: T(LDT,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    INTEGER :: IDXS(3), I, J, K
+    DOUBLE PRECISION :: VALS(3), F, FCT
+    DOUBLE COMPLEX :: SCL
+
+    EXTERNAL :: ZAXPY, ZSWAP
+
+    IF (M .LT. 0) THEN
+       INFO = -1
+    ELSE IF (N .LT. 0) THEN
+       INFO = -2
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -4
+    ELSE IF (LDT .LT. M) THEN
+       INFO = -8
+    ELSE
+       INFO = 0
+    END IF
+
+    IF (INFO .NE. 0) RETURN
+    IF (M .EQ. 0) RETURN
+    IF (N .EQ. 0) RETURN
+
+    CALL ZMAXJ(M, A(1,1), JJ, IDXS, VALS)
+
+    IF (CNRMJ .EQ. D_ZERO) THEN
+       K = 2
+       !DIR$ VECTOR ALWAYS ASSERT
+       DO I = 1, M
+          T(I,1) = Z_ZERO
+       END DO
+    ELSE IF (CNRMJ .LT. D_ZERO) THEN
+       K = 1
+    ELSE ! CNRMJ .GT. D_ZERO
+       K = 3
+    END IF
+
+    INFO = IDXS(K)
+    IF (IDXS(K) .GT. 1) THEN
+       CALL ZSWAP(N, A(1,1), LDA, A(IDXS(K),1), LDA)
+       IF (JJ(IDXS(K)) .NE. JJ(1)) THEN
+          I = JJ(1)
+          JJ(1) = JJ(IDXS(K))
+          JJ(IDXS(K)) = I
+       END IF
+    ELSE IF (IDXS(K) .LT. 1) THEN
+       STOP 'ZJH: IDXS(K) .LT. 1'
+    END IF
+    IF (K .EQ. 2) RETURN
+
+    ! f**H JJ f == g**H JJ g
+    F = -SIGN(SQRT(ABS(CNRMJ)), DBLE(A(1,1)))
+    T(1,1) = DCMPLX(F - DBLE(A(1,1)), -AIMAG(A(1,1)))
+    IF (JJ(1) .EQ. 1) THEN
+       FCT = CNRMJ - F * DBLE(A(1,1))
+    ELSE IF (JJ(1) .EQ. -1) THEN
+       FCT = CNRMJ + F * DBLE(A(1,1))
+    ELSE
+       STOP 'ZJH: FCT'
+    END IF
+    FCT = D_MONE / FCT
+    A(1,1) = DCMPLX(F, D_ZERO)
+    !DIR$ VECTOR ALWAYS ASSERT
+    DO I = 2, M
+       T(I,1) = -A(I,1)
+       A(I,1) = Z_ZERO
+    END DO
+
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,SCL) SHARED(A,T,JJ,M,N,FCT)
+    DO J = 2, N
+       SCL = FCT * ZJDOT(M, T(1,1), A(1,J), JJ)
+       CALL ZAXPY(M, SCL, T(1,1), 1, A(1,J), 1)
+    END DO
+    !$OMP END PARALLEL DO
+
+    CNRMJ = FCT
+  END SUBROUTINE ZJH
+
   PURE SUBROUTINE INITJP(N, J, P)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N
@@ -194,7 +305,7 @@ CONTAINS
     IF (M .EQ. 0) RETURN
     IF (N .EQ. 0) RETURN
 
-    CALL ZLASET('A', M, N, Z_ZERO, Z_ZERO, T, LDT)
+    IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
     CALL INITJP(N, J, P)
   END SUBROUTINE ZJQR
 
