@@ -151,37 +151,6 @@ CONTAINS
     DJNRM2 = SUM(D)
   END FUNCTION DJNRM2
 
-  SUBROUTINE CNRMJS(M, N, A, LDA, JJ, FCT, INFO)
-    IMPLICIT NONE
-
-    INTEGER, INTENT(IN) :: M, N, LDA, JJ(M)
-    DOUBLE COMPLEX, INTENT(IN) :: A(LDA,N)
-    DOUBLE PRECISION, INTENT(OUT) :: FCT(N)
-    INTEGER, INTENT(OUT) :: INFO
-
-    INTEGER :: J
-
-    IF (M .LT. 0) THEN
-       INFO = -1
-    ELSE IF (N .LT. 0) THEN
-       INFO = -2
-    ELSE IF (LDA .LT. M) THEN
-       INFO = -4
-    ELSE
-       INFO = 0
-    END IF
-
-    IF (INFO .NE. 0) RETURN
-    IF (M .EQ. 0) RETURN
-    IF (N .EQ. 0) RETURN
-
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,FCT,M,N)
-    DO J = 1, N
-       FCT(J) = DJNRM2(M, A(1,J), JJ)
-    END DO
-    !$OMP END PARALLEL DO
-  END SUBROUTINE CNRMJS
-
   PURE SUBROUTINE ZMAXJ(M, ZZ, JJ, IDXS, VALS)
     IMPLICIT NONE
 
@@ -358,39 +327,10 @@ CONTAINS
     DO WHILE (K .LE. N)
        S = 1
 
-       ! ...COLUMN J-NORMs...
-
-       CALL CNRMJS(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), I)
-       IF (I .NE. 0) THEN
-          WRITE (ULOG,'(A,I2)') 'ZJQR: CNRMSJ=', I
-          INFO = -5
-          RETURN
-       END IF
-
        ! ...PIVOTING...
 
+       FCT(K) = DJNRM2(M-(K-1), A(K,K), JJ(K))
        V = ABS(FCT(K))
-
-       ! diagonal pivoting
-
-       ! I = K
-       ! DO J = K+1, N
-       !    WORK(1) = ABS(FCT(J))
-       !    IF (WORK(1) .GT. V) THEN
-       !       I = J
-       !       V = WORK(1)
-       !    END IF
-       ! END DO
-
-       ! IF (I .GT. K) THEN
-       !    CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
-       !    WORK(1) = FCT(K)
-       !    FCT(K) = FCT(I)
-       !    FCT(I) = WORK(1)
-       !    J = P(K)
-       !    P(K) = P(I)
-       !    P(I) = J
-       ! END IF
 
        ! Bunch-Kaufman-Parlett pivoting
 
@@ -424,6 +364,7 @@ CONTAINS
        WORK(I) = WORK(I) * LAM
        IF ((V * SIG) .GE. WORK(I)) GOTO 1
 
+       FCT(I) = DJNRM2(M-(K-1), A(K,I), JJ(K))
        IF (ABS(FCT(I)) .GT. (ALPHA * SIG)) THEN
           CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
           WORK(1) = FCT(K)
@@ -441,6 +382,7 @@ CONTAINS
           J = P(K+1)
           P(K+1) = P(I)
           P(I) = J
+          I = K + 1
        END IF
 
        S = 2
