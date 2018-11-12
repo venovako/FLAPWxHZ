@@ -257,11 +257,13 @@ CONTAINS
           JJ(IDXS(K)) = I
        END IF
     END IF
-    IF (K .EQ. 2) RETURN
+    IF (K .EQ. 2) THEN
+       IF (IDXS(K) .EQ. 0) INFO = 1
+       RETURN
+    END IF
 
     ! f**H JJ f == g**H JJ g
     F = -SIGN(SQRT(ABS(CNRMJ)), DBLE(A(1,1)))
-    T(1,1) = DCMPLX(F - DBLE(A(1,1)), -AIMAG(A(1,1)))
     IF (JJ(1) .EQ. 1) THEN
        !DIR$ FMA
        FCT = CNRMJ - F * DBLE(A(1,1))
@@ -272,7 +274,12 @@ CONTAINS
        STOP 'ZJH: JJ(1)'
     END IF
     FCT = D_MONE / FCT
-    IF (ABS(FCT) .GT. HUGE(FCT)) STOP 'ZJH: FCT'
+    IF (ABS(FCT) .GT. HUGE(FCT)) THEN
+       INFO = 0
+       RETURN
+    END IF
+
+    T(1,1) = DCMPLX(F - DBLE(A(1,1)), -AIMAG(A(1,1)))
     A(1,1) = DCMPLX(F, D_ZERO)
     !DIR$ VECTOR ALWAYS ASSERT
     DO I = 2, M
@@ -285,7 +292,7 @@ CONTAINS
     !$OMP DO
     DO J = 2, N
        SCL = FCT * ZJDOT(M, T(1,1), A(1,J), JJ)
-       CALL ZAXPY(M, SCL, T(1,1), 1, A(1,J), 1)
+       IF (SCL .NE. Z_ZERO) CALL ZAXPY(M, SCL, T(1,1), 1, A(1,J), 1)
     END DO
     !$OMP END DO
     K = BLAS_SET_NUM_THREADS(K)
@@ -325,7 +332,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: FCT(N)
     INTEGER, INTENT(OUT) :: P(N), ROW(N), INFO
 
-    EXTERNAL :: ZLASET
+    INTEGER :: I, J, K
+    DOUBLE PRECISION :: V, W
+
+    EXTERNAL :: ZSWAP, ZLASET
 
     IF (M .LT. 0) THEN
        INFO = -1
@@ -347,6 +357,57 @@ CONTAINS
 
     IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
     CALL INITPIVS(N, P, ROW)
+
+    K = 1
+    DO WHILE (K .LE. N)
+       ! ...COLUMN J-NORMs...
+
+       CALL CNRMJS(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), I)
+       IF (I .NE. 0) THEN
+          WRITE (ULOG,'(A,I2)') 'ZJQR: CNRMSJ=', I
+          INFO = -5
+          RETURN
+       END IF
+
+       ! ...PIVOTING...
+
+       ! diagonal pivoting (NOT the final one)
+       I = K
+       V = ABS(FCT(K))
+       DO J = K+1, N
+          W = ABS(FCT(J))
+          IF (W .GT. V) THEN
+             I = J
+             V = W
+          END IF
+       END DO
+
+       IF (I .GT. K) THEN
+          CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
+          W = FCT(K)
+          FCT(K) = FCT(I)
+          FCT(I) = W
+          J = P(K)
+          P(K) = P(I)
+          P(I) = J
+       END IF
+
+       ! ...J-HOUSEHOLDER...
+
+       IF (FCT(K) .EQ. D_ZERO) THEN
+          I = -6
+       ELSE
+          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, I)
+       END IF
+       IF (I .LE. 0) THEN
+          WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', I
+          INFO = -6
+          RETURN
+       END IF
+       ROW(K) = ROW(K) + I
+
+       K = K + 1 ! or 2
+    END DO
   END SUBROUTINE ZJQR
 
   ! B(I,J) = A(I,P(J))
