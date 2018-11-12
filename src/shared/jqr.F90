@@ -300,9 +300,10 @@ CONTAINS
     INTEGER, INTENT(OUT) :: P(N), ROW(N), INFO
 
     INTEGER :: I, J, K, S
-    DOUBLE PRECISION :: V, LAM, SIG
+    DOUBLE PRECISION :: V, LAM, SIG, CS1
+    DOUBLE COMPLEX :: Z, SN1
 
-    EXTERNAL :: ZSWAP, ZLASET
+    EXTERNAL :: ZROT, ZSWAP, ZLAEV2, ZLASET
 
     IF (M .LT. 0) THEN
        INFO = -1
@@ -342,9 +343,12 @@ CONTAINS
 
        ! Bunch-Kaufman-Parlett pivoting
 
-       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K)
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,JJ,FCT,ROW,WORK,M,N,K)
        DO J = K+1, N
-          WORK(J) = ABS(ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K)))
+          Z = ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K))
+          FCT(J) = DBLE(Z)
+          ROW(J) = TRANSFER(AIMAG(Z), 0)
+          WORK(J) = ABS(Z)
        END DO
        !$OMP END PARALLEL DO
 
@@ -372,7 +376,9 @@ CONTAINS
        WORK(I) = WORK(I) * LAM
        IF ((V * SIG) .GE. WORK(I)) GOTO 1
 
+       Z = DCMPLX(FCT(I), TRANSFER(ROW(I), D_ZERO))
        FCT(I) = DJNRM2(M-(K-1), A(K,I), JJ(K))
+
        IF (ABS(FCT(I)) .GT. (ALPHA * SIG)) THEN
           CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
           WORK(1) = FCT(K)
@@ -411,8 +417,37 @@ CONTAINS
           END IF
           ROW(K) = ROW(K) + I
        ELSE ! S .EQ. 2
-          ! ...TODO...
-          CONTINUE
+          WORK(1) = FCT(K)
+          WORK(2) = FCT(I)
+          ! [ CS1  CONJG(SN1) ] [    A     B ] [ CS1 -CONJG(SN1) ] = [ RT1  0  ]
+          ! [-SN1     CS1     ] [ CONJG(B) C ] [ SN1     CS1     ]   [  0  RT2 ]
+          CALL ZLAEV2(WORK(1), Z, WORK(2), LAM, SIG, CS1, SN1)
+          IF (SIG .EQ. D_ZERO) THEN
+             INFO = -5
+             RETURN
+          END IF
+
+          CALL ZROT(M-(K-1), A(K,K), 1, A(K,I), 1, CS1, SN1)
+
+          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), LAM, T(K,K), LDT, J)
+          IF (J .LE. 0) THEN
+             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
+             INFO = -6
+             RETURN
+          END IF
+          FCT(K) = LAM
+          ROW(K) = ROW(K) + J
+
+          CALL ZJH(M-(I-1), N-(I-1), A(I,I), LDA, JJ(I), SIG, T(I,I), LDT, J)
+          IF (J .LE. 0) THEN
+             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
+             INFO = -6
+             RETURN
+          END IF
+          FCT(I) = SIG
+          ROW(I) = ROW(I) + J
+
+          CALL ZROT(2, A(K,K), 1, A(K,I), 1, CS1, -SN1)
        END IF
 
        K = K + S
