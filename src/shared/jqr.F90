@@ -9,6 +9,7 @@ CONTAINS
 
   PURE FUNCTION ZDET2(A, B, C, D)
     IMPLICIT NONE
+
     DOUBLE COMPLEX, INTENT(IN) :: A, B, C, D
     DOUBLE COMPLEX :: ZDET2
 
@@ -17,6 +18,7 @@ CONTAINS
 
   PURE FUNCTION DDET2(A, B, D)
     IMPLICIT NONE
+
     DOUBLE PRECISION, INTENT(IN) :: A, D
     DOUBLE COMPLEX, INTENT(IN) :: B
     DOUBLE PRECISION :: DDET2
@@ -26,6 +28,7 @@ CONTAINS
 
   PURE SUBROUTINE ZHINV2(A, B, D, AA, BB, DD)
     IMPLICIT NONE
+
     DOUBLE PRECISION, INTENT(IN) :: A, D
     DOUBLE COMPLEX, INTENT(IN) :: B
     DOUBLE PRECISION, INTENT(OUT) :: AA, DD
@@ -41,6 +44,7 @@ CONTAINS
 
   PURE SUBROUTINE ZKSQRT2(A, B, D, J, AA, BB, CC, DD, INFO)
     IMPLICIT NONE
+
     DOUBLE PRECISION, INTENT(IN) :: A, D
     DOUBLE COMPLEX, INTENT(IN) :: B
     INTEGER, INTENT(IN) :: J
@@ -301,39 +305,25 @@ CONTAINS
     CNRMJ = FCT
   END SUBROUTINE ZJH
 
-  SUBROUTINE INITPIVS(N, P, ROW)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N
-    INTEGER, INTENT(OUT) :: P(N), ROW(N)
-
-    INTEGER :: I
-
-    IF (N .LE. 0) RETURN
-
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(P,ROW,N)
-    DO I = 1, N
-       P(I) = I
-       ROW(I) = I - 1
-    END DO
-    !$OMP END PARALLEL DO
-  END SUBROUTINE INITPIVS
-
   ! A => R
   ! T: J-Householder reflector generators
   ! INFO < 0: error; else, # of pairs of the pivot columns
   ! FCT: FCTs from ZJH
   ! ROW(I) = INFO(ZJH) + ROW(I)
-  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, P, FCT, ROW, INFO)
+  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, P, FCT, ROW, WORK, INFO)
     IMPLICIT NONE
+
+    DOUBLE PRECISION, PARAMETER :: ALPHA = SCALE(D_ONE + SQRT(17.0D0), -3)
+    
     INTEGER, INTENT(IN) :: M, N, LDA, LDT
     DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(INOUT) :: JJ(M)
     DOUBLE COMPLEX, INTENT(OUT) :: T(LDT,N)
-    DOUBLE PRECISION, INTENT(OUT) :: FCT(N)
+    DOUBLE PRECISION, INTENT(OUT) :: FCT(N), WORK(N)
     INTEGER, INTENT(OUT) :: P(N), ROW(N), INFO
 
-    INTEGER :: I, J, K
-    DOUBLE PRECISION :: V, W
+    INTEGER :: I, J, K, S
+    DOUBLE PRECISION :: V, LAM, SIG
 
     EXTERNAL :: ZSWAP, ZLASET
 
@@ -356,10 +346,18 @@ CONTAINS
     IF (N .EQ. 0) RETURN
 
     IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
-    CALL INITPIVS(N, P, ROW)
+
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(P,ROW,N)
+    DO I = 1, N
+       P(I) = I
+       ROW(I) = I - 1
+    END DO
+    !$OMP END PARALLEL DO
 
     K = 1
     DO WHILE (K .LE. N)
+       S = 1
+
        ! ...COLUMN J-NORMs...
 
        CALL CNRMJS(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), I)
@@ -371,42 +369,103 @@ CONTAINS
 
        ! ...PIVOTING...
 
-       ! diagonal pivoting (NOT the final one)
-       I = K
        V = ABS(FCT(K))
+
+       ! diagonal pivoting
+
+       ! I = K
+       ! DO J = K+1, N
+       !    WORK(1) = ABS(FCT(J))
+       !    IF (WORK(1) .GT. V) THEN
+       !       I = J
+       !       V = WORK(1)
+       !    END IF
+       ! END DO
+
+       ! IF (I .GT. K) THEN
+       !    CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
+       !    WORK(1) = FCT(K)
+       !    FCT(K) = FCT(I)
+       !    FCT(I) = WORK(1)
+       !    J = P(K)
+       !    P(K) = P(I)
+       !    P(I) = J
+       ! END IF
+
+       ! Bunch-Kaufman-Parlett pivoting
+
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K)
        DO J = K+1, N
-          W = ABS(FCT(J))
-          IF (W .GT. V) THEN
+          WORK(J) = ABS(ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K)))
+       END DO
+       !$OMP END PARALLEL DO
+
+       I = K
+       LAM = D_MONE
+       DO J = K+1, N
+          IF (WORK(J) .GT. LAM) THEN
              I = J
-             V = W
+             LAM = WORK(J)
           END IF
        END DO
+       WORK(I) = ALPHA * LAM
+       IF (V .GE. WORK(I)) GOTO 1
 
-       IF (I .GT. K) THEN
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K,I)
+       DO J = K, N
+          IF (J .NE. I) WORK(J) = ABS(ZJDOT(M-(K-1), A(K,I), A(K,J), JJ(K)))
+       END DO
+       !$OMP END PARALLEL DO
+
+       SIG = D_MONE
+       DO J = K, N
+          IF ((J .NE. I) .AND. (WORK(J) .GT. SIG)) SIG = WORK(J)
+       END DO
+       WORK(I) = WORK(I) * LAM
+       IF ((V * SIG) .GE. WORK(I)) GOTO 1
+
+       IF (ABS(FCT(I)) .GT. (ALPHA * SIG)) THEN
           CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
-          W = FCT(K)
+          WORK(1) = FCT(K)
           FCT(K) = FCT(I)
-          FCT(I) = W
+          FCT(I) = WORK(1)
           J = P(K)
           P(K) = P(I)
           P(I) = J
+          GOTO 1
+       ELSE IF (I .NE. (K+1)) THEN
+          CALL ZSWAP(M, A(1,K+1), 1, A(1,I), 1)
+          WORK(1) = FCT(K+1)
+          FCT(K+1) = FCT(I)
+          FCT(I) = WORK(1)
+          J = P(K+1)
+          P(K+1) = P(I)
+          P(I) = J
        END IF
 
-       ! ...J-HOUSEHOLDER...
+       S = 2
+       INFO = INFO + 1
 
-       IF (FCT(K) .EQ. D_ZERO) THEN
-          I = -6
-       ELSE
-          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, I)
-       END IF
-       IF (I .LE. 0) THEN
-          WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', I
-          INFO = -6
-          RETURN
-       END IF
-       ROW(K) = ROW(K) + I
+       ! ...J-HOUSEHOLDERs...
 
-       K = K + 1 ! or 2
+1      IF (S .EQ. 1) THEN
+          IF (FCT(K) .EQ. D_ZERO) THEN
+             I = -6
+          ELSE
+             CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, I)
+          END IF
+          IF (I .LE. 0) THEN
+             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', I
+             INFO = -6
+             RETURN
+          END IF
+          ROW(K) = ROW(K) + I
+       ELSE ! S .EQ. 2
+          ! ...TODO...
+          CONTINUE
+       END IF
+
+       K = K + S
     END DO
   END SUBROUTINE ZJQR
 
