@@ -341,66 +341,66 @@ CONTAINS
        FCT(K) = DJNRM2(M-(K-1), A(K,K), JJ(K))
        V = ABS(FCT(K))
 
-       ! Bunch-Kaufman-Parlett pivoting
+       ! ! Bunch-Kaufman-Parlett pivoting
 
-       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,JJ,FCT,ROW,WORK,M,N,K)
-       DO J = K+1, N
-          Z = ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K))
-          FCT(J) = DBLE(Z)
-          ROW(J) = TRANSFER(AIMAG(Z), 0)
-          WORK(J) = ABS(Z)
-       END DO
-       !$OMP END PARALLEL DO
+       ! !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,JJ,FCT,ROW,WORK,M,N,K)
+       ! DO J = K+1, N
+       !    Z = ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K))
+       !    FCT(J) = DBLE(Z)
+       !    ROW(J) = TRANSFER(AIMAG(Z), 0)
+       !    WORK(J) = ABS(Z)
+       ! END DO
+       ! !$OMP END PARALLEL DO
 
-       I = K
-       LAM = D_MONE
-       DO J = K+1, N
-          IF (WORK(J) .GT. LAM) THEN
-             I = J
-             LAM = WORK(J)
-          END IF
-       END DO
-       WORK(I) = ALPHA * LAM
-       IF (V .GE. WORK(I)) GOTO 1
+       ! I = K
+       ! LAM = D_MONE
+       ! DO J = K+1, N
+       !    IF (WORK(J) .GT. LAM) THEN
+       !       I = J
+       !       LAM = WORK(J)
+       !    END IF
+       ! END DO
+       ! WORK(I) = ALPHA * LAM
+       ! IF (V .GE. WORK(I)) GOTO 1
 
-       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K,I)
-       DO J = K, N
-          IF (J .NE. I) WORK(J) = ABS(ZJDOT(M-(K-1), A(K,I), A(K,J), JJ(K)))
-       END DO
-       !$OMP END PARALLEL DO
+       ! !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K,I)
+       ! DO J = K, N
+       !    IF (J .NE. I) WORK(J) = ABS(ZJDOT(M-(K-1), A(K,I), A(K,J), JJ(K)))
+       ! END DO
+       ! !$OMP END PARALLEL DO
 
-       SIG = D_MONE
-       DO J = K, N
-          IF ((J .NE. I) .AND. (WORK(J) .GT. SIG)) SIG = WORK(J)
-       END DO
-       WORK(I) = WORK(I) * LAM
-       IF ((V * SIG) .GE. WORK(I)) GOTO 1
+       ! SIG = D_MONE
+       ! DO J = K, N
+       !    IF ((J .NE. I) .AND. (WORK(J) .GT. SIG)) SIG = WORK(J)
+       ! END DO
+       ! WORK(I) = WORK(I) * LAM
+       ! IF ((V * SIG) .GE. WORK(I)) GOTO 1
 
-       Z = DCMPLX(FCT(I), TRANSFER(ROW(I), D_ZERO))
-       FCT(I) = DJNRM2(M-(K-1), A(K,I), JJ(K))
+       ! Z = DCMPLX(FCT(I), TRANSFER(ROW(I), D_ZERO))
+       ! FCT(I) = DJNRM2(M-(K-1), A(K,I), JJ(K))
 
-       IF (ABS(FCT(I)) .GT. (ALPHA * SIG)) THEN
-          CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
-          WORK(1) = FCT(K)
-          FCT(K) = FCT(I)
-          FCT(I) = WORK(1)
-          J = P(K)
-          P(K) = P(I)
-          P(I) = J
-          GOTO 1
-       ELSE IF (I .NE. (K+1)) THEN
-          CALL ZSWAP(M, A(1,K+1), 1, A(1,I), 1)
-          WORK(1) = FCT(K+1)
-          FCT(K+1) = FCT(I)
-          FCT(I) = WORK(1)
-          J = P(K+1)
-          P(K+1) = P(I)
-          P(I) = J
-          I = K + 1
-       END IF
+       ! IF (ABS(FCT(I)) .GE. (ALPHA * SIG)) THEN
+       !    CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
+       !    WORK(1) = FCT(K)
+       !    FCT(K) = FCT(I)
+       !    FCT(I) = WORK(1)
+       !    J = P(K)
+       !    P(K) = P(I)
+       !    P(I) = J
+       !    GOTO 1
+       ! ELSE IF (I .NE. (K+1)) THEN
+       !    CALL ZSWAP(M, A(1,K+1), 1, A(1,I), 1)
+       !    WORK(1) = FCT(K+1)
+       !    FCT(K+1) = FCT(I)
+       !    FCT(I) = WORK(1)
+       !    J = P(K+1)
+       !    P(K+1) = P(I)
+       !    P(I) = J
+       !    I = K + 1
+       ! END IF
 
-       S = 2
-       INFO = INFO + 1
+       ! S = 2
+       ! INFO = INFO + 1
 
        ! ...J-HOUSEHOLDERs...
 
@@ -492,11 +492,65 @@ CONTAINS
     !$OMP END PARALLEL DO
   END SUBROUTINE ZCPIVCP
 
-  SUBROUTINE ZTSR(M, N, A, LDA, INFO)
+  SUBROUTINE ZQRF(M, N, A, LDA, INFO)
     IMPLICIT NONE
 
-    CHARACTER, PARAMETER :: SIDE = 'L'
-    CHARACTER, PARAMETER :: TRANS = 'N'
+    INTEGER, INTENT(IN) :: M, N, LDA
+    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    DOUBLE COMPLEX, ALLOCATABLE :: TAU(:), WORK(:)
+#ifdef USE_X200
+    !DIR$ ATTRIBUTES MEMKIND:HBW, ALIGN:ALIGNB :: T, WORK
+#else
+    !DIR$ ATTRIBUTES ALIGN:ALIGNB :: T, WORK
+#endif
+
+    INTEGER :: K, LWORK
+    DOUBLE COMPLEX :: WORK1(1)
+
+    EXTERNAL :: ZGEQRF, ZLASET
+
+    IF (M .LT. 0) THEN
+       INFO = -1
+    ELSE IF (N .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .GT. M) THEN
+       INFO = -2
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -4
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    K = MIN(M,N)
+    ALLOCATE(TAU(K))
+
+    ! A = Q*R
+    WORK1 = Z_ZERO
+    LWORK = -1
+    CALL ZGEQRF(M, N, A, LDA, TAU, WORK1, LWORK, INFO)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I2)') 'ZGEQRF(workspace query): ', INFO
+       RETURN
+    END IF
+    LWORK = CEILING(DBLE(WORK1(1)))
+    ALLOCATE(WORK(LWORK))
+    CALL ZGEQRF(M, N, A, LDA, TAU, WORK, LWORK, INFO)
+    DEALLOCATE(WORK)
+    DEALLOCATE(TAU)
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I2)') 'ZGEQR: ', INFO
+       RETURN
+    END IF
+
+    ! set everything below the diagonal of A to 0
+    CALL ZLASET('L', M-1, N, Z_ZERO, Z_ZERO, A(2,1), LDA)
+  END SUBROUTINE ZQRF
+
+  SUBROUTINE ZTSR(M, N, A, LDA, INFO)
+    IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: M, N, LDA
     DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
@@ -512,7 +566,7 @@ CONTAINS
     INTEGER :: K, TSIZE, LWORK
     DOUBLE COMPLEX :: T5(5), WORK1(1)
 
-    EXTERNAL :: ZGEQR, ZGEMQR, ZLASET
+    EXTERNAL :: ZGEQR, ZLASET
 
     IF (M .LT. 0) THEN
        INFO = -1
