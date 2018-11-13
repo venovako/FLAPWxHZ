@@ -186,8 +186,8 @@ CONTAINS
     INTEGER, INTENT(OUT) :: INFO
 
     INTEGER :: IDXS(3), I, J, K
-    DOUBLE PRECISION :: VALS(3), F, FCT
-    DOUBLE COMPLEX :: SCL
+    DOUBLE PRECISION :: VALS(3), R, AG1, FCT
+    DOUBLE COMPLEX :: EIA, SCL, F1
 
     EXTERNAL :: ZAXPY, ZSWAP
 
@@ -235,28 +235,28 @@ CONTAINS
        RETURN
     END IF
 
-    ! f**H JJ f == g**H JJ g
-    F = -SIGN(SQRT(ABS(CNRMJ)), DBLE(A(1,1)))
-    IF (JJ(1) .EQ. 1) THEN
-       !DIR$ FMA
-       FCT = CNRMJ - F * DBLE(A(1,1))
-    ELSE IF (JJ(1) .EQ. -1) THEN
-       !DIR$ FMA
-       FCT = CNRMJ + F * DBLE(A(1,1))
-    ELSE ! ABS(JJ(1)) .NE. 1
-       STOP 'ZJH: JJ(1)'
+    R = SQRT(ABS(CNRMJ))
+    AG1 = ABS(A(1,1))
+    IF (AG1 .EQ. D_ZERO) THEN
+       EIA = Z_ONE
+    ELSE
+       EIA = A(1,1) / AG1
     END IF
+    F1 = R * EIA
+
+    !DIR$ FMA
+    FCT = CNRMJ + AG1 * R
     FCT = D_MONE / FCT
     IF (ABS(FCT) .GT. HUGE(FCT)) THEN
        INFO = 0
        RETURN
     END IF
 
-    T(1,1) = DCMPLX(F - DBLE(A(1,1)), -AIMAG(A(1,1)))
-    A(1,1) = DCMPLX(F, D_ZERO)
+    T(1,1) = F1 + A(1,1)
+    A(1,1) = F1
     !DIR$ VECTOR ALWAYS ASSERT
     DO I = 2, M
-       T(I,1) = -A(I,1)
+       T(I,1) = A(I,1)
        A(I,1) = Z_ZERO
     END DO
 
