@@ -1,0 +1,45 @@
+PROGRAM ZJHT
+  USE JQR
+  IMPLICIT NONE
+
+  DOUBLE PRECISION :: CNRMJ
+  INTEGER :: M, N, LDA, LDT, JJ(3), INFO
+  DOUBLE COMPLEX :: A(3,2), T(3,2)
+
+  M = 3
+  N = 2
+  LDA = 3
+  LDT = 3
+
+  T = Z_ZERO
+  A(1,1) = DCMPLX(D_ONE, D_ONE)
+  A(2,1) = DCMPLX(D_ONE, D_MONE)
+  A(3,1) = DCMPLX(D_TWO, D_ONE)
+
+  A(1,2) = A(1,1)
+  A(2,2) = A(2,1)
+  A(3,2) = A(3,1)
+
+  JJ(1) = -1
+  JJ(2) = -1
+  JJ(3) = 1
+
+  CNRMJ = DJNRM2(M, A(1,1), JJ)
+  CALL ZJH(M, N, A, LDA, JJ, CNRMJ, T, LDT, INFO)
+  WRITE (UOUT,'(A,I2)') 'INFO=', INFO
+  CALL WRITE_MTX_3x2(A, 'A')
+
+CONTAINS
+
+  SUBROUTINE WRITE_MTX_3x2(A, L)
+    IMPLICIT NONE
+    DOUBLE COMPLEX, INTENT(IN) :: A(3,2)
+    CHARACTER(LEN=*), INTENT(IN) :: L
+
+    WRITE (*,'(A)') TRIM(L)
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(1,1)),',',AIMAG(A(1,1)),') ', '(',DBLE(A(1,2)),',',AIMAG(A(1,2)),')'
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(2,1)),',',AIMAG(A(2,1)),') ', '(',DBLE(A(2,2)),',',AIMAG(A(2,2)),')'
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(3,1)),',',AIMAG(A(3,1)),') ', '(',DBLE(A(3,2)),',',AIMAG(A(3,2)),')'
+  END SUBROUTINE WRITE_MTX_3x2
+
+END PROGRAM ZJHT

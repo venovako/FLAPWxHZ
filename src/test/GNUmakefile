@@ -15,7 +15,7 @@ endif # ?CPU
 
 .PHONY: all help clean
 
-all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1spt.exe zksqrt2t.exe
+all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1spt.exe zksqrt2t.exe zjht.exe
 
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
@@ -75,6 +75,12 @@ zksqrt2t.exe: zksqrt2t.o ../shared/libFLAPWxHZ.a $(MKFS)
 
 zksqrt2t.o: zksqrt2t.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c zksqrt2t.F90
+
+zjht.exe: zjht.o ../shared/libFLAPWxHZ.a $(MKFS)
+	$(FC) $(FFLAGS) zjht.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
+
+zjht.o: zjht.F90 $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c zjht.F90
 
 clean:
 	-$(RM) *.exe

@@ -253,7 +253,7 @@ CONTAINS
     END IF
 
     T(1,1) = F1 + A(1,1)
-    A(1,1) = F1
+    A(1,1) = -F1
     !DIR$ VECTOR ALWAYS ASSERT
     DO I = 2, M
        T(I,1) = A(I,1)
