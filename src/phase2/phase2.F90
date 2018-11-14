@@ -69,14 +69,20 @@ PROGRAM PHASE2
   
   ! QR(WW)
   T = GET_THREAD_NS()
+#ifdef USE_ZGEQRF
   CALL ZQRF(M, N, W, LDW, INFO)
-  ! CALL ZTSR(M, N, W, LDW, INFO)
+#else
+  CALL ZTSR(M, N, W, LDW, INFO)
+#endif
   T = GET_THREAD_NS() - T
   WRITE (UOUT,'(F11.6)') (T * DNS2S)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(I20)') INFO
+#ifdef USE_ZGEQRF
      STOP 'ZQRF'
-     ! STOP 'ZTSR'
+#else
+     STOP 'ZTSR'
+#endif
   END IF
 
   CALL BIO_WRITE_ALL(FN, N, Y, LDY, W, LDW, JJ, P, INFO)
