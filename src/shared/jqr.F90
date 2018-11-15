@@ -250,7 +250,7 @@ CONTAINS
     ELSE IF (JJ(1) .EQ. -1) THEN
        !DIR$ FMA
        FCT = CNRMJ - AG1 * R
-    ELSE
+    ELSE ! |JJ(1)| .NE. 1
        INFO = -5
        RETURN
     END IF
@@ -344,6 +344,10 @@ CONTAINS
        S = 1
 
        ! ...PIVOTING...
+
+       ! See Algorithm C in Sect. 3.3 (p. 169) in: J. R. Bunch and L. Kaufman,
+       ! Some Stable Methods for Calculating Inertia and Solving Symmetric Linear Systems.
+       ! Mathematics of Computation, Vol. 31, No. 137. (Jan., 1977), pp. 163-179.
 
        ! diagonal pivoting
 
