@@ -244,8 +244,16 @@ CONTAINS
     END IF
     F1 = R * EIA
 
-    !DIR$ FMA
-    FCT = CNRMJ + AG1 * R
+    IF (JJ(1) .EQ. 1) THEN
+       !DIR$ FMA
+       FCT = CNRMJ + AG1 * R
+    ELSE IF (JJ(1) .EQ. -1) THEN
+       !DIR$ FMA
+       FCT = CNRMJ - AG1 * R
+    ELSE
+       INFO = -5
+       RETURN
+    END IF
     FCT = D_MONE / FCT
     IF (ABS(FCT) .GT. HUGE(FCT)) THEN
        INFO = 0
@@ -303,6 +311,7 @@ CONTAINS
     DOUBLE PRECISION :: V, LAM, SIG, CS1
     DOUBLE COMPLEX :: Z, SN1
 
+    INTEGER, EXTERNAL :: IDAMAX
     EXTERNAL :: ZROT, ZSWAP, ZLAEV2, ZLASET
 
     IF (M .LT. 0) THEN
@@ -323,8 +332,6 @@ CONTAINS
     IF (M .EQ. 0) RETURN
     IF (N .EQ. 0) RETURN
 
-    IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
-
     !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(P,ROW,N)
     DO I = 1, N
        P(I) = I
@@ -338,75 +345,92 @@ CONTAINS
 
        ! ...PIVOTING...
 
-       FCT(K) = DJNRM2(M-(K-1), A(K,K), JJ(K))
+       ! diagonal pivoting
+
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,FCT,M,N,K)
+       DO J = K, N
+          FCT(J) = DJNRM2(M-(K-1), A(K,J), JJ(K))
+       END DO
+       !$OMP END PARALLEL DO
+
+       I = IDAMAX(N-(K-1), FCT(K), 1) + (K-1)
+       IF (I .GT. K) THEN
+          CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
+          CS1 = FCT(K)
+          FCT(K) = FCT(I)
+          FCT(I) = CS1
+          J = P(K)
+          P(K) = P(I)
+          P(I) = J
+       END IF
+
        V = ABS(FCT(K))
+       IF (K .GE. N) GOTO 1
 
        ! Bunch-Kaufman-Parlett pivoting
 
-       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,JJ,FCT,ROW,WORK,M,N,K)
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,T,JJ,FCT,ROW,WORK,M,N,K)
        DO J = K+1, N
           Z = ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K))
-          FCT(J) = DBLE(Z)
-          ROW(J) = TRANSFER(AIMAG(Z), 0)
           WORK(J) = ABS(Z)
+          T(1,J) = Z
        END DO
        !$OMP END PARALLEL DO
 
-       I = K
-       LAM = D_MONE
-       DO J = K+1, N
-          IF (WORK(J) .GT. LAM) THEN
-             I = J
-             LAM = WORK(J)
-          END IF
-       END DO
-       WORK(I) = ALPHA * LAM
-       IF (V .GE. WORK(I)) GOTO 1
+       I = IDAMAX(N-K, WORK(K+1),1) + K
+       LAM = WORK(I)
+       CS1 = ALPHA * LAM
+       IF (V .GE. CS1) GOTO 1
 
        !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K,I)
        DO J = K, N
-          IF (J .NE. I) WORK(J) = ABS(ZJDOT(M-(K-1), A(K,I), A(K,J), JJ(K)))
+          IF (J .EQ. I) THEN
+             WORK(J) = D_MZERO
+          ELSE
+             WORK(J) = ABS(ZJDOT(M-(K-1), A(K,I), A(K,J), JJ(K)))
+          END IF
        END DO
        !$OMP END PARALLEL DO
 
-       SIG = D_MONE
-       DO J = K, N
-          IF ((J .NE. I) .AND. (WORK(J) .GT. SIG)) SIG = WORK(J)
-       END DO
-       WORK(I) = WORK(I) * LAM
-       IF ((V * SIG) .GE. WORK(I)) GOTO 1
-
-       Z = DCMPLX(FCT(I), TRANSFER(ROW(I), D_ZERO))
-       FCT(I) = DJNRM2(M-(K-1), A(K,I), JJ(K))
+       J = IDAMAX(N-(K-1), WORK(K), 1) + (K-1)
+       SIG = WORK(J)
+       CS1 = CS1 * LAM
+       IF ((V * SIG) .GE. CS1) GOTO 1
 
        IF (ABS(FCT(I)) .GE. (ALPHA * SIG)) THEN
           CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
-          WORK(1) = FCT(K)
+          CS1 = FCT(K)
           FCT(K) = FCT(I)
-          FCT(I) = WORK(1)
+          FCT(I) = CS1
           J = P(K)
           P(K) = P(I)
           P(I) = J
           GOTO 1
-       ELSE IF (I .NE. (K+1)) THEN
-          CALL ZSWAP(M, A(1,K+1), 1, A(1,I), 1)
-          WORK(1) = FCT(K+1)
-          FCT(K+1) = FCT(I)
-          FCT(I) = WORK(1)
-          J = P(K+1)
-          P(K+1) = P(I)
-          P(I) = J
-          I = K + 1
+       ELSE ! 2x2 pivot
+          S = 2
+          INFO = INFO + 1
+          Z = T(1,I)
+          IF (I .NE. (K+1)) THEN
+             CALL ZSWAP(M, A(1,K+1), 1, A(1,I), 1)
+             CS1 = FCT(K+1)
+             FCT(K+1) = FCT(I)
+             FCT(I) = CS1
+             J = P(K+1)
+             P(K+1) = P(I)
+             P(I) = J
+             I = K + 1
+          END IF
        END IF
-
-       S = 2
-       INFO = INFO + 1
 
        ! ...J-HOUSEHOLDERs...
 
 1      IF (S .EQ. 1) THEN
           IF (FCT(K) .EQ. D_ZERO) THEN
-             I = -6
+             IF (K .LT. N) THEN
+                I = -6
+             ELSE
+                I = 1
+             END IF
           ELSE
              CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, I)
           END IF
@@ -452,6 +476,8 @@ CONTAINS
 
        K = K + S
     END DO
+
+    IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
   END SUBROUTINE ZJQR
 
   ! B(I,J) = A(I,P(J))
