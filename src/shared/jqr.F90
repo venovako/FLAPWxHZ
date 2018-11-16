@@ -313,7 +313,7 @@ CONTAINS
     DOUBLE COMPLEX :: Z, SN1
 
     INTEGER, EXTERNAL :: IDAMAX
-    EXTERNAL :: ZROT, ZSWAP, ZLAEV2, ZLASET
+    EXTERNAL :: ZROT, ZSWAP, ZLAEV2 !, ZLASET
 
     IF (M .LT. 0) THEN
        INFO = -1
@@ -378,7 +378,7 @@ CONTAINS
        DO J = K+1, N
           Z = ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K))
           WORK(J) = ABS(Z)
-          T(1,J) = Z
+          T(K,J) = Z
        END DO
        !$OMP END PARALLEL DO
 
@@ -414,7 +414,7 @@ CONTAINS
        ELSE ! 2x2 pivot
           S = 2
           INFO = INFO + 1
-          Z = T(1,I)
+          Z = T(K,I)
           IF (I .NE. (K+1)) THEN
              CALL ZSWAP(M, A(1,K+1), 1, A(1,I), 1)
              CS1 = FCT(K+1)
@@ -474,7 +474,7 @@ CONTAINS
        K = K + S
     END DO
 
-    IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
+    ! IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
   END SUBROUTINE ZJQR
 
   ! B(I,J) = A(I,P(J))
