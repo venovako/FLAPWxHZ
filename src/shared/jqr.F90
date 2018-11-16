@@ -211,10 +211,6 @@ CONTAINS
 
     IF (CNRMJ .EQ. D_ZERO) THEN
        K = 2
-       !DIR$ VECTOR ALWAYS ASSERT
-       DO I = 1, M
-          T(I,1) = Z_ZERO
-       END DO
     ELSE IF (CNRMJ .LT. D_ZERO) THEN
        K = 1
     ELSE ! CNRMJ .GT. D_ZERO
@@ -231,6 +227,11 @@ CONTAINS
        END IF
     END IF
     IF (K .EQ. 2) THEN
+       !DIR$ VECTOR ALWAYS ASSERT
+       DO I = 1, M
+          T(I,1) = A(I,1)
+          A(I,1) = Z_ZERO
+       END DO
        IF (IDXS(K) .EQ. 0) INFO = 1
        RETURN
     END IF
@@ -256,7 +257,7 @@ CONTAINS
     END IF
     FCT = D_MONE / FCT
     IF (ABS(FCT) .GT. HUGE(FCT)) THEN
-       INFO = 0
+       INFO = -6
        RETURN
     END IF
 
@@ -429,21 +430,13 @@ CONTAINS
        ! ...J-HOUSEHOLDERs...
 
 1      IF (S .EQ. 1) THEN
-          IF (FCT(K) .EQ. D_ZERO) THEN
-             IF (K .LT. N) THEN
-                I = -6
-             ELSE
-                I = 1
-             END IF
-          ELSE
-             CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, I)
-          END IF
-          IF (I .LE. 0) THEN
-             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', I
+          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, J)
+          IF (J .LE. 0) THEN
+             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
              INFO = -6
              RETURN
           END IF
-          ROW(K) = ROW(K) + I
+          ROW(K) = ROW(K) + J
        ELSE ! S .EQ. 2
           WORK(1) = FCT(K)
           WORK(2) = FCT(I)
