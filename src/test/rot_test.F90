@@ -139,4 +139,5 @@ CONTAINS
     WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(1,1)),',',AIMAG(A(1,1)),') ', '(',DBLE(A(1,2)),',',AIMAG(A(1,2)),')'
     WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(2,1)),',',AIMAG(A(2,1)),') ', '(',DBLE(A(2,2)),',',AIMAG(A(2,2)),')'
   END SUBROUTINE WRITE_MTX_2x2
+
 END PROGRAM ROT_TEST

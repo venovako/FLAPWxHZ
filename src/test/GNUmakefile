@@ -15,10 +15,10 @@ endif # ?CPU
 
 .PHONY: all help clean
 
-all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1spt.exe zksqrt2t.exe zjht.exe
+all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1spt.exe zksqrt2t.exe zjht.exe binvec.exe
 
 help:
-	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
+	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 # TODO: specify the module dependencies for .o targets.
 
@@ -81,6 +81,12 @@ zjht.exe: zjht.o ../shared/libFLAPWxHZ.a $(MKFS)
 
 zjht.o: zjht.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c zjht.F90
+
+binvec.exe: binvec.o $(MKFS)
+	$(CC) $(CFLAGS) binvec.o -o$@ $(LDFLAGS)
+
+binvec.o: binvec.c $(MKFS)
+	$(CC) $(CFLAGS) -c binvec.c
 
 clean:
 	-$(RM) *.exe

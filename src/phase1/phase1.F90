@@ -2,9 +2,8 @@ PROGRAM PHASE1
   USE BINIO
   USE HIF_HZ
   USE TIMER
+  USE OMP_LIB
   IMPLICIT NONE
-
-  INTEGER, PARAMETER :: FNL = 20
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
   INTEGER :: L, a, G
@@ -16,24 +15,33 @@ PROGRAM PHASE1
   INTEGER :: CLK(3)
   DOUBLE PRECISION :: GTIMES(3)
 
-  CALL READCL(FN, L, a, G, CPR, TPC, INFO)
-  IF (INFO .EQ. 0) THEN
-     WRITE (ULOG,'(2(A),3(I11),I3,I2)') 'phase1.exe ', TRIM(FN), L, a, G, CPR, TPC
-  ELSE
+  CPR = MAX(OMP_GET_MAX_THREADS(),1)
+  CALL READCL(FN, L, a, G, TPC, INFO)
+  IF (INFO .NE. 0) THEN
      IF (INFO .LT. 0) THEN
         WRITE (ULOG,'(A,I2)') 'Cannot read argument', -INFO
      ELSE
         WRITE (ULOG,'(A,I2)') 'Illegal value of argument', INFO
      END IF
-     STOP 'phase1.exe FN L a G CPR TPC'
+     STOP 'phase1.exe FN L a G TPC'
+#ifndef NDEBUG
+  ELSE ! INFO .EQ. 0
+     WRITE (ULOG,'(2(A),3(I11),I3,I2)') 'phase1.exe ', TRIM(FN), L, a, G, CPR, TPC
+#endif
   END IF
 
   CALL BOPEN_XTU_RO(FN, L, a, G, SZ, FD, INFO)
+#ifndef NDEBUG
   WRITE (ULOG,'(A,I20,A)') 'X file has ', SZ(1), ' B.'
+#endif
   IF (INFO .EQ. 1) STOP 'X file cannot be opened'
+#ifndef NDEBUG
   WRITE (ULOG,'(A,I20,A)') 'T file has ', SZ(2), ' B.'
+#endif
   IF (INFO .EQ. 2) STOP 'T file cannot be opened'
+#ifndef NDEBUG
   WRITE (ULOG,'(A,I20,A)') 'U file has ', SZ(3), ' B.'
+#endif
   IF (INFO .EQ. 3) STOP 'U file cannot be opened'
   IF (INFO .NE. 0) STOP 'BOPEN_XTU_RO: error'
 
@@ -44,37 +52,27 @@ PROGRAM PHASE1
   IF (INFO .NE. 0) STOP 'BOPEN_YWJ_RW: error'
 
   INFO = BLAS_PREPARE()
-#ifndef MKL_NEST_SEQ
-  TPC = MAX(1,TPC)
-  IF (INFO .LE. 1) TPC = 1
-#else
-  TPC = MAX(0,TPC)
-  IF (TPC .NE. 0) TPC = 0
-#endif
+
   ATOM = 0
   INFO = 0
   CLK = 0
-  GTIMES = -D_ZERO
+  GTIMES = D_MZERO
 
   WRITE (UOUT,'(A)') '"ATOM","NRANK","NPLUS","N2PIV","INFO","TIME1","TIME2","TIME3"'
   CALL TIMER_START(CLK)
-#ifndef MKL_NEST_SEQ
-  !$OMP PARALLEL DO SHARED(FD,L,a,G,TPC) PRIVATE(ATOM,INFO) NUM_THREADS(CPR) PROC_BIND(SPREAD)
-#else
-  !$OMP PARALLEL DO SHARED(FD,L,a,G) PRIVATE(ATOM,INFO) NUM_THREADS(CPR) PROC_BIND(SPREAD)
-#endif
+  !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(ATOM) SHARED(FD,L,a,G,TPC) REDUCTION(MAX:INFO)
   DO ATOM = 1, a
-#ifndef MKL_NEST_SEQ
      CALL PAR_WORK(FD, L, G, (ATOM-1), TPC, INFO)
-#else
-     CALL PAR_WORK(FD, L, G, (ATOM-1), INFO)
-#endif
   END DO
   !$OMP END PARALLEL DO
   CALL TIMER_STOP(CLK)
-  GTIMES(1) = TIMER2DBLE(CLK)
-  WRITE (UOUT,'(5(I11,A),2(F11.6,A),F11.6)') &
-       -a,',', L,',', G,',', CPR,',', TPC,',', GTIMES(1),',', GTIMES(2),',', GTIMES(3)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I11,A,I1)') 'PAR_WORK: atom ', (INFO/4), ' error ', MOD(INFO,4)
+  ELSE ! INFO .EQ. 0
+     GTIMES(1) = TIMER2DBLE(CLK)
+     WRITE (UOUT,'(5(I11,A),2(F11.6,A),F11.6)') &
+          -a,',', L,',', G,',', CPR,',', TPC,',', GTIMES(1),',', GTIMES(2),',', GTIMES(3)
+  END IF
 
   CALL BCLOSEN(FD(4), 3)
   IF (FD(6) .NE. 0) STOP 'J file cannot be closed after writing'

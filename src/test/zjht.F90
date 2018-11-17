@@ -37,7 +37,7 @@ PROGRAM ZJHT
               ! CALL WRITE_MTX_3x3(MM1, 'A^H J A')
               T = Z_ZERO
               AH = Z_ZERO
-              CALL ZJQR(M, N, A, M, JJ, T, M, P, FCT, ROW, WORK, INFO)
+              CALL ZJQR(M, N, A, M, JJ, T, M, 1, P, FCT, ROW, WORK, INFO)
               IF (INFO .LT. 0) THEN
                  WRITE (UOUT,'(I2,A,I2)') K, ': ', INFO
               ELSE

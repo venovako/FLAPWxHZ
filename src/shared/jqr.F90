@@ -175,10 +175,10 @@ CONTAINS
     END DO
   END SUBROUTINE ZMAXJ
 
-  SUBROUTINE ZJH(M, N, A, LDA, JJ, CNRMJ, T, LDT, INFO)
+  SUBROUTINE ZJH(M, N, A, LDA, JJ, CNRMJ, TPC, T, LDT, INFO)
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: M, N, LDA, LDT
+    INTEGER, INTENT(IN) :: M, N, LDA, TPC, LDT
     DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(INOUT) :: JJ(M)
     DOUBLE PRECISION, INTENT(INOUT) :: CNRMJ
@@ -197,8 +197,10 @@ CONTAINS
        INFO = -2
     ELSE IF (LDA .LT. M) THEN
        INFO = -4
+    ELSE IF (TPC .LT. 1) THEN
+       INFO = -7
     ELSE IF (LDT .LT. M) THEN
-       INFO = -8
+       INFO = -9
     ELSE
        INFO = 0
     END IF
@@ -269,24 +271,16 @@ CONTAINS
        A(I,1) = Z_ZERO
     END DO
 
-#ifndef MKL_NEST_SEQ
-    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(J,K,SCL) SHARED(A,T,JJ,M,N,FCT)
-    K = BLAS_SET_NUM_THREADS(1)
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(J,K,SCL) SHARED(A,T,JJ,FCT,M,N,TPC)
+    K = BLAS_SET_NUM_THREADS(TPC)
     !$OMP DO
-#else
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,SCL) SHARED(A,T,JJ,M,N,FCT)
-#endif
     DO J = 2, N
        SCL = FCT * ZJDOT(M, T(1,1), A(1,J), JJ)
        IF (SCL .NE. Z_ZERO) CALL ZAXPY(M, SCL, T(1,1), 1, A(1,J), 1)
     END DO
-#ifndef MKL_NEST_SEQ
     !$OMP END DO
     K = BLAS_SET_NUM_THREADS(K)
     !$OMP END PARALLEL
-#else
-    !$OMP END PARALLEL DO
-#endif
 
     CNRMJ = FCT
   END SUBROUTINE ZJH
@@ -296,12 +290,12 @@ CONTAINS
   ! INFO < 0: error; else, # of pairs of the pivot columns
   ! FCT: FCTs from ZJH
   ! ROW(I) = INFO(ZJH) + ROW(I)
-  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, P, FCT, ROW, WORK, INFO)
+  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, TPC, P, FCT, ROW, WORK, INFO)
     IMPLICIT NONE
 
     DOUBLE PRECISION, PARAMETER :: ALPHA = SCALE(D_ONE + SQRT(17.0D0), -3)
     
-    INTEGER, INTENT(IN) :: M, N, LDA, LDT
+    INTEGER, INTENT(IN) :: M, N, LDA, LDT, TPC
     DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(INOUT) :: JJ(M)
     DOUBLE COMPLEX, INTENT(OUT) :: T(LDT,N)
@@ -325,6 +319,8 @@ CONTAINS
        INFO = -4
     ELSE IF (LDT .LT. M) THEN
        INFO = -7
+    ELSE IF (TPC .LT. 1) THEN
+       INFO = -8
     ELSE
        INFO = 0
     END IF
@@ -430,7 +426,7 @@ CONTAINS
        ! ...J-HOUSEHOLDERs...
 
 1      IF (S .EQ. 1) THEN
-          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), T(K,K), LDT, J)
+          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), TPC, T(K,K), LDT, J)
           IF (J .LE. 0) THEN
              WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
              INFO = -6
@@ -450,7 +446,7 @@ CONTAINS
 
           CALL ZROT(M-(K-1), A(K,K), 1, A(K,I), 1, CS1, SN1)
 
-          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), LAM, T(K,K), LDT, J)
+          CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), LAM, TPC, T(K,K), LDT, J)
           IF (J .LE. 0) THEN
              WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
              INFO = -6
@@ -459,7 +455,7 @@ CONTAINS
           FCT(K) = LAM
           ROW(K) = ROW(K) + J
 
-          CALL ZJH(M-(I-1), N-(I-1), A(I,I), LDA, JJ(I), SIG, T(I,I), LDT, J)
+          CALL ZJH(M-(I-1), N-(I-1), A(I,I), LDA, JJ(I), SIG, TPC, T(I,I), LDT, J)
           IF (J .LE. 0) THEN
              WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
              INFO = -6

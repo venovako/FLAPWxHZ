@@ -31,12 +31,8 @@ SUBROUTINE JANAL(M, J, NPLUS, JNBLKS, JNSTIX,JNLENS)
               EXIT
            END IF
         END DO
-#ifdef HAVE_J_SCALE
-     ELSE IF (J(I) .NE. 0) THEN
-        STOP 'JANAL: J contains j, |j| =/= 1, not supported'
-#endif
-     ELSE
-        STOP 'JANAL: J contains 0'
+     ELSE ! |J(I)| .NE. 1
+        STOP 'JANAL: J not supported'
      END IF
   END DO
 END SUBROUTINE JANAL

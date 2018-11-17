@@ -15,9 +15,6 @@ C11FLAGS=$(CPUFLAGS) -DFORTRAN_INTEGER_KIND=8 -std=c11
 ifdef NDEBUG
 OPTFLAGS=-fast
 OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
-ifdef NEST
-OPTFFLAGS += -DMKL_DIRECT_CALL$(NEST)
-endif # ?NEST
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS)
@@ -36,12 +33,8 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -DMKL_NEST$(NEST) -I. -I${MKLROOT}/include/mic/ilp64 -I${MKLROOT}/include -qopenmp
-ifeq ($(NEST),_SEQ)
-LDFLAGS=-L${MKLROOT}/lib/mic -Wl,-rpath=${MKLROOT}/lib/mic -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
-else # parallel
+LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I${MKLROOT}/include/mic/ilp64 -I${MKLROOT}/include -qopenmp
 LDFLAGS=-L${MKLROOT}/lib/mic -Wl,-rpath=${MKLROOT}/lib/mic -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
-endif # ?NEST
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
