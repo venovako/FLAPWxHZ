@@ -36,7 +36,7 @@ SUBROUTINE READCL(FN, N, TPC, INFO)
      INFO = -3
      RETURN
   END IF
-  READ (ARG,*) N
+  READ (ARG,*) TPC
   IF (N .LE. 0) THEN
      INFO = 3
      RETURN
