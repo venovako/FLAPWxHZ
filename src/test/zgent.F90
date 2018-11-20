@@ -187,7 +187,7 @@ CONTAINS
     END IF
     IF (I .GT. 0) THEN
        I = I * SZ
-       J = BREAD(FD, C_LOC(J1(J+1)), I, J * SZ)
+       J = BWRITE(FD, C_LOC(J1(J+1)), I, J * SZ)
        IF (J .NE. I) INFO = MAX(INFO,(TN+1))
     END IF
     !$OMP END PARALLEL
