@@ -2,6 +2,7 @@ PROGRAM ZHZL1SPT
   USE BINIO
   USE HIF_HZ
   USE TIMER
+  USE OMP_LIB
   IMPLICIT NONE
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
@@ -88,7 +89,7 @@ PROGRAM ZHZL1SPT
 
   CALL BOPEN_EZS_RW(FN, M, N, SZ, FD, INFO)
   IF (INFO .NE. 0) STOP 'Error in BOPEN_EZS_RW'
-  CALL BWRITE_EZS(FD, E, Z, SS, H, EY, SY, S, EW, SW, M, N, INFO)
+  CALL BWRITE_EZS(FD, E, Z, SS, H, EY, SY, S, EW, SW, M, N, SZ, INFO)
   IF (INFO .NE. 0) STOP 'Error in BWRITE_EZS'
   CALL BCLOSEN(FD, 9)
 
@@ -244,32 +245,49 @@ CONTAINS
 1   SZ = DIFFSZ
   END SUBROUTINE BOPEN_YWJ_RO
 
-  SUBROUTINE BREAD_YWJ(FD, Y, W, J, M, N, SZ, INFO)
+  SUBROUTINE BREAD_YWJ(FD, Y, W, J8, M, N, SZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: FD(3), M, N
     DOUBLE COMPLEX, INTENT(OUT), TARGET :: Y(M,N), W(M,N)
-    INTEGER, INTENT(OUT), TARGET :: J(M)
+    INTEGER, INTENT(OUT), TARGET :: J8(M)
     INTEGER, INTENT(OUT) :: SZ(3), INFO
 
+    INTEGER :: I, J, TN, NT
+
+    SZ(1) = M * C_SIZEOF(Z_ZERO)
+    SZ(2) = M * C_SIZEOF(Z_ZERO)
+    SZ(3) =     C_SIZEOF(0)
     INFO = 0
 
-    SZ(1) = BREAD(FD(1), C_LOC(Y), C_SIZEOF(Y), 0)
-    IF (SZ(1) .NE. C_SIZEOF(Y)) THEN
-       INFO = 1
-       RETURN
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(I,J,TN,NT) SHARED(Y,W,J8,M,N,FD,SZ) REDUCTION(MAX:INFO)
+    INFO = 0
+    !$OMP DO
+    DO J = 1, N
+       I = BREAD(FD(1), C_LOC(Y(1,J)), SZ(1), (J-1) * SZ(1))
+       IF (I .NE. SZ(1)) INFO = MAX(INFO,1)
+       I = BREAD(FD(2), C_LOC(W(1,J)), SZ(2), (J-1) * SZ(2))
+       IF (I .NE. SZ(2)) INFO = MAX(INFO,2)
+    END DO
+    !$OMP END DO
+    TN = OMP_GET_THREAD_NUM()
+    NT = OMP_GET_NUM_THREADS()
+    IF (TN .EQ. 0) THEN
+       I = (M / NT) + MOD(M,NT)
+       J = 0
+    ELSE ! TN .GT. 0
+       I = M / NT
+       J = TN * I + MOD(M,NT)
     END IF
+    IF (I .GT. 0) THEN
+       I = I * SZ(3)
+       J = BREAD(FD(3), C_LOC(J8(J+1)), I, J * SZ(3))
+       IF (J .NE. I) INFO = MAX(INFO,3)
+    END IF
+    !$OMP END PARALLEL
 
-    SZ(2) = BREAD(FD(2), C_LOC(W), C_SIZEOF(W), 0)
-    IF (SZ(2) .NE. C_SIZEOF(W)) THEN
-       INFO = 2
-       RETURN
-    END IF
-
-    SZ(3) = BREAD(FD(3), C_LOC(J), C_SIZEOF(J), 0)
-    IF (SZ(3) .NE. C_SIZEOF(J)) THEN
-       INFO = 3
-       RETURN
-    END IF
+    SZ(1) = SZ(1) * N
+    SZ(2) = SZ(2) * N
+    SZ(3) = SZ(3) * M
   END SUBROUTINE BREAD_YWJ
 
   SUBROUTINE BOPEN_EZS_RW(FN, M, N, SZ, FD, INFO)
@@ -352,7 +370,7 @@ CONTAINS
     END IF
   END SUBROUTINE BOPEN_EZS_RW
 
-  SUBROUTINE BWRITE_EZS(FD, E, Z, SS, YU, EY, SY, WV, EW, SW, M, N, INFO)
+  SUBROUTINE BWRITE_EZS(FD, E, Z, SS, YU, EY, SY, WV, EW, SW, M, N, SZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: FD(9), M, N
     DOUBLE PRECISION, INTENT(IN), TARGET :: E(N)
@@ -364,42 +382,63 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN), TARGET :: SW(N)
     DOUBLE COMPLEX, INTENT(IN), TARGET :: YU(M,N)
     DOUBLE COMPLEX, INTENT(IN), TARGET :: WV(M,N)
-    INTEGER, INTENT(OUT) :: INFO
+    INTEGER, INTENT(OUT) :: SZ(9), INFO
 
-    INTEGER(c_size_t) :: SZ(9), S
+    INTEGER :: I, J, TN, NT
 
-    SZ(1) =     N * C_SIZEOF(D_ZERO) !  E
-    SZ(2) = N * N * C_SIZEOF(Z_ZERO) !  Z
+    SZ(1) =     C_SIZEOF(D_ZERO) !  E
+    SZ(2) = N * C_SIZEOF(Z_ZERO) !  Z
 
-    SZ(3) =     N * C_SIZEOF(D_ZERO) ! SS
-    SZ(4) = M * N * C_SIZEOF(Z_ZERO) ! YU
-    SZ(5) =     N * C_SIZEOF(D_ZERO) ! EY
-    SZ(6) =     N * C_SIZEOF(D_ZERO) ! SY
-    SZ(7) = M * N * C_SIZEOF(Z_ZERO) ! WV
-    SZ(8) =     N * C_SIZEOF(D_ZERO) ! EW
-    SZ(9) =     N * C_SIZEOF(D_ZERO) ! SW
+    SZ(3) =     C_SIZEOF(D_ZERO) ! SS
+    SZ(4) = M * C_SIZEOF(Z_ZERO) ! YU
+    SZ(5) =     C_SIZEOF(D_ZERO) ! EY
+    SZ(6) =     C_SIZEOF(D_ZERO) ! SY
+    SZ(7) = M * C_SIZEOF(Z_ZERO) ! WV
+    SZ(8) =     C_SIZEOF(D_ZERO) ! EW
+    SZ(9) =     C_SIZEOF(D_ZERO) ! SW
 
     INFO = 0
 
-    S = BWRITE(FD(1), C_LOC(E), C_SIZEOF(E), 0)
-    IF (S .NE. SZ(1)) INFO = 1
-    S = BWRITE(FD(2), C_LOC(Z), C_SIZEOF(Z), 0)
-    IF (S .NE. SZ(2)) INFO = 2
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(I,J,TN,NT) SHARED(E,Z,SS,EY,SY,EW,SW,YU,WV,N,FD,SZ) REDUCTION(MAX:INFO)
+    INFO = 0
+    !$OMP DO
+    DO J = 1, N
+       I = BWRITE(FD(2), C_LOC(Z(1,J)), SZ(2), (J-1) * SZ(2))
+       IF (I .NE. SZ(2)) INFO = MAX(INFO,2)
+       I = BWRITE(FD(4), C_LOC(YU(1,J)), SZ(4), (J-1) * SZ(4))
+       IF (I .NE. SZ(4)) INFO = MAX(INFO,4)
+       I = BWRITE(FD(7), C_LOC(WV(1,J)), SZ(7), (J-1) * SZ(7))
+       IF (I .NE. SZ(7)) INFO = MAX(INFO,7)
+    END DO
+    !$OMP END DO
+    TN = OMP_GET_THREAD_NUM()
+    NT = OMP_GET_NUM_THREADS()
+    IF (TN .EQ. 0) THEN
+       I = (N / NT) + MOD(N,NT)
+       J = 0
+    ELSE ! TN .GT. 0
+       I = N / NT
+       J = TN * I + MOD(N,NT)
+    END IF
+    IF (I .GT. 0) THEN       
+       IF (BWRITE(FD(1), C_LOC(E(J+1)), I * SZ(1), J * SZ(1)) .NE. (I * SZ(1))) INFO = MAX(INFO,1)
+       IF (BWRITE(FD(3), C_LOC(SS(J+1)), I * SZ(3), J * SZ(3)) .NE. (I * SZ(3))) INFO = MAX(INFO,3)
+       IF (BWRITE(FD(5), C_LOC(EY(J+1)), I * SZ(5), J * SZ(5)) .NE. (I * SZ(5))) INFO = MAX(INFO,5)
+       IF (BWRITE(FD(6), C_LOC(SY(J+1)), I * SZ(6), J * SZ(6)) .NE. (I * SZ(6))) INFO = MAX(INFO,6)
+       IF (BWRITE(FD(8), C_LOC(EW(J+1)), I * SZ(8), J * SZ(8)) .NE. (I * SZ(8))) INFO = MAX(INFO,8)
+       IF (BWRITE(FD(9), C_LOC(SW(J+1)), I * SZ(9), J * SZ(9)) .NE. (I * SZ(9))) INFO = MAX(INFO,9)
+    END IF
+    !$OMP END PARALLEL
 
-    S = BWRITE(FD(3), C_LOC(SS), C_SIZEOF(SS), 0)
-    IF (S .NE. SZ(3)) INFO = 3
-    S = BWRITE(FD(4), C_LOC(YU), C_SIZEOF(YU), 0)
-    IF (S .NE. SZ(4)) INFO = 4
-    S = BWRITE(FD(5), C_LOC(EY), C_SIZEOF(EY), 0)
-    IF (S .NE. SZ(5)) INFO = 5
-    S = BWRITE(FD(6), C_LOC(SY), C_SIZEOF(SY), 0)
-    IF (S .NE. SZ(6)) INFO = 6
-    S = BWRITE(FD(7), C_LOC(WV), C_SIZEOF(WV), 0)
-    IF (S .NE. SZ(7)) INFO = 7
-    S = BWRITE(FD(8), C_LOC(EW), C_SIZEOF(EW), 0)
-    IF (S .NE. SZ(8)) INFO = 8
-    S = BWRITE(FD(9), C_LOC(SW), C_SIZEOF(SW), 0)
-    IF (S .NE. SZ(9)) INFO = 9
+    SZ(1) = SZ(1) * N
+    SZ(2) = SZ(2) * N
+    SZ(3) = SZ(3) * N
+    SZ(4) = SZ(4) * N
+    SZ(5) = SZ(5) * N
+    SZ(6) = SZ(6) * N
+    SZ(7) = SZ(7) * N
+    SZ(8) = SZ(8) * N
+    SZ(9) = SZ(9) * N
   END SUBROUTINE BWRITE_EZS
 
 END PROGRAM ZHZL1SPT
