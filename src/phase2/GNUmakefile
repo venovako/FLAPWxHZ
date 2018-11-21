@@ -20,8 +20,8 @@ all: phase2.exe
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-phase2.exe: phase2.o ../shared/libFLAPWxHZ.a $(MKFS)
-	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
+phase2.exe: phase2.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
 phase2.o: phase2.F90 readcl.F90 bio.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c phase2.F90
