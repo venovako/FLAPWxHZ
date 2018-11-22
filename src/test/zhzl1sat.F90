@@ -292,8 +292,8 @@ CONTAINS
        IF (I .NE. SZ(2)) INFO = MAX(INFO,2)
     END DO
     !$OMP END DO
-    TN = OMP_GET_THREAD_NUM()
-    NT = OMP_GET_NUM_THREADS()
+    TN = INT(OMP_GET_THREAD_NUM())
+    NT = INT(OMP_GET_NUM_THREADS())
     IF (TN .EQ. 0) THEN
        I = (M / NT) + MOD(M,NT)
        J = 0
@@ -434,8 +434,8 @@ CONTAINS
        IF (I .NE. SZ(7)) INFO = MAX(INFO,7)
     END DO
     !$OMP END DO
-    TN = OMP_GET_THREAD_NUM()
-    NT = OMP_GET_NUM_THREADS()
+    TN = INT(OMP_GET_THREAD_NUM())
+    NT = INT(OMP_GET_NUM_THREADS())
     IF (TN .EQ. 0) THEN
        I = (N / NT) + MOD(N,NT)
        J = 0
