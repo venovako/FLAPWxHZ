@@ -61,17 +61,44 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
   !DIR$ ASSUME_ALIGNED BS:ALIGNB
   !DIR$ ASSUME_ALIGNED BZ:ALIGNB
   !DIR$ ASSUME_ALIGNED IWORK:ALIGNB
-#ifdef NDEBUG
-  !DIR$ ASSUME (MOD(K,2) .EQ. 0)
-  !DIR$ ASSUME (MOD(LDB,ZALIGN) .EQ. 0)
-  !DIR$ ASSUME (CPR .GE. 1)
-#else
-  IF (MOD(K,2) .NE. 0) STOP 'ZHZL2: MOD(K,2) .NE. 0'
-  IF (MOD(LDB,ZALIGN) .NE. 0) STOP 'ZHZL2: MOD(LDB,ZALIGN) .NE. 0'
-  IF (CPR .LT. 1) STOP 'ZHZL2: CPR .LT. 1'
-#endif
 
-  INFO = 0
+  IF (M .LT. 0) THEN
+     INFO = -1
+  ELSE IF (N .LT. 0) THEN
+     INFO = -2
+  ELSE IF (N .GT. M) THEN
+     INFO = -2
+  ELSE IF (K .LT. 0) THEN
+     INFO = -3
+  ELSE IF (MOD(K,2) .NE. 0) THEN
+     INFO = -3
+  ELSE IF (LDY .LT. M) THEN
+     INFO = -6
+  ELSE IF (LDW .LT. M) THEN
+     INFO = -9
+  ELSE IF (LDZ .LT. N) THEN
+     INFO = -13
+  ELSE IF (IAM .LT. 1) THEN
+     INFO = -14
+  ELSE IF (IAM .GT. CPR) THEN
+     INFO = -14
+  ELSE IF (CPR .LT. 1) THEN
+     INFO = -15
+  ELSE IF (CPR .GT. MAXCPR) THEN
+     INFO = -15
+  ELSE IF (NSWP(1) .LT. 0) THEN
+     INFO = -16
+  ELSE IF (NSWP(2) .LT. 0) THEN
+     INFO = -16
+  ELSE IF (LDB .LT. K) THEN
+     INFO = -34
+  ELSE IF (MOD(LDB,ZALIGN) .NE. 0) THEN
+     INFO = -34
+  ELSE
+     INFO = 0
+  END IF
+  IF (INFO .NE. 0) RETURN
+
   !$OMP MASTER
   DO L = 1, 8
      !$OMP ATOMIC WRITE
@@ -79,8 +106,6 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
      !$OMP END ATOMIC
   END DO
   !$OMP END MASTER
-
-  ! TODO: check the arguments
 
 #ifndef NDEBUG
   DO L = 1, 5
@@ -232,12 +257,9 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         STOP 'ZHZL2: SWEEP ALLROT < 0'
 #endif
      END IF
-! TODO: disable after debug
-!#ifndef NDEBUG
      !$OMP MASTER
      WRITE (ULOG,'(A,I4,2(A,I20))') 'Sweep:', BSWP, ' AllRot:', INFO2(1), ' BigRot:', INFO2(2)
      !$OMP END MASTER
-!#endif
      !$OMP BARRIER
      IF (INFO2(1) .GT. 0) THEN
         !$OMP ATOMIC UPDATE
