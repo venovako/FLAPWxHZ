@@ -641,6 +641,8 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
            IF (DTOL .LT. TINY(D_ZERO)) THEN
               ! underflow
               DTOL = SS(J)
+              SY(J) = SY(J) / DTOL
+              SW(J) = SW(J) / DTOL
               DO I = 1, N, DSIMDL
                  P = MIN(DSIMDL, N-(I-1))
                  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
@@ -649,6 +651,8 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  END DO
               END DO
            ELSE
+              SY(J) = SY(J) * DTOL
+              SW(J) = SW(J) * DTOL
               CALL ZDSCAL(N, DTOL, Z(1,J), 1)
            END IF
         END IF
