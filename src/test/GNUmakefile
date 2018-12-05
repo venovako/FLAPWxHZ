@@ -15,7 +15,7 @@ endif # ?CPU
 
 .PHONY: all help clean
 
-all: hif_test.exe jacstr_test.exe err_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe binvec.exe
+all: hif_test.exe jacstr_test.exe err_test.exe derr_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe binvec.exe
 
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
@@ -39,6 +39,12 @@ err_test.exe: err_test.o ../shared/libFLAPWxHZ.a $(MKFS)
 
 err_test.o: err_test.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c err_test.F90
+
+derr_test.exe: derr_test.o ../shared/libFLAPWxHZ.a $(MKFS)
+	$(FC) $(FFLAGS) derr_test.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
+
+derr_test.o: derr_test.F90 $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c derr_test.F90
 
 rot_test.exe: rot_test.o $(MKFS)
 	$(FC) $(FFLAGS) rot_test.o -o$@

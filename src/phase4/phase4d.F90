@@ -1,0 +1,114 @@
+PROGRAM PHASE4D
+  USE BINIO
+  USE BLAS_UTILS
+  USE TIMER
+  IMPLICIT NONE
+
+  DOUBLE PRECISION, ALLOCATABLE, TARGET :: Z(:,:)
+  DOUBLE PRECISION, ALLOCATABLE :: X(:,:)
+  INTEGER, ALLOCATABLE :: IPIV(:), JPIV(:)
+
+  CHARACTER(LEN=FNL,KIND=c_char) :: FN
+  DOUBLE PRECISION :: SCAL
+  INTEGER :: N, TPC, LDA, INFO
+  INTEGER :: FD, SZ, I, J, T
+
+  EXTERNAL :: DGETC2, DGESC2, DLASET
+
+  CALL READCL(FN, N, TPC, INFO)
+  IF (INFO .NE. 0) THEN
+     IF (INFO .LT. 0) THEN
+        WRITE (ULOG,'(A,I2)') 'Cannot read argument', -INFO
+     ELSE
+        WRITE (ULOG,'(A,I2)') 'Illegal value of argument', INFO
+     END IF
+     STOP 'phase4d.exe FN N TPC'
+  END IF
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.Z'), SZ, FD)
+  IF ((SZ .LE. 0) .OR. (FD .LT. 0)) THEN
+     WRITE (ULOG,'(A,I2)') 'SZ=', SZ
+     WRITE (ULOG,'(A,I2)') 'FD=', FD
+     STOP 'BOPEN_Z_RO'
+  END IF
+  J = MOD(SZ, C_SIZEOF(D_ZERO))
+  IF (J .NE. 0) THEN
+     WRITE (ULOG,'(A,I20)') 'Not a double complex matrix with SZ=', SZ
+     STOP 'BOPEN_Z_RO'
+  END IF
+
+  J = N * N * C_SIZEOF(D_ZERO)
+  IF (J .NE. SZ) THEN
+     WRITE (ULOG,'(A,I20)') 'Not a square matrix with SZ=', SZ
+     STOP 'BOPEN_Z_RO'
+  END IF
+  LDA = N
+
+  ALLOCATE(Z(LDA,N))
+  CALL BREAD_Z(FD, Z, N, SZ, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(2(A,I20))') 'INFO=', INFO, ', SZ=', SZ
+     STOP 'BREAD_Z'
+  END IF
+  CALL BCLOSE(FD)
+
+  ALLOCATE(X(LDA,N))
+  ALLOCATE(IPIV(N))
+  ALLOCATE(JPIV(N))
+  J = BLAS_PREPARE()
+
+  T = GET_THREAD_NS()
+  CALL DGETC2(N, Z, LDA, IPIV, JPIV, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I6)') 'INFO=', INFO
+     STOP 'DGETC2'
+  END IF
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(A,F11.6,A)') 'P*L*U*Q=Z computed in ', (T * DNS2S), ' s.'
+ 
+  T = GET_THREAD_NS()
+  CALL DLASET('A', N, N, D_ZERO, D_ONE, X, LDA)
+
+  !$OMP PARALLEL DEFAULT(NONE) PRIVATE(I,J,INFO,SCAL) SHARED(Z,X,IPIV,JPIV,N,LDA,TPC)
+  INFO = BLAS_SET_NUM_THREADS(TPC)
+  !$OMP DO
+  DO J = 1, N
+     SCAL = D_ONE
+     CALL DGESC2(N, Z, LDA, X(1,J), IPIV, JPIV, SCAL)
+     IF (SCAL .EQ. D_ZERO) THEN
+        WRITE (ULOG,'(A,I6)') 'SCALE=0 with J=', J
+        STOP 'DGESC2'
+     END IF
+     IF (SCAL .NE. D_ONE) THEN
+        WRITE (ULOG,'(A,I6)') 'SCALE non-unity with J=', J
+        !DIR$ VECTOR ALWAYS ASSERT
+        DO I = 1, N
+           X(I,J) = X(I,J) / SCAL
+        END DO
+     END IF
+  END DO
+  !$OMP END DO
+  INFO = BLAS_SET_NUM_THREADS(INFO)
+  !$OMP END PARALLEL
+  T = GET_THREAD_NS() - T
+  WRITE (UOUT,'(A,F11.6,A)') 'ZZ=Z^{-1} computed in ', (T * DNS2S), ' s.'
+
+  IF (ALLOCATED(JPIV)) DEALLOCATE(JPIV)
+  IF (ALLOCATED(IPIV)) DEALLOCATE(IPIV)
+
+  CALL BOPEN_RW((TRIM(FN)//c_char_'.ZZ'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_ZZ_RW'
+  CALL BWRITE_ZZ(FD, X, N, SZ, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(2(A,I20))') 'INFO=', INFO, ', SZ=', SZ
+     STOP 'BWRITE_ZZ'
+  END IF
+  CALL BCLOSE(FD)
+
+  IF (ALLOCATED(X)) DEALLOCATE(X)
+  IF (ALLOCATED(Z)) DEALLOCATE(Z)
+
+CONTAINS
+#include "readcl.F90"
+#include "biod.F90"
+END PROGRAM PHASE4D

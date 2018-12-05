@@ -15,7 +15,7 @@ endif # ?CPU
 
 .PHONY: all help clean
 
-all: phase4.exe
+all: phase4.exe phase4d.exe
 
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [NEST=_SEQ] [all|clean|help]"
@@ -25,6 +25,12 @@ phase4.exe: phase4.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 
 phase4.o: phase4.F90 readcl.F90 bio.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -c phase4.F90
+
+phase4d.exe: phase4d.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+	$(FC) $(FFLAGS) phase4d.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
+
+phase4d.o: phase4d.F90 readcl.F90 biod.F90 $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c phase4d.F90
 
 clean:
 	-$(RM) *.exe

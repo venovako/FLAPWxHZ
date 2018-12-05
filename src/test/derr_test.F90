@@ -1,0 +1,337 @@
+PROGRAM DERR_TEST
+  USE BINIO
+  USE OMP_LIB
+  IMPLICIT NONE
+
+#ifdef USE_INTEL
+  INTEGER, PARAMETER :: WP = 16
+#else
+  INTEGER, PARAMETER :: WP = 10
+#endif
+
+  REAL(WP), PARAMETER :: Q_ZERO = 0.0E0_WP
+
+  DOUBLE PRECISION, ALLOCATABLE, TARGET :: YW(:,:), S(:)
+  REAL(WP), ALLOCATABLE :: xY(:,:), xW(:,:), xU(:,:), xV(:,:), xZ(:,:), xA(:)
+
+  CHARACTER(LEN=FNL,KIND=c_char) :: FN
+  INTEGER :: M, N, T
+  INTEGER :: FD, SZ, INFO
+  INTEGER :: I, J, K
+  REAL(WP) :: ANF,YNF, BNF,WNF
+
+  CALL READCL(FN, M, N, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(I2,A)',ADVANCE='NO') INFO, ' '
+     STOP 'READCL'
+  END IF
+  T = MAX(INT(OMP_GET_MAX_THREADS()),1)
+
+  ALLOCATE(YW(M,N))
+
+  ! Read: Y,YU,SY, W,WV,SW, ZZ
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.Y'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_Y_RO'
+  CALL BREAD_YW(FD, YW, M, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_Y'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xA(T))
+  
+  ALLOCATE(xY(M,N))
+
+  xA = Q_ZERO
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,J,K, ANF)
+  K = INT(OMP_GET_THREAD_NUM()) + 1
+  !$OMP DO
+  DO J = 1, N
+     DO I = 1, M
+        xY(I,J) = REAL(YW(I,J), WP)
+        ANF = REAL(xY(I,J), WP)
+        xA(K) = xA(K) + ANF*ANF
+     END DO
+  END DO
+  !$OMP END DO
+  !$OMP END PARALLEL
+
+  YNF = SQRT(SUM(xA))
+  PRINT *, '|| Y ||_F =', YNF
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.W'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_W_RO'
+  CALL BREAD_YW(FD, YW, M, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_W'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xW(M,N))
+
+  xA = Q_ZERO
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,J,K, ANF)
+  K = INT(OMP_GET_THREAD_NUM()) + 1
+  !$OMP DO
+  DO J = 1, N
+     DO I = 1, M
+        xW(I,J) = REAL(YW(I,J), WP)
+        ANF = REAL(xW(I,J), WP)
+        xA(K) = xA(K) + ANF*ANF
+     END DO
+  END DO
+  !$OMP END DO
+  !$OMP END PARALLEL
+
+  WNF = SQRT(SUM(xA))
+  PRINT *, '|| W ||_F =', WNF
+
+  ALLOCATE(S(N))
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.SY'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_SY_RO'
+  CALL BREAD_S(FD, S, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_SY'
+  CALL BCLOSE(FD)
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.YU'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_YU_RO'
+  CALL BREAD_YW(FD, YW, M, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_YU'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xU(M,N))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J)
+  DO J = 1, N
+     DO I = 1, M
+        xU(I,J) = REAL(YW(I,J), WP) * REAL(S(J), WP)
+     END DO
+  END DO
+  !$OMP END PARALLEL DO
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.SW'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_SW_RO'
+  CALL BREAD_S(FD, S, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_SW'
+  CALL BCLOSE(FD)
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.WV'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_WV_RO'
+  CALL BREAD_YW(FD, YW, M, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_WV'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xV(M,N))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J)
+  DO J = 1, N
+     DO I = 1, M
+        xV(I,J) = REAL(YW(I,J), WP) * REAL(S(J), WP)
+     END DO
+  END DO
+  !$OMP END PARALLEL DO
+
+  DEALLOCATE(S)
+  DEALLOCATE(YW)
+
+  ALLOCATE(YW(N,N))
+
+  CALL BOPEN_RO((TRIM(FN)//c_char_'.ZZ'), SZ, FD)
+  IF (FD .LT. 0) STOP 'BOPEN_ZZ_RO'
+  CALL BREAD_ZZ(FD, YW, N, SZ, INFO)
+  IF (INFO .NE. 0) STOP 'BREAD_ZZ'
+  CALL BCLOSE(FD)
+
+  ALLOCATE(xZ(N,N))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J)
+  DO J = 1, N
+     DO I = 1, N
+        xZ(I,J) = REAL(YW(I,J), WP)
+     END DO
+  END DO
+  !$OMP END PARALLEL DO
+
+  DEALLOCATE(YW)
+
+  ! Compute: (scaling with Ss)
+  ! || Y - (YU * SY) * ZZ ||_F / || Y ||_F
+  ! || W - (WV * SW) * ZZ ||_F / || W ||_F
+
+  CALL PXGEMM(M, N, N, xU, M, xZ, N, xY, M, xA, T, ANF)
+  PRINT *, '|| Y - (YU * SY) * ZZ ||_F             =', ANF
+  PRINT *, '|| Y - (YU * SY) * ZZ ||_F / || Y ||_F =', (ANF / YNF)
+
+  CALL PXGEMM(M, N, N, xV, M, xZ, N, xW, M, xA, T, BNF)
+  PRINT *, '|| W - (WV * SW) * ZZ ||_F             =', BNF
+  PRINT *, '|| W - (WV * SW) * ZZ ||_F / || W ||_F =', (BNF / WNF)
+
+  DEALLOCATE(xZ)
+  DEALLOCATE(xV)
+  DEALLOCATE(xU)
+  DEALLOCATE(xW)
+  DEALLOCATE(xY)
+  DEALLOCATE(xA)
+
+CONTAINS
+
+  SUBROUTINE PXGEMM(M, N, K, A, LDA, B, LDB, C, LDC, xA, T, CNF)
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: M, N, K, LDA, LDB, LDC, T
+    REAL(WP), INTENT(IN) :: A(LDA,K), B(LDB,N)
+    REAL(WP), INTENT(INOUT) :: C(LDC,N)
+    REAL(WP), INTENT(OUT) :: xA(T), CNF
+
+    REAL(WP) :: RE
+    INTEGER :: I, J, L
+
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(I,J,L)
+    DO J = 1, N
+       DO L = 1, K
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, M
+             C(I,J) = C(I,J) - A(I,L) * B(L,J)
+          END DO
+       END DO
+    END DO
+    !$OMP END PARALLEL DO
+
+    xA = Q_ZERO
+    !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,J,L, RE)
+    L = INT(OMP_GET_THREAD_NUM()) + 1
+    !$OMP DO
+    DO J = 1, N
+       !DIR$ VECTOR ALWAYS
+       DO I = 1, M
+          RE = REAL(C(I,J), WP)
+          xA(L) = xA(L) + RE*RE
+       END DO
+    END DO
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    CNF = SQRT(SUM(xA))
+  END SUBROUTINE PXGEMM
+
+  SUBROUTINE READCL(FN, M, N, INFO)
+    IMPLICIT NONE
+
+    CHARACTER(LEN=*,KIND=c_char), INTENT(OUT) :: FN
+    INTEGER, INTENT(OUT) :: M, N, INFO
+
+    CHARACTER(LEN=FNL) :: ARG
+    INTEGER :: TMP
+
+    INFO = 0
+    IF (COMMAND_ARGUMENT_COUNT() .NE. 3) STOP 'derr_test.exe FN M N'
+
+    CALL GET_COMMAND_ARGUMENT(1, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -1
+       RETURN
+    END IF
+    FN = TRIM(ARG)
+    IF (LEN_TRIM(FN) .LE. 0) THEN
+       INFO = 1
+       RETURN
+    END IF
+
+    CALL GET_COMMAND_ARGUMENT(2, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -2
+       RETURN
+    END IF
+    READ (ARG,*) M
+    IF (M .LE. 0) THEN
+       INFO = 2
+       RETURN
+    END IF
+
+    CALL GET_COMMAND_ARGUMENT(3, ARG, TMP, INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = -3
+       RETURN
+    END IF
+    READ (ARG,*) N
+    IF (N .LE. 0) THEN
+       INFO = 3
+       RETURN
+    END IF
+  END SUBROUTINE READCL
+
+  SUBROUTINE BREAD_YW(FD, YW, M, N, SZ, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD, M, N
+    DOUBLE PRECISION, INTENT(OUT), TARGET :: YW(M,N)
+    INTEGER, INTENT(OUT) :: SZ, INFO
+
+    INTEGER :: I, J
+
+    SZ = M * C_SIZEOF(D_ZERO)
+    INFO = 0
+
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(I,J) SHARED(YW,N,FD,SZ) REDUCTION(MAX:INFO)
+    INFO = 0
+    !$OMP DO
+    DO J = 1, N
+       I = BREAD(FD, C_LOC(YW(1,J)), SZ, (J-1) * SZ)
+       IF (I .NE. SZ) INFO = MAX(INFO,J)
+    END DO
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    SZ = SZ * N
+  END SUBROUTINE BREAD_YW
+
+  SUBROUTINE BREAD_S(FD, S, N, SZ, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD, N
+    DOUBLE PRECISION, INTENT(OUT), TARGET :: S(N)
+    INTEGER, INTENT(OUT) :: SZ, INFO
+
+    INTEGER :: I, J, TN, NT
+
+    SZ = C_SIZEOF(D_ZERO)
+    INFO = 0
+
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(I,J,TN,NT) SHARED(S,N,FD,SZ) REDUCTION(MAX:INFO)
+    INFO = 0
+    TN = INT(OMP_GET_THREAD_NUM())
+    NT = INT(OMP_GET_NUM_THREADS())
+    IF (TN .EQ. 0) THEN
+       I = (N / NT) + MOD(N,NT)
+       J = 0
+    ELSE ! TN .GT. 0
+       I = N / NT
+       J = TN * I + MOD(N,NT)
+    END IF
+    IF (I .GT. 0) THEN
+       I = I * SZ
+       J = BREAD(FD, C_LOC(S(J+1)), I, J * SZ)
+       IF (J .NE. I) INFO = MAX(INFO,(TN+1))
+    END IF
+    !$OMP END PARALLEL
+
+    SZ = SZ * N
+  END SUBROUTINE BREAD_S
+
+  SUBROUTINE BREAD_ZZ(FD, ZZ, N, SZ, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: FD, N
+    DOUBLE PRECISION, INTENT(OUT), TARGET :: ZZ(N,N)
+    INTEGER, INTENT(OUT) :: SZ, INFO
+
+    INTEGER :: I, J
+
+    SZ = N * C_SIZEOF(D_ZERO)
+    INFO = 0
+
+    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(I,J) SHARED(ZZ,N,FD,SZ) REDUCTION(MAX:INFO)
+    INFO = 0
+    !$OMP DO
+    DO J = 1, N
+       I = BREAD(FD, C_LOC(ZZ(1,J)), SZ, (J-1) * SZ)
+       IF (I .NE. SZ) INFO = MAX(INFO,J)
+    END DO
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    SZ = SZ * N
+  END SUBROUTINE BREAD_ZZ
+
+END PROGRAM DERR_TEST
