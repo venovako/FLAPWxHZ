@@ -50,7 +50,7 @@ PROGRAM ERR_TEST
      DO I = 1, M
         xY(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP)
         ANF = REAL(xY(I,J), WP)
-        BNF = AIMAG(xY(I,J))
+        BNF = REAL(AIMAG(xY(I,J)), WP)
         xA(K) = xA(K) + ANF*ANF + BNF*BNF
      END DO
   END DO
@@ -76,7 +76,7 @@ PROGRAM ERR_TEST
      DO I = 1, M
         xW(I,J) = CMPLX(DBLE(YW(I,J)), AIMAG(YW(I,J)), WP)
         ANF = REAL(xW(I,J), WP)
-        BNF = AIMAG(xW(I,J))
+        BNF = REAL(AIMAG(xW(I,J)), WP)
         xA(K) = xA(K) + ANF*ANF + BNF*BNF
      END DO
   END DO
@@ -203,7 +203,7 @@ CONTAINS
        !DIR$ VECTOR ALWAYS
        DO I = 1, M
           RE = REAL(C(I,J), WP)
-          IM = AIMAG(C(I,J))
+          IM = REAL(AIMAG(C(I,J)), WP)
           xA(L) = xA(L) + RE*RE + IM*IM
        END DO
     END DO
