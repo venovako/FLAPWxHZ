@@ -84,6 +84,8 @@ PROGRAM ROT_TEST
   F(1,2) =  EIASPHI / T
   F(2,2) =  CPSI / T
 
+  CALL WRITE_MTX_2x2(F, 'F =')
+
   ! G = F^H
   G(1,1) = F(1,1)
   G(2,1) = DCONJG(F(1,2))
