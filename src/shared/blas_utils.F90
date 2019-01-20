@@ -18,6 +18,40 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  SUBROUTINE BLAS_ALLOC(PTR, AL, SZ, INFO)
+    INTERFACE
+       FUNCTION C_ALIGNED_MALLOC(PTR, AL, SZ) BIND(C,NAME='posix_memalign')
+         USE, INTRINSIC :: ISO_C_BINDING
+         TYPE(c_ptr), INTENT(OUT) :: PTR
+         INTEGER(c_size_t), VALUE :: AL, SZ
+         INTEGER(c_int) :: C_ALIGNED_MALLOC
+       END FUNCTION C_ALIGNED_MALLOC
+    END INTERFACE
+
+    TYPE(c_ptr), INTENT(OUT) :: PTR
+    INTEGER, INTENT(IN) :: AL, SZ
+    INTEGER, INTENT(OUT) :: INFO
+
+    INFO = INT(C_ALIGNED_MALLOC(PTR, INT(AL,c_size_t), INT(SZ,c_size_t)))
+  END SUBROUTINE BLAS_ALLOC
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE BLAS_FREE(PTR)
+    INTERFACE
+       SUBROUTINE C_ALIGNED_FREE(PTR) BIND(C,NAME='free')
+         USE, INTRINSIC :: ISO_C_BINDING
+         TYPE(c_ptr), VALUE :: PTR
+       END SUBROUTINE C_ALIGNED_FREE
+    END INTERFACE
+
+    TYPE(c_ptr), INTENT(IN) :: PTR
+
+    CALL C_ALIGNED_FREE(PTR)
+  END SUBROUTINE BLAS_FREE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   INTEGER FUNCTION BLAS_PREPARE()
     IMPLICIT NONE
 #ifdef USE_MKL
