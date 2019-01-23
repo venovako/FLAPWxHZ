@@ -1,6 +1,8 @@
 MIT License
 
-Copyright (c) 2018-2019 Vedran Novaković <novakoni@uji.es, venovako@venovako.eu>
+Copyright (c) 2018-2019 Vedran Novaković <venovako@venovako.eu>.
+<from March 2018 to September 2018: novakoni@uji.es>
+<also externally: venovako@math.hr>
 
 Portions of the code under src/phase0 subdirectories have been modified from
 the sources of a group of Edoardo A. Di Napoli, RWTH Aachen, Germany.
