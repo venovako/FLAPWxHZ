@@ -23,8 +23,8 @@ help:
 phase2.exe: phase2.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-phase2.o: phase2.F90 readcl.F90 bio.F90 $(MKFS)
-	$(FC) $(FFLAGS) -I../shared -c phase2.F90
+phase2.o: phase2.F90 readcl.F90 bio.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/jqr.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c phase2.F90
 
 clean:
 	-$(RM) *.exe

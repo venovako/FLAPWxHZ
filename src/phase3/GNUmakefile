@@ -23,8 +23,8 @@ help:
 phase3.exe: phase3.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase3.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat -lvn $(LDFLAGS)
 
-phase3.o: phase3.F90 par_work.F90 bio.F90 readcl.F90 $(MKFS)
-	$(FC) $(FFLAGS) -I../shared -c phase3.F90
+phase3.o: phase3.F90 par_work.F90 bio.F90 readcl.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/jstrat -I../../../JACSD/vn -c phase3.F90
 
 clean:
 	-$(RM) *.exe
