@@ -20,8 +20,8 @@ all: libFLAPWxHZ.a
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o timer_.o $(MKFS) #binio1.o ximaginary.o
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o timer_.o #binio1.o ximaginary.o
+libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS) #binio1.o ximaginary.o
+	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o #binio1.o ximaginary.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c binio.F90
@@ -35,7 +35,7 @@ blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod $(MKFS)
 dtypes.o dtypes.mod: dtypes.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c dtypes.F90
 
-hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zimul.F90 zjmul.F90 zcopyh.F90 zprep_blks.F90 zupdate.F90 zxfer2.F90 zupxfer.F90 zhzl1.F90 zhzl1sa.F90 zhzl2.F90 blas_utils.mod dtypes.mod ../../../JACSD/jstrat/jstrat_f.mod timer.mod $(MKFS)
+hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zimul.F90 zjmul.F90 zcopyh.F90 zprep_blks.F90 zupdate.F90 zxfer2.F90 zupxfer.F90 zhzl1.F90 zhzl1sa.F90 zhzl2.F90 blas_utils.mod dtypes.mod timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/jstrat -c hif_hz.F90
 
 jqr.o jqr.mod: jqr.F90 blas_utils.mod params.mod $(MKFS)
@@ -44,11 +44,8 @@ jqr.o jqr.mod: jqr.F90 blas_utils.mod params.mod $(MKFS)
 params.o params.mod: params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c params.F90
 
-timer.o timer.mod: timer.F90 timer_.h $(MKFS)
-	$(FC) $(FFLAGS) -c timer.F90
-
-timer_.o: timer_.c timer_.h $(MKFS)
-	$(CC) -D_GNU_SOURCE $(CFLAGS) -c timer_.c
+timer.o timer.mod: timer.F90 ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../../../JACSD/vn -c timer.F90
 
 ximaginary.o ximaginary.mod: ximaginary.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c ximaginary.F90

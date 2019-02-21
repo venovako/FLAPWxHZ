@@ -1,4 +1,5 @@
 MODULE TIMER
+  USE VN_TIMER_F
   IMPLICIT NONE
 
   DOUBLE PRECISION, PARAMETER :: DUS2S = 1D-6
@@ -10,28 +11,14 @@ CONTAINS
 
   INTEGER FUNCTION GET_THREAD_NS()
     IMPLICIT NONE
-    INTERFACE
-       FUNCTION C_NS_TIMER() BIND(C,NAME='get_thread_ns')
-         USE, INTRINSIC :: ISO_C_BINDING
-         IMPLICIT NONE
-         INTEGER(c_long_long) :: C_NS_TIMER
-       END FUNCTION C_NS_TIMER
-    END INTERFACE
-    GET_THREAD_NS = INT(C_NS_TIMER())
+    GET_THREAD_NS = INT(VN_GET_THREAD_NS())
   END FUNCTION GET_THREAD_NS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   INTEGER FUNCTION GET_SYS_US()
     IMPLICIT NONE
-    INTERFACE
-       FUNCTION C_US_TIMER() BIND(C,NAME='get_sys_us')
-         USE, INTRINSIC :: ISO_C_BINDING
-         IMPLICIT NONE
-         INTEGER(c_long_long) :: C_US_TIMER
-       END FUNCTION C_US_TIMER
-    END INTERFACE
-    GET_SYS_US = INT(C_US_TIMER())
+    GET_SYS_US = INT(VN_GET_SYS_US())
   END FUNCTION GET_SYS_US
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
