@@ -20,25 +20,59 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE BLAS_ALLOC(PTR, AL, SZ, INFO)
+    IMPLICIT NONE
+
     INTERFACE
        FUNCTION C_ALIGNED_MALLOC(PTR, AL, SZ) BIND(C,NAME='posix_memalign')
          USE, INTRINSIC :: ISO_C_BINDING
          TYPE(c_ptr), INTENT(OUT) :: PTR
-         INTEGER(c_size_t), VALUE :: AL, SZ
+         INTEGER(c_size_t), INTENT(IN), VALUE :: AL, SZ
          INTEGER(c_int) :: C_ALIGNED_MALLOC
        END FUNCTION C_ALIGNED_MALLOC
     END INTERFACE
-
+#ifndef NDEBUG
+    INTERFACE
+       FUNCTION C_MEMSET(S, C, N) BIND(C,NAME='memset')
+         USE, INTRINSIC :: ISO_C_BINDING
+         TYPE(c_ptr), INTENT(IN), VALUE :: S
+         INTEGER(c_int), INTENT(IN), VALUE :: C
+         INTEGER(c_size_t), INTENT(IN), VALUE :: N
+         INTEGER(c_intptr_t) :: C_MEMSET
+       END FUNCTION C_MEMSET
+    END INTERFACE
+#endif
     TYPE(c_ptr), INTENT(OUT) :: PTR
     INTEGER, INTENT(IN) :: AL, SZ
     INTEGER, INTENT(OUT) :: INFO
 
-    INFO = INT(C_ALIGNED_MALLOC(PTR, INT(AL,c_size_t), INT(SZ,c_size_t)))
+    INTEGER :: MAL
+
+    IF (AL .LE. 0) THEN
+       INFO = -2
+    ELSE IF (SZ .LE. 0) THEN
+       INFO = -3
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    ! align to at least the page size...
+    MAL = MAX(AL,PGSIZB)
+    INFO = INT(C_ALIGNED_MALLOC(PTR, INT(MAL,c_size_t), INT(SZ,c_size_t)))
+#ifndef NDEBUG
+    ! fill the data with -1/qNaNs
+    IF (INFO .EQ. 0) THEN
+       MAL = INT(C_MEMSET(PTR, INT(-1,c_int), INT(SZ,c_size_t)))
+       IF (MAL .EQ. 0) INFO = -1
+    END IF
+#endif
   END SUBROUTINE BLAS_ALLOC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE BLAS_FREE(PTR)
+    IMPLICIT NONE
+
     INTERFACE
        SUBROUTINE C_ALIGNED_FREE(PTR) BIND(C,NAME='free')
          USE, INTRINSIC :: ISO_C_BINDING

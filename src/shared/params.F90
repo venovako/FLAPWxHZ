@@ -29,15 +29,23 @@ MODULE PARAMS
 #endif
 
   ! Cache line size in bytes.
-  ! Valid for Intel CPUs, needs changing for e.g. POWER (128 B).
+  ! Valid for the Intel CPUs, needs changing for e.g. POWER (128 B).
 #ifdef CACHE_LINE_SIZE_B
   INTEGER, PARAMETER :: CLSIZB = CACHE_LINE_SIZE_B
 #else
   INTEGER, PARAMETER :: CLSIZB = 64
 #endif
 
+  ! Memory page size in bytes (assumed to be a multiple of the cache line size).
+  ! A default for the Intel CPUs is used, needs changing for the other architectures.
+#ifdef PAGE_SIZE_B
+  INTEGER, PARAMETER :: PGSIZB = PAGE_SIZE_B
+#else
+  INTEGER, PARAMETER :: PGSIZB = 4096
+#endif
+
   ! Max SIMD vector length in bytes.
-  ! Valid for Intel AVX-512, otherwise smaller (but >= 16 B).
+  ! Valid for the Intel AVX-512, otherwise smaller (but >= 16 B).
 #ifdef SIMD_VEC_LEN_B
   INTEGER, PARAMETER :: SIMDLB = SIMD_VEC_LEN_B
 #else
