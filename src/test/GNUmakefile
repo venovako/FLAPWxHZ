@@ -23,7 +23,7 @@ help:
 hif_test.exe: hif_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) hif_test.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat -lvn $(LDFLAGS)
 
-hif_test.o: hif_test.F90 ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+hif_test.o: hif_test.F90 ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/jstrat -I../../../JACSD/vn -c hif_test.F90
 
 jstrat_test.exe: jstrat_test.o ../../../JACSD/libjstrat.a $(MKFS)
@@ -53,38 +53,38 @@ rot_test.o: rot_test.F90 $(MKFS)
 zhegvt.exe: zhegvt.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) zhegvt.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-zhegvt.o: zhegvt.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+zhegvt.o: zhegvt.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c zhegvt.F90
 
 zggsvd3t.exe: zggsvd3t.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) zggsvd3t.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-zggsvd3t.o: zggsvd3t.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+zggsvd3t.o: zggsvd3t.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c zggsvd3t.F90
 
 zgent.exe: zgent.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) zgent.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-zgent.o: zgent.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
+zgent.o: zgent.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c zgent.F90
 
 zhzl1sat.exe: zhzl1sat.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) zhzl1sat.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat -lvn $(LDFLAGS)
 
-zhzl1sat.o: zhzl1sat.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+zhzl1sat.o: zhzl1sat.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/jstrat -I../../../JACSD/vn -c zhzl1sat.F90
 
-zksqrt2t.exe: zksqrt2t.o ../shared/libFLAPWxHZ.a $(MKFS)
-	$(FC) $(FFLAGS) zksqrt2t.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
+zksqrt2t.exe: zksqrt2t.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+	$(FC) $(FFLAGS) zksqrt2t.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-zksqrt2t.o: zksqrt2t.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod $(MKFS)
-	$(FC) $(FFLAGS) -I../shared -c zksqrt2t.F90
+zksqrt2t.o: zksqrt2t.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c zksqrt2t.F90
 
-zjht.exe: zjht.o ../shared/libFLAPWxHZ.a $(MKFS)
-	$(FC) $(FFLAGS) zjht.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
+zjht.exe: zjht.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a  $(MKFS)
+	$(FC) $(FFLAGS) zjht.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-zjht.o: zjht.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod $(MKFS)
-	$(FC) $(FFLAGS) -I../shared -c zjht.F90
+zjht.o: zjht.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c zjht.F90
 
 binvec.exe: binvec.o $(MKFS)
 	$(CC) $(CFLAGS) binvec.o -o$@ $(LDFLAGS)

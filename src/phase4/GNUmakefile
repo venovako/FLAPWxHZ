@@ -23,13 +23,13 @@ help:
 phase4.exe: phase4.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase4.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-phase4.o: phase4.F90 readcl.F90 bio.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+phase4.o: phase4.F90 readcl.F90 bio.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c phase4.F90
 
 phase4d.exe: phase4d.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase4d.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
 
-phase4d.o: phase4d.F90 readcl.F90 biod.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+phase4d.o: phase4d.F90 readcl.F90 biod.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c phase4d.F90
 
 clean:
