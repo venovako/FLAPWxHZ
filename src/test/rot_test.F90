@@ -66,10 +66,13 @@ PROGRAM ROT_TEST
   IF ((E .EQ. D_ZERO) .AND. (V .EQ. D_ZERO)) THEN
      CG = D_ONE / SQRT(D_TWO)
      SG = -CG
-     F(1,1) = CG
-     F(2,1) = (DCONJG(B_12) / BB) * -SG
-     F(1,2) = (B_12 / BB) * SG
-     F(2,2) = CG
+     U = D_ONE / SQRT(D_ONE + BB)
+     V = D_ONE / SQRT(D_ONE - BB)
+     UV = B_12 / BB
+     F(1,1) = CG * U
+     F(2,1) = DCONJG(UV) * (-SG * U)
+     F(1,2) = UV * (SG * V)
+     F(2,2) = CG * V
   ELSE
      S = SIGN(D_ONE, E)
      TG = 2 * V / E
