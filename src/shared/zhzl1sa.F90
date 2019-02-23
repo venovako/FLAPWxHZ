@@ -241,11 +241,11 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
            END DO
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
            DO I = 1, DSIMDL
-              TG(I,R) = D_ZERO
+              SG(I,R) = D_ONE
            END DO
            !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
            DO I = 1, DSIMDL
-              SG(I,R) = D_ONE
+              S2T(I,R) = D_ONE
            END DO
 
            ! compute the dot products
@@ -485,15 +485,17 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
               U(PIX,R) = CA_S_PQ(PIX,R) * RE_H_PQ(PIX,R) + SA_S_PQ(PIX,R) * IM_H_PQ(PIX,R)
               V(PIX,R) = CA_S_PQ(PIX,R) * IM_H_PQ(PIX,R) - SA_S_PQ(PIX,R) * RE_H_PQ(PIX,R)
               E(PIX,R) = RE_H_QQ(PIX,R) - RE_H_PP(PIX,R)
-              DHZ(PIX,R) = SIGN(D_ONE, E(PIX,R))
+              ! V==0 & E==0 ==> NaN(TG)
+              DTMP1(PIX,R) = D_ONE - MAX(V(PIX,R) / V(PIX,R), D_ZERO)
+              DTMP2(PIX,R) = D_ONE - MAX(E(PIX,R) / E(PIX,R), D_ZERO)
+              HZ(PIX,R) = HZ(PIX,R) + INT(SCALE(DTMP1(PIX,R) * DTMP2(PIX,R), 1))
               ! compute fns of \gamma
-              DTMP1(PIX,R) = SCALE(V(PIX,R) / E(PIX,R), 1)
-              ! V==0 & E==0 ==> avoid NaN(TG), set TG=0 (expect MAX(x,NaN) == x)
-              TG(PIX,R) = SIGN(MAX(ABS(DTMP1(PIX,R)), TG(PIX,R)), DTMP1(PIX,R))
+              TG(PIX,R) = SCALE(V(PIX,R) / E(PIX,R), 1)
               CG(PIX,R) = D_ONE / SQRT(D_ONE + TG(PIX,R) * TG(PIX,R))
-              ! beware of Inf(TG)
+              ! beware of Inf(TG), expect MIN(x,NaN) == x
               SG(PIX,R) = SIGN(MIN(TG(PIX,R) * CG(PIX,R), SG(PIX,R)), TG(PIX,R))
               ! compute fns of 2\vartheta
+              DHZ(PIX,R) = SIGN(D_ONE, E(PIX,R))
               T2T(PIX,R) = (DHZ(PIX,R) * (SCALE(U(PIX,R), 1) - (RE_H_PP(PIX,R) + RE_H_QQ(PIX,R)) * AV_S_PQ(PIX,R))) / &
                    (T(PIX,R) * SQRT(E(PIX,R) * E(PIX,R) + SCALE(V(PIX,R) * V(PIX,R), 2)))
               C2T(PIX,R) = D_ONE / SQRT(D_ONE + T2T(PIX,R) * T2T(PIX,R))
@@ -530,7 +532,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
            ! apply the transformations
 
            DO PIX = 1, PPV
-              IF (HZ(PIX,R) .EQ. 0) CYCLE
+              IF (MOD(HZ(PIX,R),2) .EQ. 0) CYCLE
               IF (DHZ(PIX,R) .GT. D_ZERO) LNROT(2) = LNROT(2) + 1
               ! ``global'' pair index
               PAIR = (VEC - 1) * PPV + PIX
@@ -538,6 +540,22 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  P = JSPAIR(1,PAIR,STEP)
                  Q = JSPAIR(2,PAIR,STEP)
                  ! ...transform...
+                 IF (HZ(PIX,R) .EQ. 3) THEN
+                    CPHI(PIX,R) = D_CS_PI_4
+                    RE_MBSPSI(PIX,R) = CA_S_PQ(PIX,R) * D_CS_PI_4
+                    IM_MBSPSI(PIX,R) = -SA_S_PQ(PIX,R) * D_CS_PI_4
+                    RE_ASPHI(PIX,R) = -RE_MBSPSI(PIX,R)
+                    IM_ASPHI(PIX,R) = IM_MBSPSI(PIX,R)
+                    CPSI(PIX,R) = D_CS_PI_4
+                    DTMP1(PIX,R) = D_ONE / SQRT(D_ONE + AV_S_PQ(PIX,R))
+                    DTMP2(PIX,R) = D_ONE / SQRT(D_ONE - AV_S_PQ(PIX,R))
+                    CPHI(PIX,R) = CPHI(PIX,R) * DTMP1(PIX,R)
+                    RE_MBSPSI(PIX,R) = RE_MBSPSI(PIX,R) * DTMP1(PIX,R)
+                    IM_MBSPSI(PIX,R) = IM_MBSPSI(PIX,R) * DTMP1(PIX,R)
+                    RE_ASPHI(PIX,R) = RE_ASPHI(PIX,R) * DTMP2(PIX,R)
+                    IM_ASPHI(PIX,R) = IM_ASPHI(PIX,R) * DTMP2(PIX,R)
+                    CPSI(PIX,R) = CPSI(PIX,R) * DTMP2(PIX,R)
+                 END IF
                  IF (.NOT. (CPHI(PIX,R) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: F_11 overflow or NaN.'
                  DTMP1(PIX,R) = CPHI(PIX,R)
                  IF (.NOT. (ABS(RE_MBSPSI(PIX,R)) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: |Re(F_21)| overflow or NaN.'

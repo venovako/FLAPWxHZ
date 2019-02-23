@@ -1,7 +1,7 @@
 PROGRAM ROT_TEST
   IMPLICIT NONE
 
-  DOUBLE PRECISION, PARAMETER :: D_ZERO = 0.0D0, D_ONE = 1.0D0
+  DOUBLE PRECISION, PARAMETER :: D_ZERO = 0.0D0, D_ONE = 1.0D0, D_TWO = 2.0D0
   DOUBLE COMPLEX, PARAMETER :: Z_ZERO = (D_ZERO,D_ZERO), Z_ONE = (D_ONE,D_ZERO)
 
   DOUBLE PRECISION :: A_11, A_22
@@ -52,6 +52,8 @@ PROGRAM ROT_TEST
 
   ! compute the rotation F
 
+  E = A_22 - A_11
+  
   BB = ABS(B_12)
   ! T = \sqrt(1 - x^2), hope for FMA
   T = SQRT(D_ONE - BB * BB)
@@ -60,29 +62,45 @@ PROGRAM ROT_TEST
   UV = (DCONJG(B_12) / BB) * A_12
   U = DBLE(UV)
   V = AIMAG(UV)
-  
-  E = A_22 - A_11
-  S = SIGN(D_ONE, E)
-  TG = 2 * V / E
-  CG = D_ONE / SQRT(D_ONE + TG * TG)
-  SG = TG * CG
 
-  T2T = (S * (2*U - (A_11 + A_22)*BB)) / (T * SQRT(E*E + 4*V*V))
-  C2T = D_ONE / SQRT(D_ONE + T2T * T2T)
-  S2T = T2T * C2T
+  IF ((E .EQ. D_ZERO) .AND. (V .EQ. D_ZERO)) THEN
+     CG = D_ONE / SQRT(D_TWO)
+     SG = -CG
+     F(1,1) = CG
+     F(2,1) = (DCONJG(B_12) / BB) * -SG
+     F(1,2) = (B_12 / BB) * SG
+     F(2,2) = CG
+  ELSE
+     S = SIGN(D_ONE, E)
+     TG = 2 * V / E
+     CG = D_ONE / SQRT(D_ONE + TG * TG)
+     IF (CG .NE. D_ZERO) THEN
+        SG = TG * CG
+     ELSE
+        SG = SIGN(D_ONE, TG)
+     END IF
 
-  CPHI = SQRT((D_ONE + BB*S2T + T*C2T * CG) / 2)
-  CPSI = SQRT((D_ONE - BB*S2T + T*C2T * CG) / 2)
+     T2T = (S * (2*U - (A_11 + A_22)*BB)) / (T * SQRT(E*E + 4*V*V))
+     C2T = D_ONE / SQRT(D_ONE + T2T * T2T)
+     IF (C2T .NE. D_ZERO) THEN
+        S2T = T2T * C2T
+     ELSE
+        S2T = SIGN(D_ONE, T2T)
+     END IF
 
-  EIASPHI = ((B_12 / BB) * CPSI) * &
-       (DCMPLX(S2T - BB, T * SG * C2T) / (D_ONE - BB * S2T + T * CG * C2T))
-  EMIBSPSI = ((DCONJG(B_12) / BB) * CPHI) * &
-       (DCMPLX(S2T + BB, -T * SG * C2T) / (D_ONE + BB * S2T + T * CG * C2T))
+     CPHI = SQRT((D_ONE + BB*S2T + T*C2T * CG) / 2)
+     CPSI = SQRT((D_ONE - BB*S2T + T*C2T * CG) / 2)
 
-  F(1,1) =  CPHI / T
-  F(2,1) = -EMIBSPSI / T
-  F(1,2) =  EIASPHI / T
-  F(2,2) =  CPSI / T
+     EIASPHI = ((B_12 / BB) * CPSI) * &
+          (DCMPLX(S2T - BB, T * SG * C2T) / (D_ONE - BB * S2T + T * CG * C2T))
+     EMIBSPSI = ((DCONJG(B_12) / BB) * CPHI) * &
+          (DCMPLX(S2T + BB, -T * SG * C2T) / (D_ONE + BB * S2T + T * CG * C2T))
+
+     F(1,1) =  CPHI / T
+     F(2,1) = -EMIBSPSI / T
+     F(1,2) =  EIASPHI / T
+     F(2,2) =  CPSI / T
+  END IF
 
   CALL WRITE_MTX_2x2(F, 'F =')
 
