@@ -451,12 +451,15 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  Q = JSPAIR(2,PAIR,STEP)
                  ! ...transform...
                  IF (HZ(PIX) .EQ. 3) THEN
-                    CPHI(PIX) = D_CS_PI_4
+                    CPHI(PIX) = D_CS_PI_4 * RE_S_PP(PIX)
                     RE_MBSPSI(PIX) = CA_S_PQ(PIX) * D_CS_PI_4
                     IM_MBSPSI(PIX) = -SA_S_PQ(PIX) * D_CS_PI_4
-                    RE_ASPHI(PIX) = -RE_MBSPSI(PIX)
-                    IM_ASPHI(PIX) = IM_MBSPSI(PIX)
-                    CPSI(PIX) = D_CS_PI_4
+                    RE_ASPHI(PIX) = -RE_MBSPSI(PIX) * RE_S_PP(PIX)
+                    IM_ASPHI(PIX) = IM_MBSPSI(PIX) * RE_S_PP(PIX)
+                    RE_MBSPSI(PIX) = RE_MBSPSI(PIX) * RE_S_QQ(PIX)
+                    IM_MBSPSI(PIX) = IM_MBSPSI(PIX) * RE_S_QQ(PIX)
+                    CPSI(PIX) = D_CS_PI_4 * RE_S_QQ(PIX)
+
                     DTMP1(PIX) = D_ONE / SQRT(D_ONE + AV_S_PQ(PIX))
                     DTMP2(PIX) = D_ONE / SQRT(D_ONE - AV_S_PQ(PIX))
                     CPHI(PIX) = CPHI(PIX) * DTMP1(PIX)

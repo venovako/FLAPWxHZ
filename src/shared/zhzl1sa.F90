@@ -541,12 +541,15 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  Q = JSPAIR(2,PAIR,STEP)
                  ! ...transform...
                  IF (HZ(PIX,R) .EQ. 3) THEN
-                    CPHI(PIX,R) = D_CS_PI_4
+                    CPHI(PIX,R) = D_CS_PI_4 * RE_S_PP(PIX,R)
                     RE_MBSPSI(PIX,R) = CA_S_PQ(PIX,R) * D_CS_PI_4
                     IM_MBSPSI(PIX,R) = -SA_S_PQ(PIX,R) * D_CS_PI_4
-                    RE_ASPHI(PIX,R) = -RE_MBSPSI(PIX,R)
-                    IM_ASPHI(PIX,R) = IM_MBSPSI(PIX,R)
-                    CPSI(PIX,R) = D_CS_PI_4
+                    RE_ASPHI(PIX,R) = -RE_MBSPSI(PIX,R) * RE_S_PP(PIX,R)
+                    IM_ASPHI(PIX,R) = IM_MBSPSI(PIX,R) * RE_S_PP(PIX,R)
+                    RE_MBSPSI(PIX,R) = RE_MBSPSI(PIX,R) * RE_S_QQ(PIX,R)
+                    IM_MBSPSI(PIX,R) = IM_MBSPSI(PIX,R) * RE_S_QQ(PIX,R)
+                    CPSI(PIX,R) = D_CS_PI_4 * RE_S_QQ(PIX,R)
+
                     DTMP1(PIX,R) = D_ONE / SQRT(D_ONE + AV_S_PQ(PIX,R))
                     DTMP2(PIX,R) = D_ONE / SQRT(D_ONE - AV_S_PQ(PIX,R))
                     CPHI(PIX,R) = CPHI(PIX,R) * DTMP1(PIX,R)
