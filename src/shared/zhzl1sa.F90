@@ -533,7 +533,6 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
 
            DO PIX = 1, PPV
               IF (MOD(HZ(PIX,R),2) .EQ. 0) CYCLE
-              IF (DHZ(PIX,R) .GT. D_ZERO) LNROT(2) = LNROT(2) + 1
               ! ``global'' pair index
               PAIR = (VEC - 1) * PPV + PIX
               IF (PAIR .LE. NPAIRS) THEN
@@ -558,6 +557,8 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                     RE_ASPHI(PIX,R) = RE_ASPHI(PIX,R) * DTMP2(PIX,R)
                     IM_ASPHI(PIX,R) = IM_ASPHI(PIX,R) * DTMP2(PIX,R)
                     CPSI(PIX,R) = CPSI(PIX,R) * DTMP2(PIX,R)
+
+                    DHZ(PIX,R) = D_TWO - SQRT(D_TWO)
                  END IF
                  IF (.NOT. (CPHI(PIX,R) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: F_11 overflow or NaN.'
                  DTMP1(PIX,R) = CPHI(PIX,R)
@@ -569,6 +570,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  ZTMP2(PIX,R) = DCMPLX(RE_ASPHI(PIX,R), IM_ASPHI(PIX,R))
                  IF (.NOT. (CPSI(PIX,R) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: F_22 overflow or NaN.'
                  DTMP2(PIX,R) = CPSI(PIX,R)
+                 IF (DHZ(PIX,R) .GT. D_ZERO) LNROT(2) = LNROT(2) + 1
                  CALL BLAS_ZVROTM(M, H(1,P), H(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
                  CALL BLAS_ZVROTM(M, S(1,P), S(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
                  CALL BLAS_ZVROTM(N, Z(1,P), Z(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))

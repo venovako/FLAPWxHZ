@@ -443,7 +443,6 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 
            DO PIX = 1, PPV
               IF (MOD(HZ(PIX),2) .EQ. 0) CYCLE
-              IF (DHZ(PIX) .GT. D_ZERO) SNROT(2) = SNROT(2) + 1
               ! ``global'' pair index
               PAIR = (VEC - 1) * PPV + PIX
               IF (PAIR .LE. NPAIRS) THEN
@@ -468,6 +467,8 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                     RE_ASPHI(PIX) = RE_ASPHI(PIX) * DTMP2(PIX)
                     IM_ASPHI(PIX) = IM_ASPHI(PIX) * DTMP2(PIX)
                     CPSI(PIX) = CPSI(PIX) * DTMP2(PIX)
+
+                    DHZ(PIX) = D_TWO - SQRT(D_TWO)
                  END IF
                  IF (.NOT. (CPHI(PIX) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: F_11 overflow or NaN.'
                  DTMP1(PIX) = CPHI(PIX)
@@ -479,6 +480,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  ZTMP2(PIX) = DCMPLX(RE_ASPHI(PIX), IM_ASPHI(PIX))
                  IF (.NOT. (CPSI(PIX) .LE. HUGE(D_ZERO))) STOP 'ZHZL1: F_22 overflow or NaN.'
                  DTMP2(PIX) = CPSI(PIX)
+                 IF (DHZ(PIX) .GT. D_ZERO) SNROT(2) = SNROT(2) + 1
 #ifdef USE_BLAS_ZROTM
                  CALL BLAS_ZROTM('R', K, BH(1,P), 1, BH(1,Q), 1, DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX), L)
                  CALL BLAS_ZROTM('R', K, BS(1,P), 1, BS(1,Q), 1, DTMP1(PIX), ZTMP1(PIX), ZTMP2(PIX), DTMP2(PIX), L)
