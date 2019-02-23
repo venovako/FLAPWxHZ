@@ -3,19 +3,17 @@ ARCH=$(shell uname)
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-FC=gfortran
-ifeq ($(ARCH),Darwin)
-CC=clang
-else # Linux
-CC=gcc
-endif # ?Darwin
 CPUFLAGS=-DUSE_GNU -DUSE_X64
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fopenmp -fstack-arrays #-DHAVE_IMAGINARY
-C11FLAGS=$(CPUFLAGS) -DFORTRAN_INTEGER_KIND=8
+C11FLAGS=$(CPUFLAGS) -DVN_INTEGER_KIND=8 -std=gnu17
 ifeq ($(ARCH),Darwin)
-C11FLAGS += -std=gnu17 -pthread
+CC=clang
+FC=gfortran
+C11FLAGS += -pthread
 else # Linux
-C11FLAGS += -std=gnu11 -fopenmp
+CC=gcc
+FC=gfortran
+C11FLAGS += -fopenmp
 endif # ?Darwin
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -march=native
@@ -23,7 +21,7 @@ DBGFLAGS=-DNDEBUG
 ifeq ($(ARCH),Darwin)
 OPTFFLAGS=$(OPTFLAGS) -Wa,-q -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
 OPTCFLAGS=$(OPTFLAGS) -integrated-as
-DBGFFLAGS=$(DBGFLAGS) -fopt-info-optimized-vec
+DBGFFLAGS=$(DBGFLAGS) -fopt-info-optimized-vec -pedantic -Wall -Wextra -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 DBGCFLAGS=$(DBGFLAGS)
 else # Linux
 OPTFLAGS += -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
@@ -57,7 +55,8 @@ LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I${MKLROOT}/include/intel64/ilp64 -I${MKLROO
 ifeq ($(ARCH),Darwin)
 LDFLAGS=-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5
 else # Linux
-LDFLAGS=-L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -L${MKLROOT}/../compiler/lib/intel64 -Wl,-rpath=${MKLROOT}/../compiler/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_gnu_thread -lmkl_core
+LIBFLAGS += -D_GNU_SOURCE -static
+LDFLAGS=-L${MKLROOT}/lib/intel64 -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_gf_ilp64.a ${MKLROOT}/lib/intel64/libmkl_gnu_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -lgomp
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
