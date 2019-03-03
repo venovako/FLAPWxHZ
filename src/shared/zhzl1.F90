@@ -375,24 +375,24 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
            DO PIX = 1, DSIMDL
               IF (PIX .GT. PPV) THEN
                  HZ(PIX) = 0
-              ELSE IF (HZ(PIX) .EQ. 0) THEN
-                 ! ``global'' pair index
-                 PAIR = (VEC - 1) * PPV + PIX
-                 IF (PAIR .LE. NPAIRS) THEN
-                    P = JSPAIR(1,PAIR,STEP)
-                    Q = JSPAIR(2,PAIR,STEP)
+              ! ELSE IF (HZ(PIX) .EQ. 0) THEN
+              !    ! ``global'' pair index
+              !    PAIR = (VEC - 1) * PPV + PIX
+              !    IF (PAIR .LE. NPAIRS) THEN
+              !       P = JSPAIR(1,PAIR,STEP)
+              !       Q = JSPAIR(2,PAIR,STEP)
 
-                    IF (RE_S_PP(PIX) .NE. D_ONE) THEN
-                       CALL ZDSCAL(K, RE_S_PP(PIX), BH(1,P), 1)
-                       CALL ZDSCAL(K, RE_S_PP(PIX), BS(1,P), 1)
-                       CALL ZDSCAL(K, RE_S_PP(PIX), BZ(1,P), 1)
-                    END IF
-                    IF (RE_S_QQ(PIX) .NE. D_ONE) THEN
-                       CALL ZDSCAL(K, RE_S_QQ(PIX), BH(1,Q), 1)
-                       CALL ZDSCAL(K, RE_S_QQ(PIX), BS(1,Q), 1)
-                       CALL ZDSCAL(K, RE_S_QQ(PIX), BZ(1,Q), 1)
-                    END IF
-                 END IF
+              !       IF (RE_S_PP(PIX) .NE. D_ONE) THEN
+              !          CALL ZDSCAL(K, RE_S_PP(PIX), BH(1,P), 1)
+              !          CALL ZDSCAL(K, RE_S_PP(PIX), BS(1,P), 1)
+              !          CALL ZDSCAL(K, RE_S_PP(PIX), BZ(1,P), 1)
+              !       END IF
+              !       IF (RE_S_QQ(PIX) .NE. D_ONE) THEN
+              !          CALL ZDSCAL(K, RE_S_QQ(PIX), BH(1,Q), 1)
+              !          CALL ZDSCAL(K, RE_S_QQ(PIX), BS(1,Q), 1)
+              !          CALL ZDSCAL(K, RE_S_QQ(PIX), BZ(1,Q), 1)
+              !       END IF
+              !    END IF
               ELSE
                  J = J + HZ(PIX)
               END IF

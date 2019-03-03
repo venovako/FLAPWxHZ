@@ -466,24 +466,24 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
            DO PIX = 1, DSIMDL
               IF (PIX .GT. PPV) THEN
                  HZ(PIX,R) = 0
-              ELSE IF (HZ(PIX,R) .EQ. 0) THEN
-                 ! ``global'' pair index
-                 PAIR = (VEC - 1) * PPV + PIX
-                 IF (PAIR .LE. NPAIRS) THEN
-                    P = JSPAIR(1,PAIR,STEP)
-                    Q = JSPAIR(2,PAIR,STEP)
+              ! ELSE IF (HZ(PIX,R) .EQ. 0) THEN
+              !    ! ``global'' pair index
+              !    PAIR = (VEC - 1) * PPV + PIX
+              !    IF (PAIR .LE. NPAIRS) THEN
+              !       P = JSPAIR(1,PAIR,STEP)
+              !       Q = JSPAIR(2,PAIR,STEP)
 
-                    IF (RE_S_PP(PIX,R) .NE. D_ONE) THEN
-                       CALL ZDSCAL(M, RE_S_PP(PIX,R), H(1,P), 1)
-                       CALL ZDSCAL(M, RE_S_PP(PIX,R), S(1,P), 1)
-                       CALL ZDSCAL(N, RE_S_PP(PIX,R), Z(1,P), 1)
-                    END IF
-                    IF (RE_S_QQ(PIX,R) .NE. D_ONE) THEN
-                       CALL ZDSCAL(M, RE_S_QQ(PIX,R), H(1,Q), 1)
-                       CALL ZDSCAL(M, RE_S_QQ(PIX,R), S(1,Q), 1)
-                       CALL ZDSCAL(N, RE_S_QQ(PIX,R), Z(1,Q), 1)
-                    END IF
-                 END IF
+              !       IF (RE_S_PP(PIX,R) .NE. D_ONE) THEN
+              !          CALL ZDSCAL(M, RE_S_PP(PIX,R), H(1,P), 1)
+              !          CALL ZDSCAL(M, RE_S_PP(PIX,R), S(1,P), 1)
+              !          CALL ZDSCAL(N, RE_S_PP(PIX,R), Z(1,P), 1)
+              !       END IF
+              !       IF (RE_S_QQ(PIX,R) .NE. D_ONE) THEN
+              !          CALL ZDSCAL(M, RE_S_QQ(PIX,R), H(1,Q), 1)
+              !          CALL ZDSCAL(M, RE_S_QQ(PIX,R), S(1,Q), 1)
+              !          CALL ZDSCAL(N, RE_S_QQ(PIX,R), Z(1,Q), 1)
+              !       END IF
+              !    END IF
               ELSE
                  J = J + HZ(PIX,R)
               END IF
