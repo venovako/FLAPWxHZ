@@ -466,24 +466,6 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
            DO PIX = 1, DSIMDL
               IF (PIX .GT. PPV) THEN
                  HZ(PIX,R) = 0
-              ! ELSE IF (HZ(PIX,R) .EQ. 0) THEN
-              !    ! ``global'' pair index
-              !    PAIR = (VEC - 1) * PPV + PIX
-              !    IF (PAIR .LE. NPAIRS) THEN
-              !       P = JSPAIR(1,PAIR,STEP)
-              !       Q = JSPAIR(2,PAIR,STEP)
-
-              !       IF (RE_S_PP(PIX,R) .NE. D_ONE) THEN
-              !          CALL ZDSCAL(M, RE_S_PP(PIX,R), H(1,P), 1)
-              !          CALL ZDSCAL(M, RE_S_PP(PIX,R), S(1,P), 1)
-              !          CALL ZDSCAL(N, RE_S_PP(PIX,R), Z(1,P), 1)
-              !       END IF
-              !       IF (RE_S_QQ(PIX,R) .NE. D_ONE) THEN
-              !          CALL ZDSCAL(M, RE_S_QQ(PIX,R), H(1,Q), 1)
-              !          CALL ZDSCAL(M, RE_S_QQ(PIX,R), S(1,Q), 1)
-              !          CALL ZDSCAL(N, RE_S_QQ(PIX,R), Z(1,Q), 1)
-              !       END IF
-              !    END IF
               ELSE
                  J = J + HZ(PIX,R)
               END IF
@@ -598,9 +580,14 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  DTMP2(PIX,R) = CPSI(PIX,R)
                  IF (DHZ(PIX,R) .GT. D_ZERO) LNROT(2) = LNROT(2) + 1
                  ! apply the transformation
-                 CALL BLAS_ZVROTM(M, H(1,P), H(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
-                 CALL BLAS_ZVROTM(M, S(1,P), S(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
-                 CALL BLAS_ZVROTM(N, Z(1,P), Z(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
+                 IF ((DTMP1(PIX,R) .NE. D_ONE) .OR. (DTMP2(PIX,R) .NE. D_ONE) .OR. &
+                      (ZTMP1(PIX,R) .NE. Z_ZERO) .OR. (ZTMP2(PIX,R) .NE. Z_ZERO)) THEN
+                    CALL BLAS_ZVROTM(M, H(1,P), H(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
+                    CALL BLAS_ZVROTM(M, S(1,P), S(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
+                    CALL BLAS_ZVROTM(N, Z(1,P), Z(1,Q), DTMP1(PIX,R), ZTMP1(PIX,R), ZTMP2(PIX,R), DTMP2(PIX,R))
+                 ELSE ! identity
+                    LNROT(1) = LNROT(1) - 1
+                 END IF
               END IF
            END DO
         END DO
