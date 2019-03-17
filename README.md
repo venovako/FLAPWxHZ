@@ -38,7 +38,7 @@ If the hyperthreading is not desired, it should be set to ``1``.
 #### Phase 0
 
 ```bash
-/path/to/phase0.exe input.bin output.bin
+/path/to/phase0.exe input.bin FN
 ```
 
 Phase 0 is a data conversion phase from a custom data format to a set of plain binary files.
@@ -64,10 +64,12 @@ OMP_NUM_THREADS=T OMP_PLACES=CORES OMP_PROC_BIND=SPREAD,CLOSE /path/to/phase3.ex
 ```
 
 ``JSTRAT1`` is the inner, and ``JSTRAT2`` the outer Jacobi strategy.
-``JSTRAT1`` can be ``2`` for ``cycwor`` or ``4`` for ``mmstep``.
-``JSTRAT2`` can be ``3`` for ``cycwor`` or ``5`` for ``mmstep``.
 
-``NSWP1`` and ``NSWP2`` are the maximal numbers of the inner and of the outer sweeps allowed, respectively.
+``JSTRAT1`` can be ``2`` for ``cycwor`` or ``4`` for ``mmstep`` (recommended).
+
+``JSTRAT2`` can be ``3`` for ``cycwor`` (recommended if a particular number of threads is supported) or ``5`` for ``mmstep``.
+
+``NSWP1`` (``1`` for block-oriented) and ``NSWP2`` (``30`` should suffice in most cases) are the maximal numbers of the inner and of the outer sweeps allowed, respectively.
 
 #### Phase 4
 
@@ -77,7 +79,31 @@ OMP_NUM_THREADS=T OMP_PLACES=CORES OMP_PROC_BIND=SPREAD,CLOSE /path/to/phase4.ex
 
 ### Data format
 
-To be explained in more detail...
+All data is stored in the Fortran array order.
+
+An example of data format of the test cases:
+
+| file name |      data type |      rows | columns |
+| --------- | -------------- | --------- | ------- |
+| ``FN.X``  | ``COMPLEX(8)`` | ``2*L*a`` | ``G``   |
+| ``FN.T``  | ``COMPLEX(8)`` | ``2*L``   | ``2*L`` |
+| ``FN.U``  |    ``REAL(8)`` | ``L*a``   | ``1``   |
+| ``FN.YY`` | ``COMPLEX(8)`` | ``2*L*a`` | ``G``   |
+| ``FN.WW`` | ``COMPLEX(8)`` | ``2*L*a`` | ``G``   |
+| ``FN.JJ`` | ``INTEGER(8)`` | ``2*L*a`` | ``1``   |
+| ``FN.Y``  | ``COMPLEX(8)`` | ``G``     | ``G``   |
+| ``FN.W``  | ``COMPLEX(8)`` | ``G``     | ``G``   |
+| ``FN.J``  | ``INTEGER(8)`` | ``G``     | ``1``   |
+| ``FN.YU`` | ``COMPLEX(8)`` | ``G``     | ``G``   |
+| ``FN.WV`` | ``COMPLEX(8)`` | ``G``     | ``G``   |
+| ``FN.Z``  | ``COMPLEX(8)`` | ``G``     | ``G``   |
+| ``FN.EY`` |    ``REAL(8)`` | ``G``     | ``1``   |
+| ``FN.EW`` |    ``REAL(8)`` | ``G``     | ``1``   |
+| ``FN.E``  |    ``REAL(8)`` | ``G``     | ``1``   |
+| ``FN.SY`` |    ``REAL(8)`` | ``G``     | ``1``   |
+| ``FN.SW`` |    ``REAL(8)`` | ``G``     | ``1``   |
+| ``FN.SS`` |    ``REAL(8)`` | ``G``     | ``1``   |
+| ``FN.ZZ`` | ``COMPLEX(8)`` | ``G``     | ``G``   |
 
 #### Phase 0
 
