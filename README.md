@@ -94,6 +94,8 @@ An example of data format of the test cases:
 | ``FN.Y``  | ``COMPLEX(8)`` | ``G``     | ``G``   |
 | ``FN.W``  | ``COMPLEX(8)`` | ``G``     | ``G``   |
 | ``FN.J``  | ``INTEGER(8)`` | ``G``     | ``1``   |
+| ``FN.P``  | ``INTEGER(8)`` | ``G``     | ``1``   |
+| ``FN.O``  | ``INTEGER(8)`` | ``G``     | ``1``   |
 | ``FN.YU`` | ``COMPLEX(8)`` | ``G``     | ``G``   |
 | ``FN.WV`` | ``COMPLEX(8)`` | ``G``     | ``G``   |
 | ``FN.Z``  | ``COMPLEX(8)`` | ``G``     | ``G``   |
@@ -119,7 +121,7 @@ Output: ``FN.YY``, ``FN.WW``, ``FN.JJ``.
 
 Input: ``FN.YY``, ``FN.WW``, ``FN.JJ``.
 
-Output: ``FN.Y``, ``FN.W``, ``FN.J``.
+Output: ``FN.Y``, ``FN.W``, ``FN.J``, ``FN.P``, ``FN.O``.
 
 #### Phase 3
 
