@@ -2,9 +2,9 @@ PROGRAM ZKSQRT2T
   USE JQR
   IMPLICIT NONE
 
-  DOUBLE PRECISION :: A, D, ReB, ImB
+  REAL(KIND=DWP) :: A, D, ReB, ImB
   INTEGER :: J, INFO
-  DOUBLE COMPLEX :: B, AA, BB, CC, DD, K2(2,2), SQ(2,2)
+  COMPLEX(KIND=DWP) :: B, AA, BB, CC, DD, K2(2,2), SQ(2,2)
 
   WRITE (*,'(A)',ADVANCE='NO') 'A  = '
   READ (*,*) A
@@ -17,11 +17,11 @@ PROGRAM ZKSQRT2T
   WRITE (*,'(A)',ADVANCE='NO') 'J  = '
   READ (*,*) J
 
-  B = DCMPLX(ReB, ImB)
-  K2(1,1) = DCMPLX(A * J, D_ZERO)
+  B = CMPLX(ReB, ImB, DWP)
+  K2(1,1) = CMPLX(A * J, D_ZERO, DWP)
   K2(1,2) = B * (-J)
-  K2(2,1) = DCONJG(B) * J
-  K2(2,2) = DCMPLX(D * (-J), D_ZERO)
+  K2(2,1) = CONJG(B) * J
+  K2(2,2) = CMPLX(D * (-J), D_ZERO, DWP)
   CALL WRITE_MTX_2x2(K2, 'K**2')
 
   CALL ZKSQRT2(A, B, D, J, AA, BB, CC, DD, INFO)
@@ -39,12 +39,12 @@ CONTAINS
 
   SUBROUTINE WRITE_MTX_2x2(A, L)
     IMPLICIT NONE
-    DOUBLE COMPLEX, INTENT(IN) :: A(2,2)
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(2,2)
     CHARACTER(LEN=*), INTENT(IN) :: L
 
     WRITE (*,'(A)') TRIM(L)
-    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(1,1)),',',AIMAG(A(1,1)),') ', '(',DBLE(A(1,2)),',',AIMAG(A(1,2)),')'
-    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(2,1)),',',AIMAG(A(2,1)),') ', '(',DBLE(A(2,2)),',',AIMAG(A(2,2)),')'
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',REAL(A(1,1)),',',AIMAG(A(1,1)),') ', '(',REAL(A(1,2)),',',AIMAG(A(1,2)),')'
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',REAL(A(2,1)),',',AIMAG(A(2,1)),') ', '(',REAL(A(2,2)),',',AIMAG(A(2,2)),')'
   END SUBROUTINE WRITE_MTX_2x2
 
 END PROGRAM ZKSQRT2T

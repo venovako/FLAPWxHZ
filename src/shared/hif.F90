@@ -10,10 +10,10 @@
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: N,K, LDA, P,Q
-    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
 
     INTEGER :: I, J
-    DOUBLE COMPLEX :: T
+    COMPLEX(KIND=DWP) :: T
 
     IF (N .LE. 0) RETURN
 #ifndef NDEBUG
@@ -26,7 +26,7 @@
 #endif
 
     IF (P .EQ. Q) THEN
-       A(P,P) = DCMPLX(DBLE(A(P,P)))
+       A(P,P) = CMPLX(REAL(A(P,P)), D_ZERO, DWP)
        RETURN
     END IF
 
@@ -38,8 +38,8 @@
     END DO
     DO J = 1, (Q-P)-1
        I = P+J
-       T = DCONJG(A(Q,I))
-       A(Q,I) = DCONJG(A(I,P))
+       T = CONJG(A(Q,I))
+       A(Q,I) = CONJG(A(I,P))
        A(I,P) = T
     END DO
     DO J = K, P-1
@@ -48,9 +48,9 @@
        A(P,J) = T
     END DO
 
-    A(Q,P) = DCONJG(A(Q,P))
-    T = DCMPLX(DBLE(A(P,P)))
-    A(P,P) = DCMPLX(DBLE(A(Q,Q)))
+    A(Q,P) = CONJG(A(Q,P))
+    T = CMPLX(REAL(A(P,P)), D_ZERO, DWP)
+    A(P,P) = CMPLX(REAL(A(Q,Q)), D_ZERO, DWP)
     A(Q,Q) = T
   END SUBROUTINE HIF_ZSWAP1
 
@@ -64,7 +64,7 @@
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: N,K, LDA, P,Q, R,S
-    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
 
     IF (N .LE. 0) RETURN
 #ifndef NDEBUG
@@ -114,7 +114,7 @@
     !     N       (input) INTEGER
     !     The order of the matrix A.  N >= 0.
     !
-    !     A       (input/output) DOUBLE COMPLEX array, dimension (LDA,N)
+    !     A       (input/output) COMPLEX(KIND=DWP) array, dimension (LDA,N)
     !     On entry, the Hermitian matrix A.  The leading N-by-N lower
     !     triangular part of A contains the lower triangular part of the
     !     matrix A.  The strict upper triangular part will be destroyed!
@@ -165,15 +165,15 @@
     CHARACTER, PARAMETER :: SIDE = 'R'
 
     !     Initialize ALPHA for use in choosing pivot block size.
-    DOUBLE PRECISION, PARAMETER ::  ALPHA = (1 + SQRT(17.0D0)) / 8
+    REAL(KIND=DWP), PARAMETER :: ALPHA = SCALE(D_ONE + SQRT(17.0_DWP), -3)
 
     INTEGER, INTENT(IN) :: N, LDA
-    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(OUT) :: JVEC(N), IPIV(N), INFO
 
     INTEGER :: I, J, IMAX, JMAX, K, KDIAG, KP, KSTEP
-    DOUBLE PRECISION :: DIAMAX, OFFMAX, R1, R2, C, TEMP, SAR1, SAR2, UD11, UD22
-    DOUBLE COMPLEX :: S, UD21, UD12
+    REAL(KIND=DWP) :: DIAMAX, OFFMAX, R1, R2, C, TEMP, SAR1, SAR2, UD11, UD22
+    COMPLEX(KIND=DWP) :: S, UD21, UD12
 
     EXTERNAL :: ZLAEV2, ZDSCAL, ZHER
 
@@ -205,9 +205,9 @@
        !     KDIAG is the index of the largest diagonal element, and
        !     DIAMAX is its absolute value
        KDIAG = K
-       DIAMAX = ABS(DBLE(A(KDIAG,KDIAG)))
+       DIAMAX = ABS(REAL(A(KDIAG,KDIAG)))
        DO J = KDIAG+1, N
-          TEMP = ABS(DBLE(A(J,J)))
+          TEMP = ABS(REAL(A(J,J)))
           IF (TEMP .GT. DIAMAX) THEN
              DIAMAX = TEMP
              KDIAG = J
@@ -263,7 +263,7 @@
           !     Perform a rank-1 update of A(k+1:n,k+1:n) as
           !
           !     A := A - L(k)*J(k,k)*L(k)^H = A - W(k)*1/D(k)*W(k)'
-          R1 = DBLE(A(K,K))
+          R1 = REAL(A(K,K))
           ! R1 <> 0 here; check for NaN
           IF (R1 .NE. R1) THEN
              INFO = K
@@ -287,12 +287,12 @@
           IF (R1 .GT. D_ZERO) THEN
              JVEC(K) = 1
              !     Store L(k) in column k
-             A(K,K) = DCMPLX(SQRT(R1))
+             A(K,K) = CMPLX(SQRT(R1), D_ZERO, DWP)
              R2 = SQRT(R2)
           ELSE IF (R1 .LT. D_ZERO) THEN
              JVEC(K) = -1
              !     Store L(k) in column k
-             A(K,K) = DCMPLX(SQRT(-R1))
+             A(K,K) = CMPLX(SQRT(-R1), D_ZERO, DWP)
              R2 = -SQRT(-R2)
           ELSE ! should never happen
              STOP 'HIF_ZHEJF2: R1 = 0'
@@ -329,19 +329,19 @@
           !
           !     Convert this to two rank-1 updates by using the eigen-
           !     decomposition of D(k)
-          TEMP = DBLE(A(K,K))
+          TEMP = REAL(A(K,K))
           ! check for NaN
           IF (TEMP .NE. TEMP) THEN
              INFO = K
              RETURN
           END IF
-          TEMP = DBLE(A(K+1,K+1))
+          TEMP = REAL(A(K+1,K+1))
           ! check for NaN
           IF (TEMP .NE. TEMP) THEN
              INFO = K
              RETURN
           END IF
-          TEMP = DBLE(A(K+1,K))
+          TEMP = REAL(A(K+1,K))
           ! check for NaN
           IF (TEMP .NE. TEMP) THEN
              INFO = K
@@ -364,7 +364,7 @@
              RETURN
           END IF
 
-          CALL ZLAEV2(A(K,K), DCONJG(A(K+1,K)), A(K+1,K+1), R1, R2, C, S)
+          CALL ZLAEV2(A(K,K), CONJG(A(K+1,K)), A(K+1,K+1), R1, R2, C, S)
           ! -~S=-(Re(S),-Im(S))=(-Re(S),Im(S))=~(-Re(S),-Im(S))=~-S
           !     Compute the k-th and (k+1)-st diagonal element of the matrix J
           IF (R1 .GT. D_ZERO) THEN
@@ -388,22 +388,22 @@
           SAR1 = SQRT(ABS(R1))
           SAR2 = SQRT(ABS(R2))
           !     Store L(k) and L(k+1) in columns k and k+1
-          A(K,K) = DCMPLX(C * SAR1)
-          A(K,K+1) = -DCONJG(S) * SAR2
+          A(K,K) = CMPLX(C * SAR1, D_ZERO, DWP)
+          A(K,K+1) = -CONJG(S) * SAR2
           A(K+1,K) = S * SAR1
-          A(K+1,K+1) = DCMPLX(C * SAR2)
+          A(K+1,K+1) = CMPLX(C * SAR2, D_ZERO, DWP)
           IF (K .LT. (N-1)) THEN
              SAR1 = JVEC(K) / SAR1
              SAR2 = JVEC(K+1) / SAR2
              UD11 = C * SAR1
              UD21 = S * SAR1
-             UD12 = -DCONJG(S) * SAR2
+             UD12 = -CONJG(S) * SAR2
              UD22 = C * SAR2
              CALL BLAS_ZROTM(SIDE, (N-K)-1, A(K+2,K), 1, A(K+2,K+1), 1, UD11, UD21, UD12, UD22, I)
              IF (I .LT. 0) STOP 'HIF_ZHEJF2: BLAS_ZROTM'
-             TEMP = -DBLE(JVEC(K))
+             TEMP = -REAL(JVEC(K), DWP)
              CALL ZHER(UPLO, (N-K)-1, TEMP, A(K+2,K), 1, A(K+2,K+2), LDA)
-             TEMP = -DBLE(JVEC(K+1))
+             TEMP = -REAL(JVEC(K+1), DWP)
              CALL ZHER(UPLO, (N-K)-1, TEMP, A(K+2,K+1), 1, A(K+2,K+2), LDA)
           END IF
        END IF
@@ -440,7 +440,7 @@
     !     N       (input) INTEGER
     !     Order of the input matrix A, N >= 0.
     !
-    !     A       (input/output) DOUBLE COMPLEX array, dimension (LDA,N)
+    !     A       (input/output) COMPLEX(KIND=DWP) array, dimension (LDA,N)
     !     On entry, the Hermitian matrix A.  The leading N-by-N lower triangular
     !     part of A contains the lower triangular part of the matrix A.
     !
@@ -467,7 +467,7 @@
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: N, LDA
-    DOUBLE COMPLEX, INTENT(INOUT) :: A(LDA,N)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(OUT) :: NRANK, NPLUS, N2PIV, IPIV(N), JVEC(N), INFO
 
     INTEGER :: I, INFOD, K, KP
@@ -549,7 +549,7 @@
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: NROW, NCOLR, LDG, NPLUS
-    DOUBLE COMPLEX, INTENT(INOUT) :: G(LDG,NCOLR)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: G(LDG,NCOLR)
     INTEGER, INTENT(INOUT) :: JVEC(NROW), IPL(NROW), INVP(NROW)
 
     INTEGER :: I, IPLUS, IMINUS, IP, JTEMP

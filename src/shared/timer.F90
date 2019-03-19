@@ -1,9 +1,10 @@
 MODULE TIMER
   USE VN_TIMER_F
+  USE PARAMS
   IMPLICIT NONE
 
-  DOUBLE PRECISION, PARAMETER :: DUS2S = 1D-6
-  DOUBLE PRECISION, PARAMETER :: DNS2S = 1D-9
+  REAL(KIND=DWP), PARAMETER :: DUS2S = 1E-6_DWP
+  REAL(KIND=DWP), PARAMETER :: DNS2S = 1E-9_DWP
 
 CONTAINS
 
@@ -23,12 +24,12 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE DOUBLE PRECISION FUNCTION TIMER2DBLE(CLK)
+  PURE REAL(KIND=DWP) FUNCTION TIMER2DBLE(CLK)
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: CLK(3)
 
-    TIMER2DBLE = (CLK(2) - CLK(1)) / DBLE(CLK(3))
+    TIMER2DBLE = (CLK(2) - CLK(1)) / REAL(CLK(3), DWP)
   END FUNCTION TIMER2DBLE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -6,15 +6,15 @@ PROGRAM HIF_TEST
   INTEGER, PARAMETER :: IDIST = 1
 
   INTEGER :: N, K, P, LDA, CLK(3), ISEED(4), NRANK, NPLUS, N2PIV, INFO
-  DOUBLE PRECISION, ALLOCATABLE :: D(:)
-  DOUBLE COMPLEX, ALLOCATABLE :: A(:,:), WORK(:), B(:,:), C(:,:)
+  REAL(KIND=DWP), ALLOCATABLE :: D(:)
+  COMPLEX(KIND=DWP), ALLOCATABLE :: A(:,:), WORK(:), B(:,:), C(:,:)
   INTEGER, ALLOCATABLE :: IPIV(:), JVEC(:), IPL(:), INVP(:)
 
   INTEGER :: I,J, II,JJ
-  DOUBLE PRECISION :: MXDIF, DTEMP
+  REAL(KIND=DWP) :: MXDIF, DTEMP
   CHARACTER(LEN=20) :: ARGV
 
-  DOUBLE PRECISION, EXTERNAL :: DLARND
+  REAL(KIND=DWP), EXTERNAL :: DLARND
   EXTERNAL :: DLASRT
   EXTERNAL :: ZLAGHE, ZGEMM
 
@@ -94,7 +94,7 @@ PROGRAM HIF_TEST
   DO J = 1, N
      DO I = 1, N
 #ifndef NDEBUG
-        WRITE (*,'(A,ES23.16,A,ES23.16,A)',ADVANCE='NO') '(',DBLE(A(I,J)),',',AIMAG(A(I,J)),')'
+        WRITE (*,'(A,ES23.16,A,ES23.16,A)',ADVANCE='NO') '(',REAL(A(I,J)),',',AIMAG(A(I,J)),')'
 #endif
         C(I,J) = -A(I,J)
      END DO
@@ -127,11 +127,11 @@ PROGRAM HIF_TEST
   DO I = 1, N
      IF (JVEC(I) .GT. 0) THEN
         DO J = 1, N
-           B(I,J) = DCONJG(A(J,I))
+           B(I,J) = CONJG(A(J,I))
         END DO
      ELSE IF (JVEC(I) .LT. 0) THEN
         DO J = 1, N
-           B(I,J) = -DCONJG(A(J,I))
+           B(I,J) = -CONJG(A(J,I))
         END DO
      ELSE
         DO J = 1, N
@@ -145,7 +145,7 @@ PROGRAM HIF_TEST
 #ifndef NDEBUG
   DO I = 1, N
      DO J = 1, N
-        WRITE (*,'(A,ES23.16,A,ES23.16,A)',ADVANCE='NO') '(',DBLE(C(I,J)),',',AIMAG(C(I,J)),')'
+        WRITE (*,'(A,ES23.16,A,ES23.16,A)',ADVANCE='NO') '(',REAL(C(I,J)),',',AIMAG(C(I,J)),')'
      END DO
      WRITE (*,*)
   END DO

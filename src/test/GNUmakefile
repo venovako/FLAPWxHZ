@@ -41,11 +41,11 @@ derr_test.exe: derr_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS
 derr_test.o: derr_test.F90 ../shared/binio.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../shared -I../../../JACSD/vn -c derr_test.F90
 
-rot_test.exe: rot_test.o $(MKFS)
-	$(FC) $(FFLAGS) rot_test.o -o$@
+rot_test.exe: rot_test.o ../shared/libFLAPWxHZ.a $(MKFS)
+	$(FC) $(FFLAGS) rot_test.o -o$@ -L../shared -lFLAPWxHZ
 
-rot_test.o: rot_test.F90 $(MKFS)
-	$(FC) $(FFLAGS) -c rot_test.F90
+rot_test.o: rot_test.F90 ../shared/params.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../shared -c rot_test.F90
 
 zhegvt.exe: zhegvt.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) zhegvt.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)

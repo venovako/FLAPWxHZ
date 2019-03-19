@@ -1,17 +1,15 @@
 PROGRAM ROT_TEST
+  USE PARAMS
   IMPLICIT NONE
 
-  DOUBLE PRECISION, PARAMETER :: D_ZERO = 0.0D0, D_ONE = 1.0D0, D_TWO = 2.0D0
-  DOUBLE COMPLEX, PARAMETER :: Z_ZERO = (D_ZERO,D_ZERO), Z_ONE = (D_ONE,D_ZERO)
+  REAL(KIND=DWP) :: A_11, A_22
+  COMPLEX(KIND=DWP) :: A_12, B_12
 
-  DOUBLE PRECISION :: A_11, A_22
-  DOUBLE COMPLEX :: A_12, B_12
+  COMPLEX(KIND=DWP) :: A(2,2), B(2,2), F(2,2), G(2,2), H(2,2), W(2,2)
 
-  DOUBLE COMPLEX :: A(2,2), B(2,2), F(2,2), G(2,2), H(2,2), W(2,2)
-
-  DOUBLE PRECISION :: BB, U, V, T, E, TG, SG, CG, S, T2T,C2T,S2T
-  DOUBLE PRECISION :: CPHI, CPSI
-  DOUBLE COMPLEX :: UV, EIASPHI, EMIBSPSI
+  REAL(KIND=DWP) :: BB, U, V, T, E, TG, SG, CG, S, T2T,C2T,S2T
+  REAL(KIND=DWP) :: CPHI, CPSI
+  COMPLEX(KIND=DWP) :: UV, EIASPHI, EMIBSPSI
 
   INTEGER :: I, J, K
 
@@ -29,9 +27,9 @@ PROGRAM ROT_TEST
   WRITE (*,'(A)',ADVANCE='NO') 'Im(A_12)= '
   READ (*,*) V
 
-  A_12 = DCMPLX(U,V)
+  A_12 = CMPLX(U, V, DWP)
   A(1,2) = A_12
-  A(2,1) = DCONJG(A_12)
+  A(2,1) = CONJG(A_12)
 
   CALL WRITE_MTX_2x2(A, 'A =')
 
@@ -44,9 +42,9 @@ PROGRAM ROT_TEST
   WRITE (*,'(A)',ADVANCE='NO') 'Im(B_12)= '
   READ (*,*) V
 
-  B_12 = DCMPLX(U,V)
+  B_12 = CMPLX(U, V, DWP)
   B(1,2) = B_12
-  B(2,1) = DCONJG(B_12)
+  B(2,1) = CONJG(B_12)
 
   CALL WRITE_MTX_2x2(B, 'B =')
 
@@ -59,8 +57,8 @@ PROGRAM ROT_TEST
   T = SQRT(D_ONE - BB * BB)
 
   ! UV = (B^*_{12} / |B_{12}|) * A_{12}
-  UV = (DCONJG(B_12) / BB) * A_12
-  U = DBLE(UV)
+  UV = (CONJG(B_12) / BB) * A_12
+  U = REAL(UV)
   V = AIMAG(UV)
 
   IF ((E .EQ. D_ZERO) .AND. (V .EQ. D_ZERO)) THEN
@@ -70,7 +68,7 @@ PROGRAM ROT_TEST
      V = D_ONE / SQRT(D_ONE - BB)
      UV = B_12 / BB
      F(1,1) = CG * U
-     F(2,1) = DCONJG(UV) * (-SG * U)
+     F(2,1) = CONJG(UV) * (-SG * U)
      F(1,2) = UV * (SG * V)
      F(2,2) = CG * V
   ELSE
@@ -95,9 +93,9 @@ PROGRAM ROT_TEST
      CPSI = SQRT((D_ONE - BB*S2T + T*C2T * CG) / 2)
 
      EIASPHI = ((B_12 / BB) * CPSI) * &
-          (DCMPLX(S2T - BB, T * SG * C2T) / (D_ONE - BB * S2T + T * CG * C2T))
-     EMIBSPSI = ((DCONJG(B_12) / BB) * CPHI) * &
-          (DCMPLX(S2T + BB, -T * SG * C2T) / (D_ONE + BB * S2T + T * CG * C2T))
+          (CMPLX(S2T - BB, T * SG * C2T, DWP) / (D_ONE - BB * S2T + T * CG * C2T))
+     EMIBSPSI = ((CONJG(B_12) / BB) * CPHI) * &
+          (CMPLX(S2T + BB, -T * SG * C2T, DWP) / (D_ONE + BB * S2T + T * CG * C2T))
 
      F(1,1) =  CPHI / T
      F(2,1) = -EMIBSPSI / T
@@ -109,8 +107,8 @@ PROGRAM ROT_TEST
 
   ! G = F^H
   G(1,1) = F(1,1)
-  G(2,1) = DCONJG(F(1,2))
-  G(1,2) = DCONJG(F(2,1))
+  G(2,1) = CONJG(F(1,2))
+  G(1,2) = CONJG(F(2,1))
   G(2,2) = F(2,2)
 
   H = Z_ZERO
@@ -155,12 +153,12 @@ CONTAINS
 
   SUBROUTINE WRITE_MTX_2x2(A, L)
     IMPLICIT NONE
-    DOUBLE COMPLEX, INTENT(IN) :: A(2,2)
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(2,2)
     CHARACTER(LEN=*), INTENT(IN) :: L
 
     WRITE (*,'(A)') TRIM(L)
-    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(1,1)),',',AIMAG(A(1,1)),') ', '(',DBLE(A(1,2)),',',AIMAG(A(1,2)),')'
-    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',DBLE(A(2,1)),',',AIMAG(A(2,1)),') ', '(',DBLE(A(2,2)),',',AIMAG(A(2,2)),')'
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',REAL(A(1,1)),',',AIMAG(A(1,1)),') ', '(',REAL(A(1,2)),',',AIMAG(A(1,2)),')'
+    WRITE (*,'(2(A,ES25.17E3,A,ES25.17E3,A))') '(',REAL(A(2,1)),',',AIMAG(A(2,1)),') ', '(',REAL(A(2,2)),',',AIMAG(A(2,2)),')'
   END SUBROUTINE WRITE_MTX_2x2
 
 END PROGRAM ROT_TEST

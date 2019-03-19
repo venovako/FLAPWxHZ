@@ -4,8 +4,8 @@ PROGRAM ZJHT
 
   INTEGER, PARAMETER :: M = 4, N = 3
   INTEGER :: JJ(M), OJ(M), P(N), ROW(N), INFO, I, J, K, J1, J2, J3, J4
-  DOUBLE PRECISION :: FCT(N), WORK(N), MM(N,N)
-  DOUBLE COMPLEX :: A(M,N), AA(M,N), AH(N,M), T(M,N), MM1(N,N), MM2(N,N)
+  REAL(KIND=DWP) :: FCT(N), WORK(N), MM(N,N)
+  COMPLEX(KIND=DWP) :: A(M,N), AA(M,N), AH(N,M), T(M,N), MM1(N,N), MM2(N,N)
 
   K = 1
 
@@ -18,20 +18,20 @@ PROGRAM ZJHT
               JJ(3) = J3
               JJ(4) = J4
 
-              A(1,1) = DCMPLX(D_ONE, D_ONE)
-              A(2,1) = DCMPLX(D_ONE, D_MONE)
-              A(3,1) = DCMPLX(D_TWO, D_ONE)
-              A(4,1) = DCMPLX(D_MTWO, D_ONE)
+              A(1,1) = CMPLX(D_ONE, D_ONE, DWP)
+              A(2,1) = CMPLX(D_ONE, D_MONE, DWP)
+              A(3,1) = CMPLX(D_TWO, D_ONE, DWP)
+              A(4,1) = CMPLX(D_MTWO, D_ONE, DWP)
 
-              A(1,2) = DCMPLX(D_MONE, D_ONE)
-              A(2,2) = DCMPLX(D_MONE, D_MONE)
-              A(3,2) = DCMPLX(D_MTWO, D_ONE)
-              A(4,2) = DCMPLX(D_TWO, D_MONE)
+              A(1,2) = CMPLX(D_MONE, D_ONE, DWP)
+              A(2,2) = CMPLX(D_MONE, D_MONE, DWP)
+              A(3,2) = CMPLX(D_MTWO, D_ONE, DWP)
+              A(4,2) = CMPLX(D_TWO, D_MONE, DWP)
 
-              A(1,3) = DCMPLX(D_ZERO, D_ONE)
-              A(2,3) = DCMPLX(D_ONE, D_ZERO)
-              A(3,3) = DCMPLX(D_ZERO, D_MTWO)
-              A(4,3) = DCMPLX(D_MTWO, D_MONE)
+              A(1,3) = CMPLX(D_ZERO, D_ONE, DWP)
+              A(2,3) = CMPLX(D_ONE, D_ZERO, DWP)
+              A(3,3) = CMPLX(D_ZERO, D_MTWO, DWP)
+              A(4,3) = CMPLX(D_MTWO, D_MONE, DWP)
               AA = A
               OJ = JJ
               ! CALL WRITE_MTX_3x3(MM1, 'A^H J A')
@@ -44,14 +44,14 @@ PROGRAM ZJHT
                  DO J = 1, N
                     DO I = 1, M
                        T(I,J) = OJ(I) * AA(I,P(J))
-                       AH(J,I) = DCONJG(AA(I,P(J)))
+                       AH(J,I) = CONJG(AA(I,P(J)))
                     END DO
                  END DO
                  MM1 = MATMUL(AH, T)
                  DO J = 1, N
                     DO I = 1, M
                        T(I,J) = JJ(I) * A(I,J)
-                       AH(J,I) = DCONJG(A(I,J))
+                       AH(J,I) = CONJG(A(I,J))
                     END DO
                  END DO
                  MM2 = MATMUL(AH,T)
@@ -68,26 +68,26 @@ PROGRAM ZJHT
      END DO
   END DO
 
-CONTAINS
+! CONTAINS
 
-  SUBROUTINE WRITE_MTX_3x3(A, L)
-    IMPLICIT NONE
-    DOUBLE COMPLEX, INTENT(IN) :: A(3,3)
-    CHARACTER(LEN=*), INTENT(IN) :: L
+!   SUBROUTINE WRITE_MTX_3x3(A, L)
+!     IMPLICIT NONE
+!     COMPLEX(KIND=DWP), INTENT(IN) :: A(3,3)
+!     CHARACTER(LEN=*), INTENT(IN) :: L
 
-    WRITE (UOUT,'(A)') TRIM(L)
-    WRITE (UOUT,'(3(A,ES25.17E3,A,ES25.17E3,A))') &
-         '(',DBLE(A(1,1)),',',AIMAG(A(1,1)),') ', &
-         '(',DBLE(A(1,2)),',',AIMAG(A(1,2)),') ', &
-         '(',DBLE(A(1,3)),',',AIMAG(A(1,3)),')'
-    WRITE (UOUT,'(3(A,ES25.17E3,A,ES25.17E3,A))') &
-         '(',DBLE(A(2,1)),',',AIMAG(A(2,1)),') ', &
-         '(',DBLE(A(2,2)),',',AIMAG(A(2,2)),') ', &
-         '(',DBLE(A(2,3)),',',AIMAG(A(2,3)),')'
-    WRITE (UOUT,'(3(A,ES25.17E3,A,ES25.17E3,A))') &
-         '(',DBLE(A(3,1)),',',AIMAG(A(3,1)),') ', &
-         '(',DBLE(A(3,2)),',',AIMAG(A(3,2)),') ', &
-         '(',DBLE(A(3,3)),',',AIMAG(A(3,3)),')'
-  END SUBROUTINE WRITE_MTX_3x3
+!     WRITE (UOUT,'(A)') TRIM(L)
+!     WRITE (UOUT,'(3(A,ES25.17E3,A,ES25.17E3,A))') &
+!          '(',REAL(A(1,1)),',',AIMAG(A(1,1)),') ', &
+!          '(',REAL(A(1,2)),',',AIMAG(A(1,2)),') ', &
+!          '(',REAL(A(1,3)),',',AIMAG(A(1,3)),')'
+!     WRITE (UOUT,'(3(A,ES25.17E3,A,ES25.17E3,A))') &
+!          '(',REAL(A(2,1)),',',AIMAG(A(2,1)),') ', &
+!          '(',REAL(A(2,2)),',',AIMAG(A(2,2)),') ', &
+!          '(',REAL(A(2,3)),',',AIMAG(A(2,3)),')'
+!     WRITE (UOUT,'(3(A,ES25.17E3,A,ES25.17E3,A))') &
+!          '(',REAL(A(3,1)),',',AIMAG(A(3,1)),') ', &
+!          '(',REAL(A(3,2)),',',AIMAG(A(3,2)),') ', &
+!          '(',REAL(A(3,3)),',',AIMAG(A(3,3)),')'
+!   END SUBROUTINE WRITE_MTX_3x3
 
 END PROGRAM ZJHT
