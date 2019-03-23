@@ -17,14 +17,11 @@ all: libFLAPWxHZ.a
 help:
 	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS) #binio1.o ximaginary.o
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o #binio1.o ximaginary.o
+libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o $(MKFS)
+	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c binio.F90
-
-binio1.o binio1.mod: binio1.F90 params.mod $(MKFS)
-	$(FC) $(FFLAGS) -c binio1.F90
 
 blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS) #ximaginary.mod
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c blas_utils.F90
