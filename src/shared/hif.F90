@@ -164,9 +164,6 @@
     CHARACTER, PARAMETER :: UPLO = 'L'
     CHARACTER, PARAMETER :: SIDE = 'R'
 
-    !     Initialize ALPHA for use in choosing pivot block size.
-    REAL(KIND=DWP), PARAMETER :: ALPHA = SCALE(D_ONE + SQRT(17.0_DWP), -3)
-
     INTEGER, INTENT(IN) :: N, LDA
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(OUT) :: JVEC(N), IPIV(N), INFO
@@ -236,7 +233,7 @@
           RETURN
        END IF
 
-       IF (DIAMAX .GE. (ALPHA*OFFMAX)) THEN
+       IF (DIAMAX .GE. (D_ALPHA*OFFMAX)) THEN
           !     Use 1-by-1 pivot block
           KSTEP = 1
           KP = KDIAG

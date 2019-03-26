@@ -293,8 +293,6 @@ CONTAINS
   SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, TPC, P, FCT, ROW, WORK, INFO)
     IMPLICIT NONE
 
-    REAL(KIND=DWP), PARAMETER :: ALPHA = SCALE(D_ONE + SQRT(17.0_DWP), -3)
-    
     INTEGER, INTENT(IN) :: M, N, LDA, LDT, TPC
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     INTEGER, INTENT(INOUT) :: JJ(M)
@@ -380,7 +378,7 @@ CONTAINS
 
        I = IDAMAX(N-K, WORK(K+1),1) + K
        LAM = WORK(I)
-       CS1 = ALPHA * LAM
+       CS1 = D_ALPHA * LAM
        IF (V .GE. CS1) GOTO 1
 
        !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J) SHARED(A,JJ,WORK,M,N,K,I)
@@ -398,7 +396,7 @@ CONTAINS
        CS1 = CS1 * LAM
        IF ((V * SIG) .GE. CS1) GOTO 1
 
-       IF (ABS(FCT(I)) .GE. (ALPHA * SIG)) THEN
+       IF (ABS(FCT(I)) .GE. (D_ALPHA * SIG)) THEN
           CALL ZSWAP(M, A(1,K), 1, A(1,I), 1)
           CS1 = FCT(K)
           FCT(K) = FCT(I)
