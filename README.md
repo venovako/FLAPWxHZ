@@ -1,5 +1,5 @@
 # FLAPWxHZ
-The Hari-Zimmermann complex generalized SVD and EVD.
+The Hari-Zimmermann complex generalized hyperbolic SVD and EVD.
 
 ## Building
 
@@ -19,7 +19,7 @@ cd src
 make [CPU=x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
 where ``CPU`` should be set for the Intel C++ and Fortran compilers to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
-If ``CPU`` is not set, GNU C and Fortran compilers will be used instead.
+If ``CPU`` is not set, GNU C (Clang on macOS) and Fortran compilers will be used instead.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.
