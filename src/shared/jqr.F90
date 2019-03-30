@@ -290,7 +290,7 @@ CONTAINS
   ! INFO < 0: error; else, # of pairs of the pivot columns
   ! FCT: FCTs from ZJH
   ! ROW(I) = INFO(ZJH) + ROW(I)
-  SUBROUTINE ZJQR(M, N, A, LDA, JJ, T, LDT, TPC, P, FCT, ROW, WORK, INFO)
+  SUBROUTINE ZJR(M, N, A, LDA, JJ, T, LDT, TPC, P, FCT, ROW, WORK, INFO)
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: M, N, LDA, LDT, TPC
@@ -305,7 +305,7 @@ CONTAINS
     COMPLEX(KIND=DWP) :: Z, SN1
 
     INTEGER, EXTERNAL :: IDAMAX
-    EXTERNAL :: ZROT, ZSWAP, ZLAEV2 !, ZLASET
+    EXTERNAL :: ZROT, ZSWAP, ZLAEV2
 
     IF (M .LT. 0) THEN
        INFO = -1
@@ -327,10 +327,18 @@ CONTAINS
     IF (M .EQ. 0) RETURN
     IF (N .EQ. 0) RETURN
 
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(P,ROW,N)
-    DO I = 1, N
-       P(I) = I
-       ROW(I) = I - 1
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I,J) SHARED(N,P,ROW,FCT,WORK,T)
+    DO J = 1, N
+       P(J) = J
+       ROW(J) = J - 1
+       FCT(J) = D_ZERO
+       WORK(J) = D_ZERO
+       IF (ROW(J) .GE. 1) THEN
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, ROW(J)
+             T(I,J) = Z_ZERO
+          END DO
+       END IF
     END DO
     !$OMP END PARALLEL DO
 
@@ -426,7 +434,7 @@ CONTAINS
 1      IF (S .EQ. 1) THEN
           CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), FCT(K), TPC, T(K,K), LDT, J)
           IF (J .LE. 0) THEN
-             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
+             WRITE (ULOG,'(A,I2)') 'ZJR: ZJH=', J
              INFO = -6
              RETURN
           END IF
@@ -446,7 +454,7 @@ CONTAINS
 
           CALL ZJH(M-(K-1), N-(K-1), A(K,K), LDA, JJ(K), LAM, TPC, T(K,K), LDT, J)
           IF (J .LE. 0) THEN
-             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
+             WRITE (ULOG,'(A,I2)') 'ZJR: ZJH=', J
              INFO = -6
              RETURN
           END IF
@@ -455,7 +463,7 @@ CONTAINS
 
           CALL ZJH(M-(I-1), N-(I-1), A(I,I), LDA, JJ(I), SIG, TPC, T(I,I), LDT, J)
           IF (J .LE. 0) THEN
-             WRITE (ULOG,'(A,I2)') 'ZJQR: ZJH=', J
+             WRITE (ULOG,'(A,I2)') 'ZJR: ZJH=', J
              INFO = -6
              RETURN
           END IF
@@ -467,9 +475,7 @@ CONTAINS
 
        K = K + S
     END DO
-
-    ! IF (N .GT. 1) CALL ZLASET('U', N-1, N-1, Z_ZERO, Z_ZERO, T(1,2), LDT)
-  END SUBROUTINE ZJQR
+  END SUBROUTINE ZJR
 
   ! B(I,J) = A(I,P(J))
   SUBROUTINE ZCPIVCP(M, N, A, LDA, B, LDB, P, INFO)
