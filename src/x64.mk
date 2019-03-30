@@ -3,8 +3,8 @@ ARCH=$(shell uname)
 RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
-FC=ifort
 CC=icc
+FC=ifort
 CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads #-DHAVE_IMAGINARY
 C11FLAGS=$(CPUFLAGS) -std=c11
@@ -36,6 +36,7 @@ LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I${MKLROOT}/include/intel64/ilp64 -I${MKLROO
 ifeq ($(ARCH),Darwin)
 LDFLAGS=-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 else # Linux
+LIBFLAGS += -D_GNU_SOURCE
 LDFLAGS=-L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
