@@ -15,6 +15,9 @@ PROGRAM PHASE4
 
   EXTERNAL :: ZGETC2, ZGESC2, ZLASET
 
+#ifdef NDEBUG
+  IF (.NOT. VERIFY_MIN_MAX()) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
+#endif
   CALL READCL(FN, N, TPC, INFO)
   IF (INFO .NE. 0) THEN
      IF (INFO .LT. 0) THEN
