@@ -140,17 +140,13 @@ CONTAINS
   PURE FUNCTION S_VERIFY_MIN()
     IMPLICIT NONE
     LOGICAL :: S_VERIFY_MIN
-    S_VERIFY_MIN = (&
-         (MIN(S_QUIET_NAN(-1_c_int32_t), 0.0_c_float) .EQ. 0.0_c_float) .AND. &
-         (MIN(0.0_c_float, S_QUIET_NAN(-1_c_int32_t)) .EQ. 0.0_c_float))
+    S_VERIFY_MIN = (MIN(S_QUIET_NAN(-1_c_int32_t), 0.0_c_float) .EQ. 0.0_c_float)
   END FUNCTION S_VERIFY_MIN
 
   PURE FUNCTION D_VERIFY_MIN()
     IMPLICIT NONE
     LOGICAL :: D_VERIFY_MIN
-    D_VERIFY_MIN = (&
-         (MIN(D_QUIET_NAN(-1_c_int64_t), 0.0_c_double) .EQ. 0.0_c_double) .AND. &
-         (MIN(0.0_c_double, D_QUIET_NAN(-1_c_int64_t)) .EQ. 0.0_c_double))
+    D_VERIFY_MIN = (MIN(D_QUIET_NAN(-1_c_int64_t), 0.0_c_double) .EQ. 0.0_c_double)
   END FUNCTION D_VERIFY_MIN
 
   PURE FUNCTION VERIFY_MIN()
@@ -162,17 +158,13 @@ CONTAINS
   PURE FUNCTION S_VERIFY_MAX()
     IMPLICIT NONE
     LOGICAL :: S_VERIFY_MAX
-    S_VERIFY_MAX = (&
-         (MAX(S_QUIET_NAN(0_c_int32_t), -1.0_c_float) .EQ. -1.0_c_float) .AND. &
-         (MAX(-1.0_c_float, S_QUIET_NAN(0_c_int32_t)) .EQ. -1.0_c_float))
+    S_VERIFY_MAX = (MAX(S_QUIET_NAN(0_c_int32_t), -1.0_c_float) .EQ. -1.0_c_float)
   END FUNCTION S_VERIFY_MAX
 
   PURE FUNCTION D_VERIFY_MAX()
     IMPLICIT NONE
     LOGICAL :: D_VERIFY_MAX
-    D_VERIFY_MAX = (&
-         (MAX(D_QUIET_NAN(0_c_int64_t), -1.0_c_double) .EQ. -1.0_c_double) .AND. &
-         (MAX(-1.0_c_double, D_QUIET_NAN(0_c_int64_t)) .EQ. -1.0_c_double))
+    D_VERIFY_MAX = (MAX(D_QUIET_NAN(0_c_int64_t), -1.0_c_double) .EQ. -1.0_c_double)
   END FUNCTION D_VERIFY_MAX
 
   PURE FUNCTION VERIFY_MAX()
