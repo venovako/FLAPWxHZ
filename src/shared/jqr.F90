@@ -384,7 +384,7 @@ CONTAINS
        END DO
        !$OMP END PARALLEL DO
 
-       I = IDAMAX(N-K, WORK(K+1),1) + K
+       I = IDAMAX(N-K, WORK(K+1), 1) + K
        LAM = WORK(I)
        CS1 = D_ALPHA * LAM
        IF (V .GE. CS1) GOTO 1
