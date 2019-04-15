@@ -1,11 +1,16 @@
-ifeq ($(CPU),x64) # Xeon / Intel Fortran
+ifeq ($(CPU),x64) # Xeon / Intel Fortran and C
 include ../x64.mk
 MKFS=GNUmakefile ../x64.mk
-else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran
+else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran and C
 include ../x200.mk
 MKFS=GNUmakefile ../x200.mk
-else # !CPU
-CPU=x86_64 # GNU Fortran
+else ifeq ($(CPU),llvm) # Flang + Clang
+include ../llvm.mk
+MKFS=GNUmakefile ../llvm.mk
+else # GNU Fortran and (GNU C or Clang)
+ifndef CPU
+CPU=gnu
+endif # !CPU
 include ../gnu.mk
 MKFS=GNUmakefile ../gnu.mk
 endif # ?CPU
@@ -15,7 +20,7 @@ endif # ?CPU
 all: libFLAPWxHZ.a
 
 help:
-	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x100|x200|llvm|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o

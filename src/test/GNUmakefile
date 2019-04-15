@@ -1,11 +1,16 @@
-ifeq ($(CPU),x64) # Xeon / Intel Fortran
+ifeq ($(CPU),x64) # Xeon / Intel Fortran and C
 include ../x64.mk
 MKFS=GNUmakefile ../x64.mk
-else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran
+else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran and C
 include ../x200.mk
 MKFS=GNUmakefile ../x200.mk
-else # !CPU
-CPU=x86_64 # GNU Fortran
+else ifeq ($(CPU),llvm) # Flang + Clang
+include ../llvm.mk
+MKFS=GNUmakefile ../llvm.mk
+else # GNU Fortran + (GNU C or Clang)
+ifndef CPU
+CPU=gnu
+endif # !CPU
 include ../gnu.mk
 MKFS=GNUmakefile ../gnu.mk
 endif # ?CPU
@@ -15,7 +20,7 @@ endif # ?CPU
 all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe binvec.exe
 
 help:
-	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x100|x200|llvm|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 hif_test.exe: hif_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) hif_test.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat -lvn $(LDFLAGS)
