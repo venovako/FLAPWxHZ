@@ -1,26 +1,15 @@
-ifeq ($(CPU),x64) # Xeon / Intel Fortran
-include ../x64.mk
-MKFS=GNUmakefile ../x64.mk
-else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran
-include ../x200.mk
-MKFS=GNUmakefile ../x200.mk
-else ifeq ($(CPU),llvm) # Flang
-include ../llvm.mk
-MKFS=GNUmakefile ../llvm.mk
-else # GNU Fortran
 ifndef CPU
 CPU=gnu
 endif # !CPU
-include ../gnu.mk
-MKFS=GNUmakefile ../gnu.mk
-endif # ?CPU
+include ../$(CPU).mk
+MKFS=GNUmakefile ../$(CPU).mk
 
 .PHONY: all help clean
 
 all: phase2.exe
 
 help:
-	@echo "gmake [CPU=x64|x100|x200|llvm|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase2.exe: phase2.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -lvn $(LDFLAGS)
