@@ -141,7 +141,11 @@ CONTAINS
     D_QUIET_NAN = TRANSFER(IOR(PAYLOAD, D_QNAN_MASK), 0.0_c_double)
   END FUNCTION D_QUIET_NAN
 
+#ifdef NDEBUG
   PURE FUNCTION S_VERIFY_MIN()
+#else
+  FUNCTION S_VERIFY_MIN()
+#endif
     IMPLICIT NONE
     LOGICAL :: S_VERIFY_MIN
 #ifndef NDEBUG
@@ -155,7 +159,11 @@ CONTAINS
 #endif
   END FUNCTION S_VERIFY_MIN
 
+#ifdef NDEBUG
   PURE FUNCTION D_VERIFY_MIN()
+#else
+  FUNCTION D_VERIFY_MIN()
+#endif
     IMPLICIT NONE
     LOGICAL :: D_VERIFY_MIN
 #ifndef NDEBUG
@@ -169,45 +177,61 @@ CONTAINS
 #endif
   END FUNCTION D_VERIFY_MIN
 
-  ! PURE FUNCTION S_VERIFY_MIN()
-  !   IMPLICIT NONE
-  !   LOGICAL :: S_VERIFY_MIN
-! #ifndef NDEBUG
-  !   LOGICAL(c_int) :: HM_INV
-  !   CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
+! #ifdef NDEBUG
+!   PURE FUNCTION S_VERIFY_MIN()
+! #else
+!   FUNCTION S_VERIFY_MIN()
 ! #endif
-  !   S_VERIFY_MIN = (&
-  !        (MIN(S_QUIET_NAN(-1_c_int32_t), 0.0_c_float) .EQ. 0.0_c_float) .AND. &
-  !        (MIN(0.0_c_float, S_QUIET_NAN(-1_c_int32_t)) .EQ. 0.0_c_float))
+!     IMPLICIT NONE
+!     LOGICAL :: S_VERIFY_MIN
 ! #ifndef NDEBUG
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     LOGICAL(c_int) :: HM_INV
+!     CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
 ! #endif
-  ! END FUNCTION S_VERIFY_MIN
+!     S_VERIFY_MIN = (&
+!          (MIN(S_QUIET_NAN(-1_c_int32_t), 0.0_c_float) .EQ. 0.0_c_float) .AND. &
+!          (MIN(0.0_c_float, S_QUIET_NAN(-1_c_int32_t)) .EQ. 0.0_c_float))
+! #ifndef NDEBUG
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+! #endif
+!   END FUNCTION S_VERIFY_MIN
 
-  ! PURE FUNCTION D_VERIFY_MIN()
-  !   IMPLICIT NONE
-  !   LOGICAL :: D_VERIFY_MIN
-! #ifndef NDEBUG
-  !   LOGICAL(c_int) :: HM_INV
-  !   CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
+! #ifdef NDEBUG
+!   PURE FUNCTION D_VERIFY_MIN()
+! #else
+!   FUNCTION D_VERIFY_MIN()
 ! #endif
-  !   D_VERIFY_MIN = (&
-  !        (MIN(D_QUIET_NAN(-1_c_int64_t), 0.0_c_double) .EQ. 0.0_c_double) .AND. &
-  !        (MIN(0.0_c_double, D_QUIET_NAN(-1_c_int64_t)) .EQ. 0.0_c_double))
+!     IMPLICIT NONE
+!     LOGICAL :: D_VERIFY_MIN
 ! #ifndef NDEBUG
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     LOGICAL(c_int) :: HM_INV
+!     CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
 ! #endif
-  ! END FUNCTION D_VERIFY_MIN
+!     D_VERIFY_MIN = (&
+!          (MIN(D_QUIET_NAN(-1_c_int64_t), 0.0_c_double) .EQ. 0.0_c_double) .AND. &
+!          (MIN(0.0_c_double, D_QUIET_NAN(-1_c_int64_t)) .EQ. 0.0_c_double))
+! #ifndef NDEBUG
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+! #endif
+!   END FUNCTION D_VERIFY_MIN
 
+#ifdef NDEBUG
   PURE FUNCTION VERIFY_MIN()
+#else
+  FUNCTION VERIFY_MIN()
+#endif
     IMPLICIT NONE
     LOGICAL :: VERIFY_MIN
     VERIFY_MIN = (S_VERIFY_MIN() .AND. D_VERIFY_MIN())
   END FUNCTION VERIFY_MIN
 
+#ifdef NDEBUG
   PURE FUNCTION S_VERIFY_MAX()
+#else
+  FUNCTION S_VERIFY_MAX()
+#endif
     IMPLICIT NONE
     LOGICAL :: S_VERIFY_MAX
 #ifndef NDEBUG
@@ -221,7 +245,11 @@ CONTAINS
 #endif
   END FUNCTION S_VERIFY_MAX
 
+#ifdef NDEBUG
   PURE FUNCTION D_VERIFY_MAX()
+#else
+  FUNCTION D_VERIFY_MAX()
+#endif
     IMPLICIT NONE
     LOGICAL :: D_VERIFY_MAX
 #ifndef NDEBUG
@@ -235,45 +263,61 @@ CONTAINS
 #endif
   END FUNCTION D_VERIFY_MAX
 
-  ! PURE FUNCTION S_VERIFY_MAX()
-  !   IMPLICIT NONE
-  !   LOGICAL :: S_VERIFY_MAX
-! #ifndef NDEBUG
-  !   LOGICAL(c_int) :: HM_INV
-  !   CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
+! #ifdef NDEBUG
+!   PURE FUNCTION S_VERIFY_MAX()
+! #else
+!   FUNCTION S_VERIFY_MAX()
 ! #endif
-  !   S_VERIFY_MAX = (&
-  !        (MAX(S_QUIET_NAN(0_c_int32_t), -1.0_c_float) .EQ. -1.0_c_float) .AND. &
-  !        (MAX(-1.0_c_float, S_QUIET_NAN(0_c_int32_t)) .EQ. -1.0_c_float))
+!     IMPLICIT NONE
+!     LOGICAL :: S_VERIFY_MAX
 ! #ifndef NDEBUG
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     LOGICAL(c_int) :: HM_INV
+!     CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
 ! #endif
-  ! END FUNCTION S_VERIFY_MAX
+!     S_VERIFY_MAX = (&
+!          (MAX(S_QUIET_NAN(0_c_int32_t), -1.0_c_float) .EQ. -1.0_c_float) .AND. &
+!          (MAX(-1.0_c_float, S_QUIET_NAN(0_c_int32_t)) .EQ. -1.0_c_float))
+! #ifndef NDEBUG
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+! #endif
+!   END FUNCTION S_VERIFY_MAX
 
-  ! PURE FUNCTION D_VERIFY_MAX()
-  !   IMPLICIT NONE
-  !   LOGICAL :: D_VERIFY_MAX
-! #ifndef NDEBUG
-  !   LOGICAL(c_int) :: HM_INV
-  !   CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
+! #ifdef NDEBUG
+!   PURE FUNCTION D_VERIFY_MAX()
+! #else
+!   FUNCTION D_VERIFY_MAX()
 ! #endif
-  !   D_VERIFY_MAX = (&
-  !        (MAX(D_QUIET_NAN(0_c_int64_t), -1.0_c_double) .EQ. -1.0_c_double) .AND. &
-  !        (MAX(-1.0_c_double, D_QUIET_NAN(0_c_int64_t)) .EQ. -1.0_c_double))
+!     IMPLICIT NONE
+!     LOGICAL :: D_VERIFY_MAX
 ! #ifndef NDEBUG
-  !   CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     LOGICAL(c_int) :: HM_INV
+!     CALL IEEE_GET_HALTING_MODE(IEEE_INVALID, HM_INV)
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, .FALSE._c_int)
 ! #endif
-  ! END FUNCTION D_VERIFY_MAX
+!     D_VERIFY_MAX = (&
+!          (MAX(D_QUIET_NAN(0_c_int64_t), -1.0_c_double) .EQ. -1.0_c_double) .AND. &
+!          (MAX(-1.0_c_double, D_QUIET_NAN(0_c_int64_t)) .EQ. -1.0_c_double))
+! #ifndef NDEBUG
+!     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
+! #endif
+!   END FUNCTION D_VERIFY_MAX
 
+#ifdef NDEBUG
   PURE FUNCTION VERIFY_MAX()
+#else
+  FUNCTION VERIFY_MAX()
+#endif
     IMPLICIT NONE
     LOGICAL :: VERIFY_MAX
     VERIFY_MAX = (S_VERIFY_MAX() .AND. D_VERIFY_MAX())
   END FUNCTION VERIFY_MAX
 
+#ifdef NDEBUG
   PURE FUNCTION VERIFY_MIN_MAX()
+#else
+  FUNCTION VERIFY_MIN_MAX()
+#endif
     IMPLICIT NONE
     LOGICAL :: VERIFY_MIN_MAX
     VERIFY_MIN_MAX = (VERIFY_MIN() .AND. VERIFY_MAX())

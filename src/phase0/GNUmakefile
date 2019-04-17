@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(CPU).mk
 all: phase0.exe
 
 help:
-	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x200|pgi|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase0.exe: phase0.o $(MKFS)
 	$(CC) $(CFLAGS) phase0.o -o$@ $(LDFLAGS)

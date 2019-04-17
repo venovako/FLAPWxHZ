@@ -7,7 +7,11 @@ PROGRAM DERR_TEST
 #ifdef USE_INTEL
   INTEGER, PARAMETER :: WP = 16
 #else
+#ifdef USE_GNU
   INTEGER, PARAMETER :: WP = 10
+#else
+  INTEGER, PARAMETER :: WP = 8
+#endif
 #endif
 
   REAL(WP), PARAMETER :: Q_ZERO = 0.0E0_WP

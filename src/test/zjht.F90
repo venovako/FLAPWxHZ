@@ -7,6 +7,8 @@ PROGRAM ZJHT
   REAL(KIND=DWP) :: FCT(N), WORK(N), MM(N,N)
   COMPLEX(KIND=DWP) :: A(M,N), AA(M,N), AH(N,M), T(M,N), MM1(N,N), MM2(N,N)
 
+  REAL(KIND=DWP), EXTERNAL :: DZNRM2
+
   K = 1
 
   DO J1 = -1, 1, 2
@@ -60,7 +62,7 @@ PROGRAM ZJHT
                        MM(I,J) = ABS(MM1(I,J) - MM2(I,J))
                     END DO
                  END DO
-                 WRITE (UOUT,'(2(I2,A),ES25.17E3)') K, ',', INFO, ': ||A^H J A - R^H J R||_F =', NORM2(MM)
+                 WRITE (UOUT,'(2(I2,A),ES25.17E3)') K, ',', INFO, ': ||A^H J A - R^H J R||_F =', DZNRM2(N*N, MM, 1)
               END IF
               K = K + 1
            END DO
