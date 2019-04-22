@@ -300,7 +300,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  ELSE IF (RE_H_PP(PIX) .EQ. D_ZERO) THEN
                     ! should never happen
                     STOP 'ZHZL1: H_pp .EQ. 0'
-                 ELSE IF (RE_H_PP(PIX) .GT. HUGE(D_ZERO)) THEN
+                 ELSE IF (ABS(RE_H_PP(PIX)) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
                     ! A joint prescaling of BH and BS needed...
                     STOP 'ZHZL1: Infinity(H_pp)'
@@ -312,7 +312,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  ELSE IF (RE_H_QQ(PIX) .EQ. D_ZERO) THEN
                     ! should never happen
                     STOP 'ZHZL1: H_qq .EQ. 0'
-                 ELSE IF (RE_H_QQ(PIX) .GT. HUGE(D_ZERO)) THEN
+                 ELSE IF (ABS(RE_H_QQ(PIX)) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
                     ! A joint prescaling of BH and BS needed...
                     STOP 'ZHZL1: Infinity(H_qq)'
@@ -356,8 +356,12 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
               AV_H_PQ(PIX) = HYPOT(RE_H_PQ(PIX), IM_H_PQ(PIX))
               AV_S_PQ(PIX) = HYPOT(RE_S_PQ(PIX), IM_S_PQ(PIX))
               ! rotate or not
+              DTMP1(PIX) = ABS(RE_H_PP(PIX))
+              DTMP2(PIX) = ABS(RE_H_QQ(PIX))
+              DTMP3(PIX) = MAX(DTMP1(PIX), DTMP2(PIX))
+              DTMP4(PIX) = MIN(DTMP1(PIX), DTMP2(PIX))
               ! 1 if H has to be rotated, else 0
-              DTMP3(PIX) = SCALE(SIGN(D_ONE, AV_H_PQ(PIX) - SQRT(RE_H_PP(PIX)) * SQRT(RE_H_QQ(PIX)) * DTOL) + D_ONE, -1)
+              DTMP3(PIX) = SCALE(SIGN(D_ONE, AV_H_PQ(PIX) - (SQRT(DTMP3(PIX)) * DTOL) * SQRT(DTMP4(PIX))) + D_ONE, -1)
               ! 1 if S has to be rotated, else 0
               DTMP4(PIX) = SCALE(SIGN(D_ONE, AV_S_PQ(PIX) - DTOL) + D_ONE, -1)
               ! 1 if either H or S have to be rotated, else 0

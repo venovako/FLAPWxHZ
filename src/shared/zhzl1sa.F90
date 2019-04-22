@@ -390,7 +390,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  ELSE IF (RE_H_PP(PIX,R) .EQ. D_ZERO) THEN
                     ! should never happen
                     STOP 'ZHZL1: H_pp .EQ. 0'
-                 ELSE IF (RE_H_PP(PIX,R) .GT. HUGE(D_ZERO)) THEN
+                 ELSE IF (ABS(RE_H_PP(PIX,R)) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
                     ! A joint prescaling of H and S needed...
                     STOP 'ZHZL1: Infinity(H_pp)'
@@ -402,7 +402,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  ELSE IF (RE_H_QQ(PIX,R) .EQ. D_ZERO) THEN
                     ! should never happen
                     STOP 'ZHZL1: H_qq .EQ. 0'
-                 ELSE IF (RE_H_QQ(PIX,R) .GT. HUGE(D_ZERO)) THEN
+                 ELSE IF (ABS(RE_H_QQ(PIX,R)) .GT. HUGE(D_ZERO)) THEN
                     ! overflow
                     ! A joint prescaling of H and S needed...
                     STOP 'ZHZL1: Infinity(H_qq)'
@@ -446,8 +446,12 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
               AV_H_PQ(PIX,R) = HYPOT(RE_H_PQ(PIX,R), IM_H_PQ(PIX,R))
               AV_S_PQ(PIX,R) = HYPOT(RE_S_PQ(PIX,R), IM_S_PQ(PIX,R))
               ! rotate or not
+              DTMP1(PIX,R) = ABS(RE_H_PP(PIX,R))
+              DTMP2(PIX,R) = ABS(RE_H_QQ(PIX,R))
+              DTMP3(PIX,R) = MAX(DTMP1(PIX,R), DTMP2(PIX,R))
+              DTMP4(PIX,R) = MIN(DTMP1(PIX,R), DTMP2(PIX,R))
               ! 1 if H has to be rotated, else 0
-              DTMP3(PIX,R) = SCALE(SIGN(D_ONE, AV_H_PQ(PIX,R) - SQRT(RE_H_PP(PIX,R))*SQRT(RE_H_QQ(PIX,R))*DTOL) + D_ONE, -1)
+              DTMP3(PIX,R) = SCALE(SIGN(D_ONE, AV_H_PQ(PIX,R) - (SQRT(DTMP3(PIX,R)) * DTOL) * SQRT(DTMP4(PIX,R))) + D_ONE, -1)
               ! 1 if S has to be rotated, else 0
               DTMP4(PIX,R) = SCALE(SIGN(D_ONE, AV_S_PQ(PIX,R) - DTOL) + D_ONE, -1)
               ! 1 if either H or S have to be rotated, else 0
