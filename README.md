@@ -82,6 +82,8 @@ OMP_NUM_THREADS=T OMP_PLACES=CORES OMP_PROC_BIND=SPREAD,CLOSE /path/to/phase4.ex
 
 All data is stored in the Fortran array order.
 
+The testing dataset is available for [download](http://euridika.math.hr:1846/Jacobi/FLAPW-data/) (please, conserve the bandwidth by downloading only what is of interest to you).
+
 An example of data format of the test cases:
 
 | file name |      data type |      rows | columns |
