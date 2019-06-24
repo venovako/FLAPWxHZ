@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(CPU).mk
 all: PHASE0 PHASE1 PHASE2 PHASE3 PHASE4 SHARED TEST
 
 help:
-	@echo "gmake [CPU=x64|x200|pgi|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 PHASE0: SHARED $(MKFS)
 ifdef NDEBUG
