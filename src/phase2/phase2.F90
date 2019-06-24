@@ -17,7 +17,7 @@ PROGRAM PHASE2
 
   EXTERNAL :: ZLASET
 
-  IF (.NOT. VERIFY_MIN_MAX()) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
+  IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
   CALL READCL(FN, M, N, TPC, INFO)
   IF (INFO .NE. 0) THEN
      IF (INFO .LT. 0) THEN

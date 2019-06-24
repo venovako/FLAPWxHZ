@@ -11,8 +11,8 @@ all: libFLAPWxHZ.a
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o $(MKFS)
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o
+libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS) #ximaginary.o
+	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o #ximaginary.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c binio.F90
@@ -21,7 +21,7 @@ blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod ../../.
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c blas_utils.F90
 
 dtypes.o dtypes.mod: dtypes.F90 params.mod $(MKFS)
-	$(FC) $(FFLAGS) -c dtypes.F90
+	$(FC) $(FFLAGS) -I../../../JACSD/vn -c dtypes.F90
 
 hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zimul.F90 zjmul.F90 zcopyh.F90 zprep_blks.F90 zupdate.F90 zxfer2.F90 zupxfer.F90 zhzl1.F90 zhzl1sa.F90 zhzl2.F90 blas_utils.mod dtypes.mod timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/jstrat -I../../../JACSD/vn -c hif_hz.F90
@@ -29,14 +29,14 @@ hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zi
 jqr.o jqr.mod: jqr.F90 blas_utils.mod params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jqr.F90
 
-params.o params.mod: params.F90 $(MKFS)
-	$(FC) $(FFLAGS) -c params.F90
+params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../../../JACSD/vn -c params.F90
 
 timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c timer.F90
 
 ximaginary.o ximaginary.mod: ximaginary.F90 params.mod $(MKFS)
-	$(FC) $(FFLAGS) -c ximaginary.F90
+	$(FC) $(FFLAGS) -I../../../JACSD/vn -c ximaginary.F90
 
 clean:
 	-$(RM) *.exe

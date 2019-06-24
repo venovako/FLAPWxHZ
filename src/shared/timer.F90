@@ -3,9 +3,6 @@ MODULE TIMER
   USE PARAMS
   IMPLICIT NONE
 
-  REAL(KIND=DWP), PARAMETER :: DUS2S = 1E-6_DWP
-  REAL(KIND=DWP), PARAMETER :: DNS2S = 1E-9_DWP
-
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -24,21 +21,25 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE INTEGER FUNCTION TIMER2INT(CLK)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: CLK(3)
+    TIMER2INT = CLK(2) - CLK(1)
+  END FUNCTION TIMER2INT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE REAL(KIND=DWP) FUNCTION TIMER2DBLE(CLK)
     IMPLICIT NONE
-
     INTEGER, INTENT(IN) :: CLK(3)
-
-    TIMER2DBLE = (CLK(2) - CLK(1)) / REAL(CLK(3), DWP)
+    TIMER2DBLE = TIMER2INT(CLK) / REAL(CLK(3), DWP)
   END FUNCTION TIMER2DBLE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE TIMER_START(CLK)
     IMPLICIT NONE
-
     INTEGER, INTENT(OUT) :: CLK(3)
-
     CALL SYSTEM_CLOCK(CLK(1), CLK(3))
   END SUBROUTINE TIMER_START
 
@@ -46,9 +47,7 @@ CONTAINS
 
   SUBROUTINE TIMER_STOP(CLK)
     IMPLICIT NONE
-
     INTEGER, INTENT(OUT) :: CLK(3)
-
     CALL SYSTEM_CLOCK(CLK(2))
   END SUBROUTINE TIMER_STOP
 
@@ -56,12 +55,11 @@ CONTAINS
 
   SUBROUTINE TIMER_PRINT(CLK)
     IMPLICIT NONE
-
     INTEGER, INTENT(IN) :: CLK(3)
 
     INTEGER :: C, Q, R
 
-    C = CLK(2) - CLK(1)
+    C = TIMER2INT(CLK)
     Q = C / CLK(3)
     R = MOD(C, CLK(3))
 
