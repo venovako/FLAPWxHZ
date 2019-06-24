@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(CPU).mk
 all: libFLAPWxHZ.a
 
 help:
-	@echo "gmake [CPU=x64|x200|pgi|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o ximaginary.o
