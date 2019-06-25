@@ -29,7 +29,7 @@ hif_hz.o hif_hz.mod: hif_hz.F90 hif.F90 hz.F90 janal.F90 zsetzi.F90 zjscl.F90 zi
 jqr.o jqr.mod: jqr.F90 blas_utils.mod params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jqr.F90
 
-params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod $(MKFS)
+params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c params.F90
 
 timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
