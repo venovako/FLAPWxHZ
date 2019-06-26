@@ -6,34 +6,34 @@ PROGRAM JSTRAT_TEST
   INTEGER :: ID, N, I, J, INFO
   INTEGER :: ARR(2,2,128), COMM(2,128), PAIR(2,128)
 
-  PRINT *, 'JS='
+  WRITE (*,*) 'JS='
   READ (*,*) ID
-  PRINT *, 'N='
+  WRITE (*,*) 'N='
   READ (*,*) N
 
   CALL JSTRAT_INIT(JS, ID, N, INFO)
-  PRINT *, 'JSTRAT_INIT = ', INFO
+  WRITE (*,*) 'JSTRAT_INIT = ', INFO
 
   DO I = 1, N
      CALL JSTRAT_NEXT_WC(JS, ARR, INFO)
-     PRINT *, 'JSTRAT_NEXT_WC(', I, ')=', INFO
+     WRITE (*,*) 'JSTRAT_NEXT_WC(', I, ')=', INFO
      CALL JSTRAT_UNPACK_WC(JS, ARR, PAIR, COMM, INFO)
-     PRINT *, 'JSTRAT_UNPACK_WC(', I, ')=', INFO
+     WRITE (*,*) 'JSTRAT_UNPACK_WC(', I, ')=', INFO
      DO J = 1, N/2
         IF ((PAIR(1,J) .LT. 1) .OR. (PAIR(1,J) .GT. N)) THEN
-           PRINT *, J
+           WRITE (*,*) J
            STOP 'A'
         END IF
         IF ((PAIR(2,J) .LT. 1) .OR. (PAIR(2,J) .GT. N)) THEN
-           PRINT *, J, PAIR(2,J)
+           WRITE (*,*) J, PAIR(2,J)
            STOP 'B'
         END IF
         IF ((ABS(COMM(1,J)) .LT. 1) .OR. (ABS(COMM(1,J)) .GT. N/2)) THEN
-           PRINT *, J, COMM(1,J)
+           WRITE (*,*) J, COMM(1,J)
            STOP 'C'
         END IF
         IF ((ABS(COMM(2,J)) .LT. 1) .OR. (ABS(COMM(2,J)) .GT. N/2)) THEN
-           PRINT *, J, COMM(2,J)
+           WRITE (*,*) J, COMM(2,J)
            STOP 'D'
         END IF
      END DO

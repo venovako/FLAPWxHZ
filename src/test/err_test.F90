@@ -63,7 +63,7 @@ PROGRAM ERR_TEST
   !$OMP END PARALLEL
 
   YNF = SQRT(SUM(xA))
-  PRINT *, '|| Y ||_F =', YNF
+  WRITE (*,*) '|| Y ||_F =', YNF
 
   CALL BOPEN_RO((TRIM(FN)//c_char_'.W'), SZ, FD)
   IF (FD .LT. 0) STOP 'BOPEN_W_RO'
@@ -89,7 +89,7 @@ PROGRAM ERR_TEST
   !$OMP END PARALLEL
 
   WNF = SQRT(SUM(xA))
-  PRINT *, '|| W ||_F =', WNF
+  WRITE (*,*) '|| W ||_F =', WNF
 
   ALLOCATE(S(N))
 
@@ -162,12 +162,12 @@ PROGRAM ERR_TEST
   ! || W - (WV * SW) * ZZ ||_F / || W ||_F
 
   CALL PXGEMM(M, N, N, xU, M, xZ, N, xY, M, xA, T, ANF)
-  PRINT *, '|| Y - (YU * SY) * ZZ ||_F             =', ANF
-  PRINT *, '|| Y - (YU * SY) * ZZ ||_F / || Y ||_F =', (ANF / YNF)
+  WRITE (*,*) '|| Y - (YU * SY) * ZZ ||_F             =', ANF
+  WRITE (*,*) '|| Y - (YU * SY) * ZZ ||_F / || Y ||_F =', (ANF / YNF)
 
   CALL PXGEMM(M, N, N, xV, M, xZ, N, xW, M, xA, T, BNF)
-  PRINT *, '|| W - (WV * SW) * ZZ ||_F             =', BNF
-  PRINT *, '|| W - (WV * SW) * ZZ ||_F / || W ||_F =', (BNF / WNF)
+  WRITE (*,*) '|| W - (WV * SW) * ZZ ||_F             =', BNF
+  WRITE (*,*) '|| W - (WV * SW) * ZZ ||_F / || W ||_F =', (BNF / WNF)
 
   DEALLOCATE(xZ)
   DEALLOCATE(xV)
