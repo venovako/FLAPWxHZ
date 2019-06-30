@@ -40,3 +40,7 @@
 data
 out
 var
+
+# Output
+*.pt
+*.bt
