@@ -55,7 +55,7 @@ FPUFFLAGS=$(FPUFLAGS) -ffpe-trap=invalid,zero,overflow
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-L../../../JACSD -lvn
+LDFLAGS=-L../../../JACSD -lvn$(PROFILE)
 ifeq ($(ARCH),Darwin)
 LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5
 else # Linux

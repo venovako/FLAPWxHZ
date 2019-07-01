@@ -5,7 +5,7 @@ AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 CC=icc
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions -qopenmp
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -finstrument-functions
 endif # PROFILE
@@ -35,8 +35,8 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include -qopenmp
-LDFLAGS=-L../../../JACSD -lvn
+LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LDFLAGS=-L../../../JACSD -lvn$(PROFILE)
 ifeq ($(ARCH),Darwin)
 LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 else # Linux

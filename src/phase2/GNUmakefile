@@ -11,7 +11,7 @@ all: phase2.exe
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-phase2.exe: phase2.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+phase2.exe: phase2.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 phase2.o: phase2.F90 readcl.F90 bio.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/jqr.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)

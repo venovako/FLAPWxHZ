@@ -11,25 +11,25 @@ all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe rot_test.exe zhegvt
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-hif_test.exe: hif_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
-	$(FC) $(FFLAGS) hif_test.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat $(LDFLAGS)
+hif_test.exe: hif_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat$(PROFILE).a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
+	$(FC) $(FFLAGS) hif_test.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat$(PROFILE) $(LDFLAGS)
 
 hif_test.o: hif_test.F90 ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared -I../../../JACSD/jstrat $(FFLAGS) -c hif_test.F90
 
-jstrat_test.exe: jstrat_test.o ../../../JACSD/libjstrat.a $(MKFS)
-	$(FC) $(FFLAGS) jstrat_test.o -o$@ -L../../../JACSD -ljstrat $(LDFLAGS)
+jstrat_test.exe: jstrat_test.o ../../../JACSD/libjstrat$(PROFILE).a $(MKFS)
+	$(FC) $(FFLAGS) jstrat_test.o -o$@ -L../../../JACSD -ljstrat$(PROFILE) $(LDFLAGS)
 
 jstrat_test.o: jstrat_test.F90 ../../../JACSD/jstrat/jstrat_f.mod $(MKFS)
 	$(FC) -I../../../JACSD/jstrat $(FFLAGS) -c jstrat_test.F90
 
-err_test.exe: err_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+err_test.exe: err_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) err_test.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 err_test.o: err_test.F90 ../shared/binio.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c err_test.F90
 
-derr_test.exe: derr_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+derr_test.exe: derr_test.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) derr_test.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 derr_test.o: derr_test.F90 ../shared/binio.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
@@ -41,37 +41,37 @@ rot_test.exe: rot_test.o ../shared/libFLAPWxHZ.a $(MKFS)
 rot_test.o: rot_test.F90 ../shared/params.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c rot_test.F90
 
-zhegvt.exe: zhegvt.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+zhegvt.exe: zhegvt.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) zhegvt.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 zhegvt.o: zhegvt.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c zhegvt.F90
 
-zggsvd3t.exe: zggsvd3t.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+zggsvd3t.exe: zggsvd3t.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) zggsvd3t.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 zggsvd3t.o: zggsvd3t.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c zggsvd3t.F90
 
-zgent.exe: zgent.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+zgent.exe: zgent.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) zgent.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 zgent.o: zgent.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c zgent.F90
 
-zhzl1sat.exe: zhzl1sat.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat.a ../../../JACSD/libvn.a $(MKFS)
-	$(FC) $(FFLAGS) zhzl1sat.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat $(LDFLAGS)
+zhzl1sat.exe: zhzl1sat.o ../shared/libFLAPWxHZ.a ../../../JACSD/libjstrat$(PROFILE).a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
+	$(FC) $(FFLAGS) zhzl1sat.o -o$@ -L../shared -lFLAPWxHZ -L../../../JACSD -ljstrat$(PROFILE) $(LDFLAGS)
 
 zhzl1sat.o: zhzl1sat.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/dtypes.mod ../shared/hif_hz.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/jstrat/jstrat_f.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_timer_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared -I../../../JACSD/jstrat $(FFLAGS) -c zhzl1sat.F90
 
-zksqrt2t.exe: zksqrt2t.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a $(MKFS)
+zksqrt2t.exe: zksqrt2t.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a $(MKFS)
 	$(FC) $(FFLAGS) zksqrt2t.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 zksqrt2t.o: zksqrt2t.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c zksqrt2t.F90
 
-zjht.exe: zjht.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn.a  $(MKFS)
+zjht.exe: zjht.o ../shared/libFLAPWxHZ.a ../../../JACSD/libvn$(PROFILE).a  $(MKFS)
 	$(FC) $(FFLAGS) zjht.o -o$@ -L../shared -lFLAPWxHZ $(LDFLAGS)
 
 zjht.o: zjht.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
