@@ -6,12 +6,12 @@ MKFS=GNUmakefile ../$(CPU).mk
 
 .PHONY: all help clean
 
-all: libFLAPWxHZ.a
+all: libFLAPWxHZ$(PROFILE)$(DEBUG).a
 
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libFLAPWxHZ.a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS) #ximaginary.o
+libFLAPWxHZ$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS) #ximaginary.o
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o #ximaginary.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
