@@ -1,6 +1,8 @@
 # FLAPWxHZ
 The Hari-Zimmermann complex generalized hyperbolic SVD and EVD.
 
+A supplementary material for the paper [arXiv:1907.08560](https://arxiv.org/abs/1907.08560).
+
 ## Building
 
 ### Prerequisites
