@@ -1,7 +1,7 @@
 # FLAPWxHZ
 The Hari-Zimmermann complex generalized hyperbolic SVD and EVD.
 
-A supplementary material for the paper [arXiv:1907.08560](https://arxiv.org/abs/1907.08560).
+A part of the supplementary material for the paper arXiv:[1907.08560](https://arxiv.org/abs/1907.08560) \[math.NA\].
 
 ## Building
 
@@ -22,7 +22,9 @@ make [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
 where ``CPU`` should be set for the Intel C++ and Fortran compilers to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
 If ``CPU`` is not set, GNU C (Clang on macOS) and Fortran compilers will be used instead.
+
 GNU Fortran 9 is *not* supported!
+Currently, only GPU Fortran *8* is fully supported.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.
