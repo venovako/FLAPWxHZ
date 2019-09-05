@@ -259,7 +259,7 @@
           !
           !     Perform a rank-1 update of A(k+1:n,k+1:n) as
           !
-          !     A := A - L(k)*J(k,k)*L(k)^H = A - W(k)*1/D(k)*W(k)'
+          !     A := A - L(k)*J(k,k)*L(k)^H = A - W(k)*1/D(k)*W(k)^H
           R1 = REAL(A(K,K))
           ! R1 <> 0 here; check for NaN
           IF (R1 .NE. R1) THEN
@@ -303,7 +303,7 @@
 
           !     2-by-2 pivot block D(k): let
           !
-          !     D(k) = Q(k)**T * X(k) * Q(k)
+          !     D(k) = Q(k)^H * X(k) * Q(k)
           !
           !     be the eigendecomposition of D(k), X(k) = diag(R1,R2).
           !     Columns k and k-1 now hold
@@ -429,7 +429,7 @@
     !     HIF_ZHEBPC computes the modified Bunch-Parlett factorization of a N-by-N
     !     Hermitian matrix A
     !
-    !     A = G * J * transpose( G ).
+    !     A = G * J * G^H.
     !
     !     Arguments
     !     =========
