@@ -13,7 +13,7 @@ ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fPIC -fno-inline -fno-omit-frame-pointer -finstrument-functions -rdynamic
 endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fopenmp -fstack-arrays #-DHAVE_IMAGINARY
-C11FLAGS=$(CPUFLAGS) #-std=gnu17
+C11FLAGS=$(CPUFLAGS) -std=gnu17
 ifeq ($(ARCH),Darwin)
 CC=clang
 FC=gfortran-8
