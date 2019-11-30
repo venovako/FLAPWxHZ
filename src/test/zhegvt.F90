@@ -115,13 +115,13 @@ PROGRAM ZHEGVT
 
   ALLOCATE(C(M,N)); C = Z_ZERO
   ! copy F to C
-  FD(1) = GET_THREAD_NS()
+  FD(1) = GET_SYS_US()
   CALL ZLACPY('A', M, N, D, M, C, M)
-  FD(1) = GET_THREAD_NS() - FD(1)
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (FD(1) * DNS2S), ','
+  FD(1) = GET_SYS_US() - FD(1)
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (FD(1) * DUS2S), ','
 
   ! obtain JF in D
-  FD(3) = GET_THREAD_NS()
+  FD(3) = GET_SYS_US()
   !$OMP PARALLEL DO DEFAULT(NONE) SHARED(M,N,D,J) PRIVATE(I,K) PROC_BIND(SPREAD)
   DO K = 1, N
      DO I = 1, M
@@ -129,21 +129,21 @@ PROGRAM ZHEGVT
      END DO
   END DO
   !$OMP END PARALLEL DO
-  FD(3) = GET_THREAD_NS() - FD(3)
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (FD(3) * DNS2S), ','
+  FD(3) = GET_SYS_US() - FD(3)
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (FD(3) * DUS2S), ','
 
   ! multiply C^H D -> A
-  SZ(1) = GET_THREAD_NS()
+  SZ(1) = GET_SYS_US()
   CALL ZGEMM('C','N', N,N,M, Z_ONE, C,M, D,M, Z_ZERO, A,LDA)
-  SZ(1) = GET_THREAD_NS() - SZ(1)
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(1) * DNS2S), ','
+  SZ(1) = GET_SYS_US() - SZ(1)
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(1) * DUS2S), ','
 
   IF (ALLOCATED(C)) DEALLOCATE(C)
   IF (ALLOCATED(J)) DEALLOCATE(J)
 
   ! total for preparing A
   SZ(1) = SZ(1) + FD(1) + FD(3)
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(1) * DNS2S), ','
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(1) * DUS2S), ','
 
   ! read G into D
   CALL BREAD_YW(FD(2), D, M, N, SZ(2), INFO)
@@ -151,12 +151,12 @@ PROGRAM ZHEGVT
   CALL BCLOSE(FD(2))
 
   ! multiply D^H D -> B
-  FD(2) = GET_THREAD_NS()
+  FD(2) = GET_SYS_US()
   CALL ZHERK(UPLO,'C', N,M, D_ONE, D,M, D_ZERO, B,LDB)
-  FD(2) = GET_THREAD_NS() - FD(2)
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (FD(2) * DNS2S), ','
+  FD(2) = GET_SYS_US() - FD(2)
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (FD(2) * DUS2S), ','
   ! time for preparing A and B
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') ((SZ(1) + FD(2)) * DNS2S), ','
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') ((SZ(1) + FD(2)) * DUS2S), ','
 
   IF (ALLOCATED(D)) DEALLOCATE(D)
   ALLOCATE(W(N)); W = D_ZERO
@@ -199,17 +199,17 @@ PROGRAM ZHEGVT
   END IF
 
   INFO = 0
-  SZ(2) = GET_THREAD_NS()
+  SZ(2) = GET_SYS_US()
   IF (DC) THEN
      CALL ZHEGVD(ITYPE,JOBZ,UPLO, N, A,LDA, B,LDB, W, WORK,LWORK, RWORK,LRWORK, IWORK,LIWORK, INFO)
   ELSE
      CALL ZHEGV(ITYPE,JOBZ,UPLO, N, A,LDA, B,LDB, W, WORK,LWORK, RWORK, INFO)
   END IF
-  SZ(2) = GET_THREAD_NS() - SZ(2)
-  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(2) * DNS2S), ','
+  SZ(2) = GET_SYS_US() - SZ(2)
+  WRITE (UOUT,'(F12.6,A)',ADVANCE='NO') (SZ(2) * DUS2S), ','
   ! total time
   SZ(3) = SZ(1) + FD(2) + SZ(2)
-  WRITE (UOUT,'(F12.6)') (SZ(3) * DNS2S)
+  WRITE (UOUT,'(F12.6)') (SZ(3) * DUS2S)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(I7,A)',ADVANCE='NO') INFO, ' '
      STOP 'ZHEGVt'

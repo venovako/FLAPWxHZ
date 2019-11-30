@@ -174,11 +174,11 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         END IF
         JSINTN = JSINT(2)
 
-        TNS = GET_THREAD_NS()
+        TNS = GET_SYS_US()
         CALL ZPREP_BLKS(M,NCB,K, Y(1,I),YU(1,I),LDY, W(1,I),LDW,&
              JNSTIX,JNLENS,JNBLKS,NPLUS,&
              IPIV,JVEC,IPL,INVP, BNPLUS, BH,BS,BZ,LDB, INFO2)
-        TNS = GET_THREAD_NS() - TNS
+        TNS = GET_SYS_US() - TNS
 
         !$OMP ATOMIC UPDATE
         PSTATS(1) = MAX(PSTATS(1), TNS)
@@ -194,9 +194,9 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
         END IF
 
         ! # of rotations (all,big) => INFO2
-        TNS = GET_THREAD_NS()
+        TNS = GET_SYS_US()
         CALL ZHZL1(JSINTN, BH,BNPLUS, BS,BZ, LDB, JSINT,JSPINT, NSWP(1), INFO2,INFO)
-        TNS = GET_THREAD_NS() - TNS
+        TNS = GET_SYS_US() - TNS
 
         !$OMP ATOMIC UPDATE
         PSTATS(2) = MAX(PSTATS(2), TNS)
@@ -227,10 +227,10 @@ SUBROUTINE ZHZL2(M,N,K, Y,YU,LDY, W,WV,LDW, J, Z,ZZ,LDZ, IAM,CPR, JS,NSWP,&
 #endif
         END IF
 
-        TNS = GET_THREAD_NS()
+        TNS = GET_SYS_US()
         CALL ZUPXFER(IAM,BSTEP, MXNC,NCP,NCQ,NCB, M,N,K, Y,YU,LDY, W,WV,LDW, Z,ZZ,LDZ, BZ,LDB,&
              JSCOMM,CPR,NBSTEPS, PSHBUF, LNOROT)
-        TNS = GET_THREAD_NS() - TNS
+        TNS = GET_SYS_US() - TNS
         !$OMP ATOMIC UPDATE
         PSTATS(3) = MAX(PSTATS(3), TNS)
         !$OMP END ATOMIC

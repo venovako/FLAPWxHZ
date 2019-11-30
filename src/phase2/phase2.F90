@@ -49,34 +49,34 @@ PROGRAM PHASE2
   INFO = BLAS_PREPARE()
 
   ! JQR(YY)
-  T = GET_THREAD_NS()
+  T = GET_SYS_US()
   CALL ZJR(M, N, Y, LDY, JJ, W, LDW, TPC, P, FCT, ROW, WORK, INFO)
   DEALLOCATE(WORK)
   DEALLOCATE(FCT)
-  T = GET_THREAD_NS() - T
-  WRITE (UOUT,'(F11.6,A,I20,A)',ADVANCE='NO') (T * DNS2S), ',', INFO, ','
+  T = GET_SYS_US() - T
+  WRITE (UOUT,'(F11.6,A,I20,A)',ADVANCE='NO') (T * DUS2S), ',', INFO, ','
   IF (INFO .LT. 0) STOP 'ZJR'
 
   ! PIV(WW)
-  T = GET_THREAD_NS()
+  T = GET_SYS_US()
   CALL ZCPIVCP(M, N, WW, LDW, W, LDW, P, INFO)
   DEALLOCATE(WW)
-  T = GET_THREAD_NS() - T
-  WRITE (UOUT,'(F11.6,A)',ADVANCE='NO') (T * DNS2S), ','
+  T = GET_SYS_US() - T
+  WRITE (UOUT,'(F11.6,A)',ADVANCE='NO') (T * DUS2S), ','
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(I2)') INFO
      STOP 'ZCPIVCP'
   END IF
   
   ! QR(WW)
-  T = GET_THREAD_NS()
+  T = GET_SYS_US()
 #ifdef USE_ZGEQRF
   CALL ZQRF(M, N, W, LDW, INFO)
 #else
   CALL ZTSR(M, N, W, LDW, INFO)
 #endif
-  T = GET_THREAD_NS() - T
-  WRITE (UOUT,'(F11.6)') (T * DNS2S)
+  T = GET_SYS_US() - T
+  WRITE (UOUT,'(F11.6)') (T * DUS2S)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(I2)') INFO
 #ifdef USE_ZGEQRF
