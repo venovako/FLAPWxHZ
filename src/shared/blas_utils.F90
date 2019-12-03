@@ -25,7 +25,7 @@ CONTAINS
     INTERFACE
        FUNCTION C_ALIGNED_MALLOC(PTR, AL, SZ) BIND(C,NAME='posix_memalign')
          USE, INTRINSIC :: ISO_C_BINDING
-         TYPE(c_ptr), INTENT(OUT) :: PTR
+         TYPE(c_ptr), INTENT(OUT), TARGET :: PTR
          INTEGER(c_size_t), INTENT(IN), VALUE :: AL, SZ
          INTEGER(c_int) :: C_ALIGNED_MALLOC
        END FUNCTION C_ALIGNED_MALLOC
