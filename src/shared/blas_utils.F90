@@ -468,4 +468,23 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE BLAS_ZVSCAL(M, DX, ZY)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: M
+    REAL(KIND=DWP), INTENT(IN) :: DX(M)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: ZY(M)
+
+    INTEGER :: I
+
+    !DIR$ ASSUME_ALIGNED DX:ALIGNB
+    !DIR$ ASSUME_ALIGNED ZY:ALIGNB
+
+    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    DO I = 1, M
+       ZY(I) = DX(I) * ZY(I)
+    END DO
+  END SUBROUTINE BLAS_ZVSCAL
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END MODULE BLAS_UTILS
