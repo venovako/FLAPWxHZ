@@ -11,13 +11,13 @@ all: libFLAPWxHZ$(PROFILE)$(DEBUG).a
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libFLAPWxHZ$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS) #ximaginary.o
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o #ximaginary.o
+libFLAPWxHZ$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS)
+	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -c binio.F90
 
-blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS) #ximaginary.mod
+blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_imaginary_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -c blas_utils.F90
 
 dtypes.o dtypes.mod: dtypes.F90 params.mod $(MKFS)
@@ -34,9 +34,6 @@ params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/
 
 timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -c timer.F90
-
-ximaginary.o ximaginary.mod: ximaginary.F90 params.mod $(MKFS)
-	$(FC) $(FFLAGS) -c ximaginary.F90
 
 clean:
 	-$(RM) *.exe
