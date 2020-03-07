@@ -6,7 +6,7 @@ MKFS=GNUmakefile ../$(CPU).mk
 
 .PHONY: all help clean
 
-all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe binvec.exe
+all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe zjh2.exe binvec.exe
 
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
@@ -76,6 +76,12 @@ zjht.exe: zjht.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$
 
 zjht.o: zjht.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_imaginary_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c zjht.F90
+
+zjh2.exe: zjh2.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a  $(MKFS)
+	$(FC) $(FFLAGS) zjh2.o -o$@ -L../shared -lFLAPWxHZ$(PROFILE)$(DEBUG) $(LDFLAGS)
+
+zjh2.o: zjh2.F90 ../shared/jqr.mod ../shared/blas_utils.mod ../shared/params.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_imaginary_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
+	$(FC) -I../shared $(FFLAGS) -c zjh2.F90
 
 binvec.exe: binvec.o $(MKFS)
 	$(CC) $(CFLAGS) binvec.o -o$@ $(LDFLAGS)
