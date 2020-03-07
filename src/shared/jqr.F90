@@ -376,7 +376,7 @@ CONTAINS
 
        ! Bunch-Kaufman-Parlett pivoting
 
-       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,T,JJ,FCT,ROW,WORK,M,N,K)
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,Z) SHARED(A,T,JJ,FCT,WORK,M,N,K)
        DO J = K+1, N
           Z = ZJDOT(M-(K-1), A(K,K), A(K,J), JJ(K))
           WORK(J) = ABS(Z)
