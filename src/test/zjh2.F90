@@ -7,7 +7,7 @@ PROGRAM ZJHT
   REAL(KIND=DWP) :: FCT(N), WORK(N), MM(N,N)
   COMPLEX(KIND=DWP) :: A(M,N), AA(M,N), AH(N,M), T(M,N), MM1(N,N), MM2(N,N)
 
-  REAL(KIND=DWP), EXTERNAL :: DZNRM2
+  REAL(KIND=DWP), EXTERNAL :: DNRM2
 
   JJ(1) =  1
   JJ(2) =  1
@@ -36,20 +36,36 @@ PROGRAM ZJHT
   IF (INFO .LT. 0) THEN
      WRITE (UOUT,'(A,I2)') 'INFO: ', INFO
   ELSE
-     DO I = 1, N
-        WRITE (UOUT,'(A,I1,A,I2)') 'J(', I, ')=', JJ(I)
-     END DO
-     DO I = N+1, M
-        WRITE (UOUT,'(A,I1,A,I2)') 'JJ(', I, ')=', JJ(I)
-     END DO
-     DO J = 1, N
-        WRITE (UOUT,'(2(A,I1))') 'P(', J, ')=', P(J)
-     END DO
-     DO I = 1, N
-        WRITE (UOUT,'(2(A,I1))') 'O(', I, ')=', ROW(I)
-     END DO
+     WRITE (UOUT,'(4(A,I2))') 'OJ: ', OJ(1), ',', OJ(2), ',', OJ(3), ',', OJ(4)
+     WRITE (UOUT,'(4(A,I2))') 'JJ: ', JJ(1), ',', JJ(2), ',', JJ(3), ';', JJ(4)
+     WRITE (UOUT,'(3(A,I2))') ' P: ', P(1), ',', P(2), ',', P(3)
+     WRITE (UOUT,'(3(A,I2))') ' O: ', ROW(1), ',', ROW(2), ',', ROW(3)
      CALL WRITE_MTX_3x3(M, A, 'R')
+
+     DO J = 1, N
+        DO I = 1, M
+           T(I,J) = OJ(I) * AA(I,P(J))
+           AH(J,I) = CONJG(AA(I,P(J)))
+        END DO
+     END DO
+     MM1 = MATMUL(AH, T)
+
+     DO J = 1, N
+        DO I = 1, M
+           T(I,J) = JJ(I) * A(I,J)
+           AH(J,I) = CONJG(A(I,J))
+        END DO
+     END DO
+     MM2 = MATMUL(AH, T)
+
+     DO J = 1, N
+        DO I = 1, N
+           MM(I,J) = ABS(MM1(I,J) - MM2(I,J))
+        END DO
+     END DO
+     WRITE (UOUT,'(A,I2,A,ES25.17E3)') 'INFO=', INFO, '; ||A^H J A - R^H J R||_F =', DNRM2(N*N, MM, 1)
   END IF
+
 CONTAINS
 
   SUBROUTINE WRITE_MTX_3x3(LDA, A, L)
