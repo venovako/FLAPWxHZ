@@ -6,7 +6,7 @@ MKFS=GNUmakefile ../$(CPU).mk
 
 .PHONY: all help clean
 
-all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe zjh2.exe binvec.exe
+all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe dggsvd3t.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe zjh2.exe binvec.exe
 
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
@@ -34,6 +34,12 @@ derr_test.exe: derr_test.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JA
 
 derr_test.o: derr_test.F90 ../shared/binio.mod ../shared/params.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) -I../shared $(FFLAGS) -c derr_test.F90
+
+dggsvd3t.exe: dggsvd3t.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) dggsvd3t.o -o$@ -L../shared -lFLAPWxHZ$(PROFILE)$(DEBUG) $(LDFLAGS)
+
+dggsvd3t.o: dggsvd3t.F90 ../shared/binio.mod ../shared/blas_utils.mod ../shared/params.mod ../shared/timer.mod ../../../JACSD/vn/vn_binio_f.mod ../../../JACSD/vn/vn_blas_f.mod ../../../JACSD/vn/vn_imaginary_f.mod ../../../JACSD/vn/vn_timer_f.mod ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
+	$(FC) -I../shared $(FFLAGS) -c dggsvd3t.F90
 
 rot_test.exe: rot_test.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) rot_test.o -o$@ -L../shared -lFLAPWxHZ$(PROFILE)$(DEBUG) $(LDFLAGS)
