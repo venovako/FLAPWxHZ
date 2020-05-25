@@ -20,19 +20,19 @@ static long load_data
 #ifndef NDEBUG
   (void)fprintf(stdout, "L = %u\n", *L);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   if (fread(a, sizeof(unsigned), 1u, fp) != 1u)
     return -3L;
 #ifndef NDEBUG
   (void)fprintf(stdout, "a = %u\n", *a);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   if (fread(G, sizeof(unsigned), 1u, fp) != 1u)
     return -4L;
 #ifndef NDEBUG
   (void)fprintf(stdout, "G = %u\n", *G);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   // Read A and B buffers, *L * *a * *G * sizeof(double complex) each
   size_t size = (size_t)(*L) * (size_t)(*a) * (size_t)(*G);
   *A = (double complex*)calloc(size, sizeof(double complex));
@@ -48,7 +48,7 @@ static long load_data
 #ifndef NDEBUG
     (void)fprintf(stdout, "T[%u] = [ ", atom);
     (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
     unsigned aa_size, ab_size, bb_size;
     // Taa
     if (fread(&aa_size, sizeof(unsigned), 1u, fp) != 1u)
@@ -56,7 +56,7 @@ static long load_data
 #ifndef NDEBUG
     (void)fprintf(stdout, "%u, ", aa_size);
     (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
     (*T_sizes)[3u * atom + 0u] = aa_size;
     size = (size_t)aa_size * (size_t)aa_size;
     (*T)[3u * atom + 0u] = (double complex*)calloc(size, sizeof(double complex));
@@ -74,7 +74,7 @@ static long load_data
 #ifndef NDEBUG
     (void)fprintf(stdout, "%u, ", ab_size);
     (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
     (*T_sizes)[3u * atom + 1u] = ab_size;
     size = (size_t)ab_size * (size_t)ab_size;
     (*T)[3u * atom + 1u] = (double complex*)calloc(size, sizeof(double complex));
@@ -87,7 +87,7 @@ static long load_data
 #ifndef NDEBUG
     (void)fprintf(stdout, "%u ", bb_size);
     (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
     (*T_sizes)[3u * atom + 2u] = bb_size;
     size = (size_t)bb_size * (size_t)bb_size;
     (*T)[3u * atom + 2u] = (double complex*)calloc(size, sizeof(double complex));
@@ -102,7 +102,7 @@ static long load_data
 #ifndef NDEBUG
     (void)fprintf(stdout, "]\n");
     (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   }
   // Buffers to compute norms
   size = (size_t)*a;
@@ -113,13 +113,13 @@ static long load_data
   for (unsigned i = 0u; i < *a; ++i)
     (void)fprintf(stdout, "lmaxs[%u] = %u\n", i, (*lmaxs)[i]);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   if (fread(max_lmax, sizeof(unsigned), 1u, fp) != 1u)
     return -14L;
 #ifndef NDEBUG
   (void)fprintf(stdout, "max_lmax = %u\n", *max_lmax);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   // u_norms: array of (*max_lmax+1) * *a doubles
   const unsigned max_lmax_1 = *max_lmax + 1u;
   size *= max_lmax_1;
@@ -139,7 +139,7 @@ static long load_data
     (void)fprintf(stdout, " }\n");
   }
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   const long ret = ftell(fp);
   // Done
   if (fclose(fp))

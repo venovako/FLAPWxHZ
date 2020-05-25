@@ -1,9 +1,9 @@
 #ifdef __INTEL_COMPILER
 #include <mathimf.h>
-#else // other C compilers
+#else /* other C compilers */
 #include <complex.h>
 #include <math.h>
-#endif // ?__INTEL_COMPILER
+#endif /* ?__INTEL_COMPILER */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

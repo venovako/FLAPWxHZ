@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 #ifndef NDEBUG
   (void)fprintf(stdout, "load_data = %ld\n", ret);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   if (ret < 0)
     return EXIT_FAILURE;
 
@@ -28,6 +28,6 @@ int main(int argc, char* argv[])
 #ifndef NDEBUG
   (void)fprintf(stdout, "split_data = %ld\n", ret);
   (void)fflush(stdout);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   return ((ret < 0) ? EXIT_FAILURE : EXIT_SUCCESS);
 }
