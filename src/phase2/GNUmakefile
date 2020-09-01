@@ -1,15 +1,15 @@
-ifndef CPU
-CPU=gnu
-endif # !CPU
-include ../$(CPU).mk
-MKFS=GNUmakefile ../$(CPU).mk
+ifndef COMPILER
+COMPILER=gnu
+endif # !COMPILER
+include ../$(COMPILER).mk
+MKFS=GNUmakefile ../$(COMPILER).mk
 
 .PHONY: all help clean
 
 all: phase2.exe
 
 help:
-	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase2.exe: phase2.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ$(PROFILE)$(DEBUG) $(LDFLAGS)
