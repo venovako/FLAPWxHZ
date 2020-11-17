@@ -18,9 +18,6 @@ ARFLAGS=-qnoipo -lib rsv
 CC=icc
 FC=ifort
 CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
-ifneq ($(ARCH),Darwin)
-CPUFLAGS += -qopenmp-threadprivate=compat
-endif # Linux
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
