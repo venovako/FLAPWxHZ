@@ -2,7 +2,7 @@
 The Hari-Zimmermann complex generalized hyperbolic SVD and EVD.
 
 A part of the supplementary material for the paper
-[doi:10.1137/19M1277813](https://doi.org/10.1137/19M1277813 "The LAPW Method with Eigendecomposition Based on the Hari–Zimmermann Generalized Hyperbolic SVD")
+doi:[10.1137/19M1277813](https://doi.org/10.1137/19M1277813 "The LAPW Method with Eigendecomposition Based on the Hari–Zimmermann Generalized Hyperbolic SVD")
 (arXiv:[1907.08560](https://arxiv.org/abs/1907.08560 "The LAPW Method with Eigendecomposition Based on the Hari–Zimmermann Generalized Hyperbolic SVD") \[math.NA\]).
 
 ## Building
