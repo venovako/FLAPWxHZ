@@ -9,7 +9,7 @@ doi:[10.1137/19M1277813](https://doi.org/10.1137/19M1277813 "The LAPW Method wit
 
 ### Prerequisites
 
-A recent 64-bit Linux (e.g., CentOS 7.7 with devtoolset-8) or macOS (e.g., Catalina) is needed.
+A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8) or macOS (e.g., Big Sur) is needed.
 
 Have the Intel MKL (Math Kernel Library) installed.
 
