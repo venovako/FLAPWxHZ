@@ -27,7 +27,7 @@ If ``COMPILER`` is not set, GNU C/C++/Fortran compilers will be used instead.
 
 GNU Fortran 9 and 10 are *not* supported!
 Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
-Currently, only GPU Fortran *8* is fully supported.
+Currently, only GNU Fortran *8* is fully supported.
 On RHEL/CentOS it is provided by, e.g., devtoolset-8.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
