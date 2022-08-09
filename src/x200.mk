@@ -35,7 +35,7 @@ ifeq ($(FP),strict)
 FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -xHost -qopt-multi-version-aggressive -qopt-zmm-usage=high
+OPTFLAGS=-O$(NDEBUG) -xHost -qopt-multi-version-aggressive -qopt-zmm-usage=high -vec-threshold0
 OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
