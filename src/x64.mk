@@ -40,7 +40,7 @@ OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS)
-DBGCFLAGS=$(DBGFLAGS) -w3 -diag-disable=1572,2547
+DBGCFLAGS=$(DBGFLAGS) -w3 -diag-disable=1572,2547,10441
 else # DEBUG
 OPTFLAGS=-O0 -xHost -qopt-multi-version-aggressive
 OPTFFLAGS=$(OPTFLAGS)
@@ -50,7 +50,7 @@ ifneq ($(ARCH),Darwin)
 DBGFLAGS += -debug parallel
 endif # Linux
 DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
-DBGCFLAGS=$(DBGFLAGS) -check=stack,uninit -w3 -diag-disable=1572,2547
+DBGCFLAGS=$(DBGFLAGS) -check=stack,uninit -w3 -diag-disable=1572,2547,10441
 endif # ?NDEBUG
 LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 LDFLAGS=-L../../../JACSD -lvn$(PROFILE)$(DEBUG)
