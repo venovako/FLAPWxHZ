@@ -33,6 +33,7 @@
 
 # Other
 *.optrpt
+*.opt.yaml
 *.dSYM
 
 # Directories
