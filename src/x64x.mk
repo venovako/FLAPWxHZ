@@ -29,7 +29,7 @@ ifeq ($(FP),strict)
 FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -xICELAKE-SERVER -vec-threshold0
+OPTFLAGS=-O$(NDEBUG) -xHost -vec-threshold0
 OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=3 -traceback
