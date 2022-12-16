@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libFLAPWxHZ$(PROFILE)$(DEBUG).a
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libFLAPWxHZ$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o
@@ -41,6 +41,7 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
+	-$(RM) *.opt.yaml
 	-$(RM) *__genmod.f90
 	-$(RM) *__genmod.mod
 	-$(RM) *.dSYM

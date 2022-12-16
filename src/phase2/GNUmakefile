@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: phase2.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase2.exe: phase2.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) phase2.o -o$@ -L../shared -lFLAPWxHZ$(PROFILE)$(DEBUG) $(LDFLAGS)
@@ -23,6 +23,7 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
+	-$(RM) *.opt.yaml
 	-$(RM) *__genmod.f90
 	-$(RM) *__genmod.mod
 	-$(RM) *.dSYM

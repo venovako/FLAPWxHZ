@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe dggsvd3t.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe zjh2.exe binvec.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 hif_test.exe: hif_test.o ../shared/libFLAPWxHZ$(PROFILE)$(DEBUG).a ../../../JACSD/libjstrat$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) hif_test.o -o$@ -L../shared -lFLAPWxHZ$(PROFILE)$(DEBUG) -L../../../JACSD -ljstrat$(PROFILE)$(DEBUG) $(LDFLAGS)
@@ -101,6 +101,7 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
+	-$(RM) *.opt.yaml
 	-$(RM) *__genmod.f90
 	-$(RM) *__genmod.mod
 	-$(RM) *.dSYM
