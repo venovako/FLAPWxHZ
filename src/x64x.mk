@@ -14,9 +14,6 @@ ARFLAGS=-qnoipo -lib rsv
 CC=icx
 FC=ifx
 CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
-ifdef PROFILE
-CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
-endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads
 C18FLAGS=$(CPUFLAGS) -std=c18
 FPUFLAGS=-fp-model $(FP) -fma -fprotect-parens -no-ftz
@@ -47,7 +44,7 @@ DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
 DBGCFLAGS=$(DBGFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-L../../../JACSD -lvn$(PROFILE)$(DEBUG)
+LDFLAGS=-L../../../JACSD -lvn$(DEBUG)
 ifeq ($(ARCH),Darwin)
 LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 else # Linux

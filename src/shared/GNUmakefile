@@ -6,12 +6,12 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 
 .PHONY: all help clean
 
-all: libFLAPWxHZ$(PROFILE)$(DEBUG).a
+all: libFLAPWxHZ$(DEBUG).a
 
 help:
 	@echo "gmake [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libFLAPWxHZ$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS)
+libFLAPWxHZ$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
