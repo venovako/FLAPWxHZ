@@ -20,13 +20,13 @@ Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory 
 Run ``make`` as follows:
 ```bash
 cd src
-make [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
+make [COMPILER=x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
-where ``COMPILER`` should be set for the Intel C/C++ and Fortran compilers (version 19.1+/2020+ recommended) to ``x64`` (deprecated but recommended) or ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
+where ``COMPILER`` should be set for the Intel C/C++ and Fortran compilers to ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
 
 GNU Fortran 9 and newer are *not* supported!
 Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
-Currently, only GNU Fortran *8* is fully supported.
+Currently, only GNU Fortran *8* is fully supported, by copying ``old/gnu.mk`` to this directory.
 On RHEL/CentOS it is provided by, e.g., devtoolset-8.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
