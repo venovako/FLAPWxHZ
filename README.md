@@ -20,13 +20,12 @@ Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory 
 Run ``make`` as follows:
 ```bash
 cd src
-make [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
+make [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel C/C++ and Fortran compilers (version 19.1+/2020+ recommended) to ``x64`` (deprecated but recommended) or ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
-If ``COMPILER`` is not set, GNU C/C++/Fortran compilers will be used instead.
 If ``x64x`` is used and some routines from the ``shared`` subdirectory fail to compile, their source file(s) should be replaced by the same-named one(s) from the ``x64x`` subdirectory.
 
-GNU Fortran 9 and 10 are *not* supported!
+GNU Fortran 9 and newer are *not* supported!
 Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
 Currently, only GNU Fortran *8* is fully supported.
 On RHEL/CentOS it is provided by, e.g., devtoolset-8.

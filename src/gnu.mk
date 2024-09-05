@@ -8,7 +8,7 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -fopenmp -rdynamic
+CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -fvect-cost-model=unlimited -march=native -fopenmp -rdynamic
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
 C18FLAGS=$(CPUFLAGS) -std=gnu18
 ifeq ($(ARCH),Darwin)
@@ -18,9 +18,11 @@ endif # !GNU
 endif # Darwin
 CC=gcc$(GNU)
 FC=gfortran$(GNU)
+DBGFLAGS=-Wall -Wextra
+FPUFLAGS=-ffp-contract=fast
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -march=native -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
-DBGFLAGS=-DNDEBUG -fopt-info-optimized-vec -pedantic -Wall -Wextra
+OPTFLAGS=-O$(NDEBUG)
+DBGFLAGS += -DNDEBUG
 ifeq ($(ARCH),Darwin)
 OPTFLAGS += -Wa,-q
 endif # Darwin
@@ -28,21 +30,20 @@ OPTFFLAGS=$(OPTFLAGS)
 OPTCFLAGS=$(OPTFLAGS)
 DBGFFLAGS=$(DBGFLAGS) -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 DBGCFLAGS=$(DBGFLAGS)
-FPUFLAGS=-ffp-contract=fast
+FPUFLAGS += -fno-math-errno
 FPUFFLAGS=$(FPUFLAGS)
-FPUCFLAGS=$(FPUFLAGS) -fno-math-errno
+FPUCFLAGS=$(FPUFLAGS)
 OPTFFLAGS += -DMKL_DIRECT_CALL
 else # DEBUG
-OPTFLAGS=-O$(DEBUG) -march=native
-DBGFLAGS=-$(DEBUG) -pedantic -Wall -Wextra
+OPTFLAGS=-O$(DEBUG)
+DBGFLAGS += -$(DEBUG)
 ifeq ($(ARCH),Darwin)
 OPTFLAGS += -Wa,-q
 endif # ?Darwin
 OPTFFLAGS=$(OPTFLAGS)
 OPTCFLAGS=$(OPTFLAGS)
-DBGFFLAGS=$(DBGFLAGS) -fcheck=array-temps -finit-local-zero -finit-real=snan -finit-derived -pedantic -Wall -Wextra -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all #-fcheck=all
+DBGFFLAGS=$(DBGFLAGS) -fcheck=array-temps -finit-local-zero -finit-real=snan -finit-derived -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all #-fcheck=all
 DBGCFLAGS=$(DBGFLAGS) #-ftrapv
-FPUFLAGS=-ffp-contract=fast
 FPUFFLAGS=$(FPUFLAGS) #-ffpe-trap=invalid,zero,overflow
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG

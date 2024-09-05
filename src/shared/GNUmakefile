@@ -1,5 +1,5 @@
 ifndef COMPILER
-COMPILER=gnu
+COMPILER=x64x
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libFLAPWxHZ$(DEBUG).a
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libFLAPWxHZ$(DEBUG).a: binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o hif_hz.o jqr.o params.o timer.o

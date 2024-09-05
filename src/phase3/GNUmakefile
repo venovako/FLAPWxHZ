@@ -1,5 +1,5 @@
 ifndef COMPILER
-COMPILER=gnu
+COMPILER=x64x
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: phase3.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase3.exe: phase3.o ../shared/libFLAPWxHZ$(DEBUG).a ../../../JACSD/libjstrat$(DEBUG).a ../../../JACSD/libvn$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) phase3.o -o$@ -L../shared -lFLAPWxHZ$(DEBUG) -L../../../JACSD -ljstrat$(DEBUG) $(LDFLAGS)
