@@ -97,18 +97,18 @@ CONTAINS
     !DIR$ ATTRIBUTES ALIGN:ALIGNB :: DR, DI
     INTEGER :: I, J, K
 
-    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    !DIR$ VECTOR ALWAYS ALIGNED
     X = Z_ZERO
-    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    !DIR$ VECTOR ALWAYS ALIGNED
     Y = Z_ZERO
-    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    !DIR$ VECTOR ALWAYS ALIGNED
     DR = D_ZERO
-    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    !DIR$ VECTOR ALWAYS ALIGNED
     DI = D_ZERO
 
     DO I = 1, M, DSIMDL
        K = MIN(DSIMDL, M-(I-1))
-       !DIR$ VECTOR ALWAYS ASSERT
+       !DIR$ VECTOR ALWAYS
        DO J = 1, K
           X(J) = ZX(I+(J-1))
           Y(J) = ZY(I+(J-1))
@@ -134,14 +134,14 @@ CONTAINS
     !DIR$ ATTRIBUTES ALIGN:ALIGNB :: D
     INTEGER :: I, J, K
 
-    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    !DIR$ VECTOR ALWAYS ALIGNED
     Z = Z_ZERO
-    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+    !DIR$ VECTOR ALWAYS ALIGNED
     D = D_ZERO
 
     DO I = 1, M, DSIMDL
        K = MIN(DSIMDL, M-(I-1))
-       !DIR$ VECTOR ALWAYS ASSERT
+       !DIR$ VECTOR ALWAYS
        DO J = 1, K
           Z(J) = ZZ(I+(J-1))
           D(J) = D(J) + JJ(I+(J-1)) * (REAL(Z(J))*REAL(Z(J)) + AIMAG(Z(J))*AIMAG(Z(J)))
@@ -229,7 +229,7 @@ CONTAINS
        END IF
     END IF
     IF (K .EQ. 2) THEN
-       !DIR$ VECTOR ALWAYS ASSERT
+       !DIR$ VECTOR ALWAYS
        DO I = 1, M
           T(I,1) = A(I,1)
           A(I,1) = Z_ZERO
@@ -265,7 +265,7 @@ CONTAINS
 
     T(1,1) = F1 + A(1,1)
     A(1,1) = -F1
-    !DIR$ VECTOR ALWAYS ASSERT
+    !DIR$ VECTOR ALWAYS
     DO I = 2, M
        T(I,1) = A(I,1)
        A(I,1) = Z_ZERO
@@ -507,7 +507,7 @@ CONTAINS
     !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I,J,K) SHARED(M,N,A,B,P)
     DO J = 1, N
        K = P(J)
-       !DIR$ VECTOR ALWAYS ASSERT
+       !DIR$ VECTOR ALWAYS
        DO I = 1, M
           B(I,J) = A(I,K)
        END DO

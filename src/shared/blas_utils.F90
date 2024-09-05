@@ -369,7 +369,7 @@ CONTAINS
 
     DO I = 1, N, DSIMDL
        K = MIN(DSIMDL, N-(I-1))
-       !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+       !DIR$ VECTOR ALWAYS ALIGNED
        DO J = 1, K
           W(J) = ZX(I+(J-1))
           Z(J) = ZY(I+(J-1))
@@ -477,7 +477,7 @@ CONTAINS
     INTEGER :: I
     !DIR$ ASSUME_ALIGNED DX:ALIGNB
 
-    !DIR$ VECTOR ALWAYS ASSERT
+    !DIR$ VECTOR ALWAYS
     DO I = 1, M
        ZY(I) = DX(I) * ZY(I)
     END DO

@@ -97,7 +97,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 #endif
 
   INFO = 0
-  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  !DIR$ VECTOR ALWAYS ALIGNED
   NROT = 0
   IF (K .LE. 0) RETURN
 
@@ -117,45 +117,45 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
   VPS = (NPAIRS + (PPV - 1)) / PPV
 
   DO SWEEP = 1, NSWP
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      SNROT = 0
      DO STEP = 1, NSTEPS
         DO VEC = 1, VPS
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            HZ = 0
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DHZ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            RE_S_PP = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            RE_S_QQ = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            RE_S_PQ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED  
+           !DIR$ VECTOR ALWAYS ALIGNED
            IM_S_PQ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            AV_S_PQ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            CA_S_PQ = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            SA_S_PQ = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            RE_H_PP = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            RE_H_QQ = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            RE_H_PQ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            IM_H_PQ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            AV_H_PQ = D_ZERO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            CA_H_PQ = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            SA_H_PQ = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            SG = D_ONE
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            S2T = D_ONE
 
            ! compute the dot products
@@ -175,22 +175,22 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  RE_S_PQ(PIX) = D_ZERO
                  IM_S_PQ(PIX) = D_ZERO
 
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP1 = D_ZERO ! RE_S_PP
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP2 = D_ZERO ! RE_S_QQ
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP3 = D_ZERO ! RE_S_PQ
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP4 = D_ZERO ! IM_S_PQ
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  ZTMP1 = Z_ZERO ! ZP
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  ZTMP2 = Z_ZERO ! ZQ
 
                  DO I = 1, K, DSIMDL
                     L = MIN(DSIMDL, K-(I-1))
-                    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                    !DIR$ VECTOR ALWAYS ALIGNED
                     DO J = 1, L
                        ZTMP1(J) = BS(I+(J-1),P)
                        ZTMP2(J) = BS(I+(J-1),Q)
@@ -244,22 +244,22 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
                  RE_H_PQ(PIX) = D_ZERO
                  IM_H_PQ(PIX) = D_ZERO
 
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP1 = D_ZERO ! RE_H_PP
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP2 = D_ZERO ! RE_H_QQ
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP3 = D_ZERO ! RE_H_PQ
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DTMP4 = D_ZERO ! IM_H_PQ
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  ZTMP1 = Z_ZERO ! ZP
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  ZTMP2 = Z_ZERO ! ZQ
 
                  DO I = 1, NPLUS, DSIMDL
                     L = MIN(DSIMDL, NPLUS-(I-1))
-                    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                    !DIR$ VECTOR ALWAYS ALIGNED
                     DO J = 1, L
                        ZTMP1(J) = BH(I+(J-1),P)
                        ZTMP2(J) = BH(I+(J-1),Q)
@@ -275,7 +275,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 
                  DO I = NPLUS+1, K, DSIMDL
                     L = MIN(DSIMDL, K-(I-1))
-                    !DIR$ VECTOR ALWAYS ASSERT
+                    !DIR$ VECTOR ALWAYS
                     DO J = 1, L
                        ZTMP1(J) = BH(I+(J-1),P)
                        ZTMP2(J) = BH(I+(J-1),Q)
@@ -338,7 +338,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 
            ! compute the transformation for a pair corresponding to the vector lane
 
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO PIX = 1, DSIMDL ! PPV
               ! compute the scales
               DTMP1(PIX) = RE_S_PP(PIX) * RE_S_PP(PIX)
@@ -386,7 +386,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 #endif
            SNROT(1) = SNROT(1) + J
 
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO PIX = 1, DSIMDL ! PPV
               ! get the polar form
               DTMP1(PIX) = D_ONE / AV_H_PQ(PIX)
@@ -502,7 +502,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
         END DO
      END DO
      IF (SNROT(1) .EQ. 0) EXIT
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      DO I = 1, 2
         NROT(I) = NROT(I) + SNROT(I)
      END DO
@@ -514,12 +514,12 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
 
   DO J = 1, K
      ! compute the J-norm
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      DTMP1 = D_ZERO
 
      DO I = 1, NPLUS, DSIMDL
         P = MIN(DSIMDL, NPLUS-(I-1))
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         DO L = 1, P
            ZTMP1(L) = BH(I+(L-1),J)
            !REAL(CONJG(ZTMP1(L))*ZTMP1(L))
@@ -528,7 +528,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
      END DO
      DO I = NPLUS+1, K, DSIMDL
         P = MIN(DSIMDL, K-(I-1))
-        !DIR$ VECTOR ALWAYS ASSERT
+        !DIR$ VECTOR ALWAYS
         DO L = 1, P
            ZTMP1(L) = BH(I+(L-1),J)
            !REAL(CONJG(ZTMP1(L))*ZTMP1(L))
@@ -548,12 +548,12 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
      END IF
 
      ! compute the norm
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      DTMP2 = D_ZERO
 
      DO I = 1, K, DSIMDL
         P = MIN(DSIMDL, K-(I-1))
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         DO L = 1, P
            ZTMP2(L) = BS(I+(L-1),J)
            !REAL(CONJG(ZTMP2(L))*ZTMP2(L))
@@ -583,7 +583,7 @@ SUBROUTINE ZHZL1(K, BH,NPLUS, BS,BZ, LDB, JS,JSPAIR, NSWP, NROT,INFO)
            DTOL = DSCL(3)
            DO I = 1, K, DSIMDL
               P = MIN(DSIMDL, K-(I-1))
-              !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+              !DIR$ VECTOR ALWAYS ALIGNED
               DO L = 1, P
                  BZ(I+(L-1),J) = BZ(I+(L-1),J) / DTOL
               END DO

@@ -128,7 +128,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
   END IF
   IF (INFO .NE. 0) RETURN
 
-  !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+  !DIR$ VECTOR ALWAYS ALIGNED
   NROT = 0
   IF (N .EQ. 0) RETURN
 
@@ -155,90 +155,90 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
   CALL ZLASET('A', N, N, Z_ZERO, Z_ONE, Z, LDZ)
 
   DO SWEEP = 1, NSWP
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      SNROT = 0
      DO STEP = 1, NSTEPS
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         LNROT = 0
         !$OMP  PARALLEL DEFAULT(NONE) REDUCTION(+:LNROT) PRIVATE(VEC,I,J,L,P,Q,R,PIX,PAIR) &
         !$OMP& SHARED(M,N,H,LDH,S,LDS,Z,LDZ,JVEC,DTOL,NPAIRS,JS,JSPAIR,STEP,PPV,VPS, HZ,DHZ, &
         !$OMP& RE_H_PP,RE_H_QQ,RE_H_PQ,IM_H_PQ,AV_H_PQ,CA_H_PQ,SA_H_PQ,RE_S_PP,RE_S_QQ,RE_S_PQ,IM_S_PQ,AV_S_PQ,CA_S_PQ,SA_S_PQ,&
         !$OMP& T,U,V,E,TG,CG,SG,T2T,C2T,S2T,CPHI,CPSI,RE_ASPHI,IM_ASPHI,RE_MBSPSI,IM_MBSPSI,ZTMP1,ZTMP2,DTMP1,DTMP2,DTMP3,DTMP4)
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         LNROT = 0
         !$OMP DO
         DO VEC = 1, VPS
            R = INT(OMP_GET_THREAD_NUM()) + 1
 
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, ISIMDL
               HZ(I,R) = 0
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               DHZ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               RE_S_PP(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               RE_S_QQ(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               RE_S_PQ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               IM_S_PQ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               AV_S_PQ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               CA_S_PQ(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               SA_S_PQ(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               RE_H_PP(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               RE_H_QQ(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               RE_H_PQ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               IM_H_PQ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               AV_H_PQ(I,R) = D_ZERO
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               CA_H_PQ(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               SA_H_PQ(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               SG(I,R) = D_ONE
            END DO
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO I = 1, DSIMDL
               S2T(I,R) = D_ONE
            END DO
@@ -260,34 +260,34 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  RE_S_PQ(PIX,R) = D_ZERO
                  IM_S_PQ(PIX,R) = D_ZERO
 
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP1(I,R) = D_ZERO ! RE_S_PP
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP2(I,R) = D_ZERO ! RE_S_QQ
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP3(I,R) = D_ZERO ! RE_S_PQ
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP4(I,R) = D_ZERO ! IM_S_PQ
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     ZTMP1(I,R) = Z_ZERO ! ZP
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     ZTMP2(I,R) = Z_ZERO ! ZQ
                  END DO
 
                  DO I = 1, M, DSIMDL
                     L = MIN(DSIMDL, M-(I-1))
-                    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                    !DIR$ VECTOR ALWAYS ALIGNED
                     DO J = 1, L
                        ZTMP1(J,R) = S(I+(J-1),P)
                        ZTMP2(J,R) = S(I+(J-1),Q)
@@ -341,34 +341,34 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
                  RE_H_PQ(PIX,R) = D_ZERO
                  IM_H_PQ(PIX,R) = D_ZERO
 
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP1(I,R) = D_ZERO ! RE_H_PP
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP2(I,R) = D_ZERO ! RE_H_QQ
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP3(I,R) = D_ZERO ! RE_H_PQ
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     DTMP4(I,R) = D_ZERO ! IM_H_PQ
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     ZTMP1(I,R) = Z_ZERO ! ZP
                  END DO
-                 !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                 !DIR$ VECTOR ALWAYS ALIGNED
                  DO I = 1, DSIMDL
                     ZTMP2(I,R) = Z_ZERO ! ZQ
                  END DO
 
                  DO I = 1, M, DSIMDL
                     L = MIN(DSIMDL, M-(I-1))
-                    !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+                    !DIR$ VECTOR ALWAYS ALIGNED
                     DO J = 1, L
                        ZTMP1(J,R) = H(I+(J-1),P)
                        ZTMP2(J,R) = H(I+(J-1),Q)
@@ -428,7 +428,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
 
            ! compute the transformation for a pair corresponding to the vector lane
   
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO PIX = 1, DSIMDL ! PPV
               ! compute the scales
               DTMP1(PIX,R) = RE_S_PP(PIX,R) * RE_S_PP(PIX,R)
@@ -476,7 +476,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
 #endif
            LNROT(1) = LNROT(1) + J
 
-           !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+           !DIR$ VECTOR ALWAYS ALIGNED
            DO PIX = 1, DSIMDL ! PPV
               ! get the polar form
               DTMP1(PIX,R) = D_ONE / AV_H_PQ(PIX,R)
@@ -592,11 +592,11 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
         END DO
         !$OMP END DO
         !$OMP END PARALLEL
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         SNROT = SNROT + LNROT
      END DO
      WRITE (ULOG,'(I3,A,I20,A,I20)') SWEEP,',',SNROT(1),',',SNROT(2)
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      NROT = NROT + SNROT
      IF (SNROT(2) .EQ. 0) EXIT
   END DO
@@ -611,14 +611,14 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
   DO J = 1, N
      R = INT(OMP_GET_THREAD_NUM()) + 1
 
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      DO I = 1, DSIMDL
         DTMP1(I,R) = D_ZERO
      END DO
 
      DO I = 1, M, DSIMDL
         P = MIN(DSIMDL, M-(I-1))
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         DO L = 1, P
            ZTMP1(L,R) = H(I+(L-1),J)
            DTMP1(L,R) = DTMP1(L,R) + JVEC(I+(L-1))*(REAL(ZTMP1(L,R))*REAL(ZTMP1(L,R)) + AIMAG(ZTMP1(L,R))*AIMAG(ZTMP1(L,R)))
@@ -638,14 +638,14 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
         SY(J) = D_ZERO
      END IF
 
-     !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+     !DIR$ VECTOR ALWAYS ALIGNED
      DO I = 1, DSIMDL
         DTMP2(I,R) = D_ZERO
      END DO
 
      DO I = 1, M, DSIMDL
         P = MIN(DSIMDL, M-(I-1))
-        !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+        !DIR$ VECTOR ALWAYS ALIGNED
         DO L = 1, P
            ZTMP2(L,R) = S(I+(L-1),J)
            DTMP2(L,R) = DTMP2(L,R) + (REAL(ZTMP2(L,R))*REAL(ZTMP2(L,R)) + AIMAG(ZTMP2(L,R))*AIMAG(ZTMP2(L,R)))
@@ -680,7 +680,7 @@ SUBROUTINE ZHZL1SA(M,N, H,LDH, JVEC, S,LDS, Z,LDZ, JS,JSPAIR, NSWP,CPR,TPC,&
            SW(J) = SW(J) / DTOL
            DO I = 1, N, DSIMDL
               P = MIN(DSIMDL, N-(I-1))
-              !DIR$ VECTOR ALWAYS ASSERT,ALIGNED
+              !DIR$ VECTOR ALWAYS ALIGNED
               DO L = 1, P
                  Z(I+(L-1),J) = Z(I+(L-1),J) / DTOL
               END DO

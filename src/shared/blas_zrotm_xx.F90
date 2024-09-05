@@ -40,7 +40,7 @@
        IF (RIGHT) THEN
           SELECT CASE (INFO)
           CASE (1) ! C1 =  1, C2 =  1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -48,7 +48,7 @@
                 ZY(I) = W*S2 + Z
              END DO
           CASE (2) ! C1 =  1, C2 =  0
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -56,7 +56,7 @@
                 ZY(I) = W*S2
              END DO
           CASE (3) ! C1 =  1, C2 = -1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -64,7 +64,7 @@
                 ZY(I) = W*S2 - Z
              END DO
           CASE (4) ! C1 =  0, C2 =  1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -72,7 +72,7 @@
                 ZY(I) = W*S2 + Z
              END DO
           CASE (5) ! C1 =  0, C2 =  0
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -80,7 +80,7 @@
                 ZY(I) = W*S2
              END DO
           CASE (6) ! C1 =  0, C2 = -1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -88,7 +88,7 @@
                 ZY(I) = W*S2 - Z
              END DO
           CASE (7) ! C1 = -1, C2 =  1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -96,7 +96,7 @@
                 ZY(I) = W*S2 + Z
              END DO
           CASE (8) ! C1 = -1, C2 =  0
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -104,7 +104,7 @@
                 ZY(I) = W*S2
              END DO
           CASE (9) ! C1 = -1, C2 = -1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -112,7 +112,7 @@
                 ZY(I) = W*S2 - Z
              END DO
           CASE DEFAULT
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -123,7 +123,7 @@
        ELSE ! left
           SELECT CASE (INFO)
           CASE (1) ! C1 =  1, C2 =  1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -131,7 +131,7 @@
                 ZY(I) = W*S1 + Z
              END DO
           CASE (2) ! C1 =  1, C2 =  0
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -139,7 +139,7 @@
                 ZY(I) = W*S1
              END DO
           CASE (3) ! C1 =  1, C2 = -1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -147,7 +147,7 @@
                 ZY(I) = W*S1 - Z
              END DO
           CASE (4) ! C1 =  0, C2 =  1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -155,7 +155,7 @@
                 ZY(I) = W*S1 + Z
              END DO
           CASE (5) ! C1 =  0, C2 =  0
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -163,7 +163,7 @@
                 ZY(I) = W*S1
              END DO
           CASE (6) ! C1 =  0, C2 = -1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -171,7 +171,7 @@
                 ZY(I) = W*S1 - Z
              END DO
           CASE (7) ! C1 = -1, C2 =  1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -179,7 +179,7 @@
                 ZY(I) = W*S1 + Z
              END DO
           CASE (8) ! C1 = -1, C2 =  0
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -187,7 +187,7 @@
                 ZY(I) = W*S1
              END DO
           CASE (9) ! C1 = -1, C2 = -1
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)
@@ -195,7 +195,7 @@
                 ZY(I) = W*S1 - Z
              END DO
           CASE DEFAULT
-             !DIR$ VECTOR ALWAYS ASSERT
+             !DIR$ VECTOR ALWAYS
              DO I = 1, N
                 W = ZX(I)
                 Z = ZY(I)

@@ -81,7 +81,7 @@ PROGRAM PHASE4
      END IF
      IF (SCAL .NE. D_ONE) THEN
         WRITE (ULOG,'(A,I6)') 'SCALE non-unity with J=', J
-        !DIR$ VECTOR ALWAYS ASSERT
+        !DIR$ VECTOR ALWAYS
         DO I = 1, N
            X(I,J) = X(I,J) / SCAL
         END DO
