@@ -13,12 +13,12 @@ AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 CC=icx
 FC=ifx
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -mprefer-vector-width=512 -vec-threshold0 -qopenmp -rdynamic -static-libgcc
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -mprefer-vector-width=512 -vec-threshold0 -qopenmp
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads
 C18FLAGS=$(CPUFLAGS) -std=c18
-FPUFLAGS=-fp-model=$(FP) -fp-speculation=safe -fma -fprotect-parens -no-ftz
+FPUFLAGS=-fp-model=$(FP) -fp-speculation=safe -fma -fprotect-parens -no-ftz -fimf-precision=high
 ifneq ($(FP),strict)
-FPUFLAGS += -fimf-use-svml=true -fimf-precision=high
+FPUFLAGS += -fimf-use-svml=true
 endif # !strict
 FPUFFLAGS=$(FPUFLAGS)
 FPUCFLAGS=$(FPUFLAGS)
@@ -42,6 +42,6 @@ DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
 DBGCFLAGS=$(DBGFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lm -ldl
+LDFLAGS=-rdynamic -static-libgcc -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lm -ldl -lmemkind
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)
