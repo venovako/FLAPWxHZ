@@ -7,7 +7,7 @@ static long split_data
  const unsigned *const T_sizes,
  const double complex *const A,
  const double complex *const B,
- const double complex *const *const T,
+ double complex *const *const T,
  const unsigned *const lmaxs,
  const double *const u_norms)
 {

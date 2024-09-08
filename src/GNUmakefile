@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(COMPILER).mk
 all: PHASE0 PHASE1 PHASE2 PHASE3 PHASE4 SHARED TEST
 
 help:
-	@echo "gmake [COMPILER=x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 PHASE0: SHARED $(MKFS)
 ifdef NDEBUG

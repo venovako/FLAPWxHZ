@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: phase0.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase0.exe: phase0.o $(MKFS)
 	$(CC) $(CFLAGS) phase0.o -o$@ $(LDFLAGS)

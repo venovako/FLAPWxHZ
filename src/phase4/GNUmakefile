@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: phase4.exe phase4d.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 phase4.exe: phase4.o ../shared/libFLAPWxHZ$(DEBUG).a ../../../JACSD/libvn$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) phase4.o -o$@ -L../shared -lFLAPWxHZ$(DEBUG) $(LDFLAGS)

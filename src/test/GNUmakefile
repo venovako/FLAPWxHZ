@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: hif_test.exe jstrat_test.exe err_test.exe derr_test.exe dggsvd3t.exe rot_test.exe zhegvt.exe zggsvd3t.exe zgent.exe zhzl1sat.exe zksqrt2t.exe zjht.exe zjh2.exe binvec.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 hif_test.exe: hif_test.o ../shared/libFLAPWxHZ$(DEBUG).a ../../../JACSD/libjstrat$(DEBUG).a ../../../JACSD/libvn$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) hif_test.o -o$@ -L../shared -lFLAPWxHZ$(DEBUG) -L../../../JACSD -ljstrat$(DEBUG) $(LDFLAGS)
