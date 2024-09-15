@@ -14,7 +14,7 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-CPUFLAGS=-DUSE_NVIDIA -DUSE_X64 -DKIND_QUAD=$(WP) -m64 -mp -KPIC -Mframe -Meh_frame -Minfo
+CPUFLAGS=-DUSE_NVIDIA -DUSE_X64 -DKIND_QUAD=$(WP) -m64 -mp -KPIC -Mframe -Meh_frame -Minfo -tp=native
 FORFLAGS=$(CPUFLAGS) -i8 -Mdclchk -Mlarge_arrays -Mrecursive -Mstack_arrays
 C11FLAGS=$(CPUFLAGS) -c11
 CC=nvc
