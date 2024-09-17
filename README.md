@@ -20,7 +20,7 @@ Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory 
 Run ``make`` as follows:
 ```bash
 cd src
-make [COMPILER=x64x|x200|gnu] [CPU=...] [NDEBUG=optimization_level] [all|clean|help]
+make [COMPILER=x64x|x200|x64|gnu|nvidia] [CPU=...] [NDEBUG=optimization_level] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel C/C++ and Fortran compilers to ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
 
