@@ -10,7 +10,7 @@ AR=ar
 ARFLAGS=rsv
 ifndef MARCH
 ifeq ($(shell uname -m),ppc64le)
-MARCH=mcpu=native
+MARCH=mcpu=native -mpower8-fusion -mtraceback=full
 else # !ppc64le
 MARCH=march=native
 endif # ?ppc64le
