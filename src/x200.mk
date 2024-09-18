@@ -30,7 +30,7 @@ FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 DBGFLAGS=-traceback
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG)
+OPTFLAGS=-O$(NDEBUG) -fno-math-errno -inline-level=2
 OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS += -DNDEBUG -qopt-report=3
