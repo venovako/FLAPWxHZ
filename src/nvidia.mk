@@ -43,7 +43,7 @@ FPUFFLAGS=$(FPUFLAGS)
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-D_GNU_SOURCE -DMKL_ILP64 -I. -I../../../JACSD/vn
-LDFLAGS=-Wl,-E -L../../../JACSD -lvn$(DEBUG)
+LDFLAGS=-Wl,-E -static-nvidia -L../../../JACSD -lvn$(DEBUG)
 ifdef MKLROOT
 LIBFLAGS += -DUSE_MKL -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 # define MKL=pgi_thread for a threaded MKL
