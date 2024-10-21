@@ -52,7 +52,7 @@ MKL=sequential
 endif # !MKL
 LDFLAGS += -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_$(MKL) -lmkl_core
 else # !MKLROOT
-LDFLAGS += -L$(HOME)/lapack_$(ABI) -ltmglib -llapack -lrefblas
+LDFLAGS += -L$(HOME)/lapack_ilp64 -ltmglib -llapack -lrefblas
 endif # ?MKLROOT
 LDFLAGS += -pgf90libs -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
