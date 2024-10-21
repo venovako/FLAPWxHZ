@@ -11,8 +11,6 @@ doi:[10.1137/19M1277813](https://doi.org/10.1137/19M1277813 "The LAPW Method wit
 
 A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8) or macOS (e.g., Big Sur) is needed.
 
-Have the Intel MKL (Math Kernel Library) installed.
-
 Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory parallel to this one.
 
 ### Make options
@@ -27,7 +25,7 @@ where ``COMPILER`` should be set for the Intel C/C++ and Fortran compilers to ``
 GNU Fortran 9 and newer are *not* supported!
 Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
 Currently, only GNU Fortran *8* is fully supported with ``COMPILER=gnu``.
-On RHEL/CentOS it is provided by, e.g., devtoolset-8.
+On RHEL/CentOS 7 it is provided by, e.g., devtoolset-8.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.
