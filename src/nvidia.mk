@@ -42,11 +42,18 @@ DBGCFLAGS=$(DBGFLAGS)
 FPUFFLAGS=$(FPUFLAGS)
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
+LIBFLAGS=-D_GNU_SOURCE -DMKL_ILP64 -I. -I../../../JACSD/vn
+LDFLAGS=-Wl,-E -L../../../JACSD -lvn$(DEBUG)
+ifdef MKLROOT
+LIBFLAGS += -DUSE_MKL -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 # define MKL=pgi_thread for a threaded MKL
 ifndef MKL
 MKL=sequential
 endif # !MKL
-LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/jstrat -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-Wl,-E -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_$(MKL) -lmkl_core -pgf90libs -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
+LDFLAGS += -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_$(MKL) -lmkl_core
+else # !MKLROOT
+LDFLAGS += -L$(HOME)/lapack_$(ABI) -ltmglib -llapack -lrefblas
+endif # ?MKLROOT
+LDFLAGS += -pgf90libs -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)
