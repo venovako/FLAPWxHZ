@@ -57,16 +57,19 @@ LIBFLAGS=-DMKL_ILP64 -I. -I../../../JACSD/vn
 ifeq ($(ARCH),Linux)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-rdynamic -static-libgcc -static-libgfortran -static-libquadmath -L../../../JACSD -lvn$(DEBUG)
+LDFLAGS=-rdynamic -static-libgcc -static-libgfortran -static-libquadmath -L../../../JACSD -lvn$(DEBUG) # -static
 ifdef MKLROOT
 LIBFLAGS += -DUSE_MKL -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 ifdef NDEBUG
 LIBFLAGS += -DMKL_DIRECT_CALL
 endif # NDEBUG
 ifeq ($(ARCH),Darwin)
-LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../../compiler/latest/mac/compiler/lib -Wl,-rpath,${MKLROOT}/../../compiler/latest/mac/compiler/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lgomp
+#-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../../compiler/latest/mac/compiler/lib -Wl,-rpath,${MKLROOT}/../../compiler/latest/mac/compiler/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5
+LDFLAGS += ${MKLROOT}/lib/libmkl_intel_ilp64.a ${MKLROOT}/lib/libmkl_intel_thread.a ${MKLROOT}/lib/libmkl_core.a ${MKLROOT}/../../compiler/latest/mac/compiler/lib/libiomp5.a
 else # Linux
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp
+#-L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp
+LDFLAGS += -Wl,--start-group ${MKLROOT}/lib/libmkl_gf_ilp64.a ${MKLROOT}/lib/libmkl_gnu_thread.a ${MKLROOT}/lib/libmkl_core.a -Wl,--end-group #-lgomp
+LDFLAGS += $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 endif # ?Darwin
 else # !MKLROOT
 ifndef LAPACK
@@ -74,6 +77,6 @@ LAPACK=$(HOME)/lapack-ilp64
 endif # !LAPACK
 LDFLAGS += -L$(LAPACK) -ltmglib -llapack -lrefblas
 endif # ?MKLROOT
-LDFLAGS += -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
+LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)
