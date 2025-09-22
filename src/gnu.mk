@@ -57,7 +57,7 @@ LIBFLAGS=-DMKL_ILP64 -I. -I../../../JACSD/vn
 ifeq ($(ARCH),Linux)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-rdynamic -static-libgcc -static-libgfortran -static-libquadmath -L../../../JACSD -lvn$(DEBUG) # -static
+LDFLAGS=-rdynamic -L../../../JACSD -lvn$(DEBUG)
 ifdef MKLROOT
 LIBFLAGS += -DUSE_MKL -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 ifdef NDEBUG
